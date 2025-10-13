@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guard Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #121212;
+      background-image: url('patch-bg.png');
+      background-repeat: no-repeat;
+      background-size: 300px 300px;
+      background-position: center center;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 25px;
+      background-color: rgba(0,0,0,0.65);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+    }
+
+    header img {
+      height: 45px;
+      margin-right: 15px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 25px;
+      padding: 40px 20px;
+      flex-grow: 1;
+    }
+
+    .card {
+      background: #1e1e1e;
+      border-radius: 15px;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.6);
+      background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+    }
+
+    .card i {
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      color: #a8ff60;
+      transition: color 0.3s ease;
+    }
+
+    .card span {
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      color: #fff;
+    }
+
+    footer {
+      background-color: #111;
+      color: #fff;
+      text-align: center;
+      padding: 12px;
+      font-size: 0.9rem;
+      box-shadow: 0 -4px 6px rgba(0,0,0,0.3);
+    }
+
+    body { animation: fadeIn 1s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="patch-bg.png" alt="Company Logo">
+  <h1>Guard Dashboard</h1>
+</header>
+
+<div class="dashboard">
+  <div class="card" onclick="alert('Go to Missions')">
+    <i class="fas fa-briefcase"></i>
+    <span>Missions</span>
+  </div>
+  <div class="card" onclick="alert('Go to Training')">
+    <i class="fas fa-school"></i>
+    <span>Training</span>
+  </div>
+  <div class="card" onclick="alert('Go to Chat')">
+    <i class="fas fa-comments"></i>
+    <span>Chat</span>
+  </div>
+  <div class="card" onclick="alert('Go to Profile')">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+  </div>
+  <div class="card" onclick="alert('Go to Notifications')">
+    <i class="fas fa-bell"></i>
+    <span>Notifications</span>
+  </div>
+  <div class="card" onclick="alert('Go to Settings')">
+    <i class="fas fa-cog"></i>
+    <span>Settings</span>
+  </div>
+</div>
+
+<footer>
+  &copy; 2025 Signature Security Specialist. All rights reserved.
+</footer>
+
+</body>
+</html>

@@ -44,6 +44,7 @@
           <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Draft</button>
           <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Load Draft</button>
           <button id="btnClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Clear</button>
+          <button id="btnSaveReport" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Report</button>
           <button id="btnCopy" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Copy</button>
         </div>
       </div>
@@ -62,6 +63,7 @@
     <a href="radio.html" class="nav-link">Phonetics</a>
     <a href="incident.html" class="nav-link" aria-current="page">Incident</a>
     <a href="shift.html" class="nav-link">Shift</a>
+    <a href="reports.html" class="nav-link">Reports</a>
   </nav>
 
   <script>
@@ -69,7 +71,7 @@
     document.addEventListener('DOMContentLoaded',()=>{ if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); });
     // Fixed bottom nav; no scroll toggling required
 
-    const STORE_KEYS = { profile:'sss_profile', incidents:'sss_incidents', templateDrafts:'sss_template_drafts' };
+    const STORE_KEYS = { profile:'sss_profile', incidents:'sss_incidents', templateDrafts:'sss_template_drafts', savedIncidentReports:'sss_saved_incident_reports' };
     function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }
     function saveJson(key,value){ localStorage.setItem(key, JSON.stringify(value)); }
 
@@ -81,6 +83,7 @@
     const btnLoad = document.getElementById('btnLoadDraft');
     const btnClear = document.getElementById('btnClear');
     const btnCopy = document.getElementById('btnCopy');
+    const btnSaveReport = document.getElementById('btnSaveReport');
 
     const TEMPLATE = {
       id: 'incident_report',
@@ -194,6 +197,29 @@
         detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
       };
       return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> (k in computed) ? toDisplay(computed[k]) : toDisplay(fieldValues[k]));
+    }
+
+    function saveIncidentReport(){
+      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Who, What, When, and Where before saving.'; return; }
+      const bodyText = compileBody();
+      const arr = loadJson(STORE_KEYS.savedIncidentReports, []);
+      const record = {
+        id: 'inc_'+Date.now(),
+        category: 'incident',
+        templateId: TEMPLATE.id,
+        at: Date.now(),
+        fields: { ...fieldValues },
+        meta: {
+          dateTime: fieldValues.dateTime || '',
+          type: fieldValues.incidentType || '',
+          post: fieldValues.post || '',
+          where: [fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — ')
+        },
+        body: bodyText
+      };
+      arr.unshift(record);
+      saveJson(STORE_KEYS.savedIncidentReports, arr);
+      statusEl.textContent = 'Incident report saved.';
     }
 
     function formatDateTimeForInput(iso){ try{ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return ''; const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }catch{return '';} }
@@ -364,6 +390,7 @@
     btnLoad.addEventListener('click', loadDraft);
     btnClear.addEventListener('click', clearFields);
     btnCopy.addEventListener('click', copyToClipboard);
+    btnSaveReport.addEventListener('click', saveIncidentReport);
 
     // init
     fieldValues = {};

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports — Signature Security Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
+    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+    .app-card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:1rem; }
+    #bottomNav{ position:fixed; left:0; right:0; bottom:0; width:100%; height:var(--bottom-nav-height,56px); display:flex; justify-content:space-around; align-items:center; gap:.25rem; background:rgba(17,17,17,0.9); backdrop-filter:saturate(180%) blur(10px); border-top:1px solid rgba(255,255,255,0.06); z-index:60; padding:0 .5rem calc(env(safe-area-inset-bottom,0px)); }
+    #bottomNav a{ flex:1 1 0; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .nav-link{ border-radius:10px; padding:.5rem .75rem; transition:background 160ms ease; }
+    .nav-link[aria-current="page"]{ background:rgba(255,255,255,0.08); }
+    #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
+    .accent{ color:var(--accent); }
+    .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:70; padding:1rem; }
+    .modal-backdrop.show{ display:flex; }
+    .modal-card{ background:var(--card); border:1px solid rgba(255,255,255,0.08); border-radius:12px; width:100%; max-width:820px; max-height:85vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+    @media print{ header,#bottomNav,.modal-backdrop{ display:none !important; } #mainContent{ padding:0 !important; } }
+  </style>
+</head>
+<body>
+  <header class="p-4 pb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
+      <p class="text-sm text-gray-400">Reports — saved incidents and shift reports</p>
+    </div>
+    <div class="flex space-x-2">
+      <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="flex-1 overflow-auto p-5">
+    <section class="max-w-5xl mx-auto space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="app-card">
+          <div class="font-semibold mb-2">Saved Incident Reports</div>
+          <div id="incidentList" class="space-y-2 text-sm"></div>
+        </div>
+        <div class="app-card">
+          <div class="font-semibold mb-2">Saved Shift Reports</div>
+          <div id="shiftList" class="space-y-2 text-sm"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav id="bottomNav">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="codes.html" class="nav-link">Codes</a>
+    <a href="radio.html" class="nav-link">Phonetics</a>
+    <a href="incident.html" class="nav-link">Incident</a>
+    <a href="shift.html" class="nav-link">Shift</a>
+    <a href="reports.html" class="nav-link" aria-current="page">Reports</a>
+  </nav>
+
+  <div id="reportModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card">
+      <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+        <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+        <div class="flex items-center gap-2">
+          <button id="modalCopy" class="bg-[#111] hover:bg-[#222] px-3 py-1 rounded-md border border-white/10">Copy</button>
+          <button id="modalClose" class="bg-[#111] hover:bg-[#222] px-3 py-1 rounded-md border border-white/10">Close</button>
+        </div>
+      </div>
+      <pre id="modalBody" class="px-4 py-3 whitespace-pre-wrap text-sm text-gray-200"></pre>
+    </div>
+  </div>
+
+  <script>
+    function toggleLarge(){ document.body.classList.toggle('text-lg'); localStorage.setItem('sss_large', document.body.classList.contains('text-lg')); }
+    document.addEventListener('DOMContentLoaded',()=>{ if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); });
+
+    const STORE_KEYS = { savedIncidentReports:'sss_saved_incident_reports', savedShiftReports:'sss_saved_shift_reports' };
+    function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }
+
+    const incidentList = document.getElementById('incidentList');
+    const shiftList = document.getElementById('shiftList');
+    const modalEl = document.getElementById('reportModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalClose = document.getElementById('modalClose');
+    const modalCopy = document.getElementById('modalCopy');
+
+    let currentBody = '';
+
+    function openModal(title, body){
+      modalTitle.textContent = title;
+      modalBody.textContent = body;
+      currentBody = body;
+      modalEl.classList.add('show');
+      modalEl.setAttribute('aria-hidden','false');
+    }
+    function closeModal(){
+      modalEl.classList.remove('show');
+      modalEl.setAttribute('aria-hidden','true');
+    }
+    async function copyCurrent(){
+      try{ await navigator.clipboard.writeText(currentBody || ''); }
+      catch{
+        try{ const ta=document.createElement('textarea'); ta.value=currentBody||''; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+        catch{}
+      }
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modalEl.addEventListener('click', (e)=>{ if(e.target===modalEl) closeModal(); });
+    modalCopy.addEventListener('click', copyCurrent);
+
+    function renderIncidents(){
+      const arr = loadJson(STORE_KEYS.savedIncidentReports, []);
+      if(!arr.length){ incidentList.innerHTML = '<div class="text-gray-400">No saved incident reports.</div>'; return; }
+      incidentList.innerHTML = arr.map(r=>{
+        const when = r.meta?.dateTime || new Date(r.at).toLocaleString();
+        const title = `${r.meta?.type||'Incident'} — ${r.meta?.post||''}`;
+        return `<button class="w-full text-left px-3 py-2 rounded-md border border-white/10 bg-[#111] hover:bg-[#151515]" data-open="${r.id}" data-title="${title}" title="${when}">
+          <div class="font-medium">${title}</div>
+          <div class="text-xs text-gray-400">${when}</div>
+        </button>`;
+      }).join('');
+      incidentList.querySelectorAll('[data-open]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const arr = loadJson(STORE_KEYS.savedIncidentReports, []);
+          const id = btn.getAttribute('data-open');
+          const rec = arr.find(x=>x.id===id);
+          if(rec) openModal(btn.getAttribute('data-title')||'Incident', rec.body||'');
+        });
+      });
+    }
+
+    function renderShifts(){
+      const arr = loadJson(STORE_KEYS.savedShiftReports, []);
+      if(!arr.length){ shiftList.innerHTML = '<div class="text-gray-400">No saved shift reports.</div>'; return; }
+      shiftList.innerHTML = arr.map(r=>{
+        const when = r.meta?.date || new Date(r.at).toLocaleString();
+        const title = `Shift — ${r.meta?.post||''}`;
+        const incCount = (r.meta?.attachedIncidentIds||[]).length;
+        return `<button class="w-full text-left px-3 py-2 rounded-md border border-white/10 bg-[#111] hover:bg-[#151515]" data-open="${r.id}" data-title="${title}">
+          <div class="font-medium">${title} <span class="text-xs text-gray-400">(${incCount} incident${incCount===1?'':'s'} attached)</span></div>
+          <div class="text-xs text-gray-400">${when}</div>
+        </button>`;
+      }).join('');
+      shiftList.querySelectorAll('[data-open]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const arr = loadJson(STORE_KEYS.savedShiftReports, []);
+          const id = btn.getAttribute('data-open');
+          const rec = arr.find(x=>x.id===id);
+          if(rec) openModal(btn.getAttribute('data-title')||'Shift', rec.body||'');
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      renderIncidents();
+      renderShifts();
+    });
+  </script>
+</body>
+</html>

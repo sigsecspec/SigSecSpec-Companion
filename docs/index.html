@@ -7,11 +7,13 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --bg: #0f0f0f;
+      --bg: #0f0f0f; /* Black */
       --card: #121212;
-      --muted: #bfc0b0;
-      --accent: #aeae5a;
-      --accent-2: #5c6249;
+      --muted: #bfc0b0; /* Muted sage */
+      --ebony-green: #0b1d17; /* Ebony Green */
+      --sage: #a7b99e; /* Sage */
+      --accent: var(--sage);
+      --accent-2: #43534a; /* Deep sage */
       --glass: rgba(255, 255, 255, 0.04);
     }
 
@@ -98,7 +100,7 @@
     @keyframes ripple { to { transform: scale(6); opacity: 0; } }
 
     /* Fancy page transition curtain */
-    #transitionCurtain { position: fixed; inset: 0; pointer-events: none; z-index: 80; --x: 50%; --y: 50%; clip-path: circle(0 at var(--x) var(--y)); background: radial-gradient(600px circle at var(--x) var(--y), rgba(174,174,90,0.25), rgba(92,98,73,0.08) 45%, rgba(0,0,0,0) 65%); transition: clip-path 600ms cubic-bezier(.2,.8,.2,1); }
+    #transitionCurtain { position: fixed; inset: 0; pointer-events: none; z-index: 80; --x: 50%; --y: 50%; clip-path: circle(0 at var(--x) var(--y)); background: radial-gradient(600px circle at var(--x) var(--y), color-mix(in srgb, var(--accent) 35%, transparent), color-mix(in srgb, var(--accent-2) 15%, transparent) 45%, rgba(0,0,0,0) 65%); transition: clip-path 600ms cubic-bezier(.2,.8,.2,1); }
     #transitionCurtain.active { clip-path: circle(140% at var(--x) var(--y)); }
 
     /* Reduced motion */
@@ -112,9 +114,12 @@
 <body>
 
   <header class="p-4 pb-6 flex justify-between items-center">
-    <div>
-      <h1 class="text-2xl font-extrabold glow">Signature Security Specialist</h1>
-      <p id="subtitle" class="text-sm text-gray-400">Resource Companion — quick references & field tools</p>
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:var(--ebony-green); box-shadow:0 0 0 1px rgba(255,255,255,0.05) inset;">🛡️</div>
+      <div>
+        <h1 class="text-2xl font-extrabold glow">Signature Security Specialist</h1>
+        <p id="subtitle" class="text-sm text-gray-400">Resource Companion — quick references & field tools</p>
+      </div>
     </div>
     <div class="flex space-x-2">
       <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10 ripple-container">A+</button>
@@ -126,16 +131,25 @@
   <main id="mainContent" class="flex-1 overflow-auto p-5">
     <!-- HOME -->
     <section id="home" class="view is-active">
-      <h2 class="text-xl font-bold accent mb-4">Welcome, Officer</h2>
-      <p class="text-gray-400 mb-6">Tap tiles to open resources. This app caches your custom codes and preferences.</p>
+      <h2 class="text-xl font-bold accent mb-2">Welcome, Officer <span id="welcomeName">Officer</span></h2>
+      <p class="text-gray-400 mb-4">Quick access to your core tools. Your preferences are saved on this device.</p>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <a href="#assignments" data-route="assignments" class="app-card ripple-container">📋<div class="font-semibold mt-2">View Assignments</div></a>
+        <a href="#incident" data-route="incident" class="app-card ripple-container">📝<div class="font-semibold mt-2">Incident Report</div></a>
+        <a href="#check" data-route="check" class="app-card ripple-container">✅<div class="font-semibold mt-2">Check In / Out</div></a>
+        <a href="#resources" data-route="resources" class="app-card ripple-container">📚<div class="font-semibold mt-2">Resources</div></a>
+      </div>
 
       <div class="app-grid">
         <a href="#codes" data-route="codes" class="app-card ripple-container">🔢<div class="font-semibold mt-2">10-Codes</div></a>
-        <a href="#radio" data-route="radio" class="app-card ripple-container">📻<div class="font-semibold mt-2">Radio & Phonetic</div></a>
-        <a href="#emergency" data-route="emergency" class="app-card ripple-container">🚨<div class="font-semibold mt-2">Emergency</div></a>
+        <a href="#radio" data-route="radio" class="app-card ripple-container">🅰️<div class="font-semibold mt-2">Phonetic Alphabet</div></a>
+        <a href="#emergency" data-route="emergency" class="app-card ripple-container">🚨<div class="font-semibold mt-2">Emergency Tools</div></a>
         <a href="#tools" data-route="tools" class="app-card ripple-container">🧰<div class="font-semibold mt-2">Field Tools</div></a>
         <a href="#training" data-route="training" class="app-card ripple-container">🎓<div class="font-semibold mt-2">Training & Quiz</div></a>
         <a href="#game" data-route="game" class="app-card ripple-container">🎮<div class="font-semibold mt-2">Boredom Breaker</div></a>
+        <a href="#profile" data-route="profile" class="app-card ripple-container">🪪<div class="font-semibold mt-2">Profile</div></a>
+        <a href="#support" data-route="support" class="app-card ripple-container">🆘<div class="font-semibold mt-2">Support & Contact</div></a>
       </div>
     </section>
 
@@ -166,23 +180,257 @@
 
     <!-- RADIO -->
     <section id="radio" class="view" aria-labelledby="radioHeading">
-      <h2 id="radioHeading" class="text-xl font-bold accent mb-4">Radio & Phonetic</h2>
-      <p class="text-gray-400 mb-6">This is a placeholder page for Radio Procedures & Phonetic Alphabet. Add actual guides here.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="app-card ripple-container">📻 Radio Best Practices</div>
-        <div class="app-card ripple-container">🅰️ Phonetic Alphabet</div>
+      <h2 id="radioHeading" class="text-xl font-bold accent mb-4">Phonetic Alphabet</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+        <div class="app-card">A — Alpha</div>
+        <div class="app-card">B — Bravo</div>
+        <div class="app-card">C — Charlie</div>
+        <div class="app-card">D — Delta</div>
+        <div class="app-card">E — Echo</div>
+        <div class="app-card">F — Foxtrot</div>
+        <div class="app-card">G — Golf</div>
+        <div class="app-card">H — Hotel</div>
+        <div class="app-card">I — India</div>
+        <div class="app-card">J — Juliett</div>
+        <div class="app-card">K — Kilo</div>
+        <div class="app-card">L — Lima</div>
+        <div class="app-card">M — Mike</div>
+        <div class="app-card">N — November</div>
+        <div class="app-card">O — Oscar</div>
+        <div class="app-card">P — Papa</div>
+        <div class="app-card">Q — Quebec</div>
+        <div class="app-card">R — Romeo</div>
+        <div class="app-card">S — Sierra</div>
+        <div class="app-card">T — Tango</div>
+        <div class="app-card">U — Uniform</div>
+        <div class="app-card">V — Victor</div>
+        <div class="app-card">W — Whiskey</div>
+        <div class="app-card">X — X-ray</div>
+        <div class="app-card">Y — Yankee</div>
+        <div class="app-card">Z — Zulu</div>
+      </div>
+      <div class="mt-6 app-card">
+        <div class="font-semibold mb-1">📻 Radio Best Practices</div>
+        <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
+          <li>Think before transmitting; keep it brief and clear.</li>
+          <li>Use 10-codes and phonetics to reduce confusion.</li>
+          <li>Wait for a clear channel; avoid stepping on traffic.</li>
+        </ul>
       </div>
     </section>
 
     <!-- EMERGENCY -->
     <section id="emergency" class="view" aria-labelledby="emergencyHeading">
-      <h2 id="emergencyHeading" class="text-xl font-bold accent mb-4">Emergency Procedures</h2>
-      <p class="text-gray-400 mb-6">Add fire, medical, threat guides here.</p>
+      <h2 id="emergencyHeading" class="text-xl font-bold accent mb-4">Emergency Tools</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <a id="callSupervisor" class="app-card" href="#" target="_self">📞 Supervisor</a>
+        <a id="callPolice" class="app-card" href="#" target="_self">🚓 Local Police</a>
+        <a id="callMedical" class="app-card" href="#" target="_self">🚑 Medical / 911</a>
+        <button id="flashlightToggle" class="app-card ripple-container">🔦 Flashlight</button>
+      </div>
+      <div class="flex gap-3 mb-6">
+        <button onclick="playSiren()" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Siren / Alarm</button>
+        <button id="stopSirenBtn" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Stop Siren</button>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="app-card ripple-container">🔥 Fire — Procedures</div>
-        <div class="app-card ripple-container">🚑 Medical — Procedures</div>
-        <div class="app-card ripple-container">📦 Suspicious Package</div>
-        <div class="app-card ripple-container">🔴 Active Threat</div>
+        <div class="app-card">🔥 Fire — Pull alarm, call 911, evacuate, meet at assembly point.</div>
+        <div class="app-card">🚑 Medical — Call 911, render aid if trained, document incident.</div>
+        <div class="app-card">📦 Suspicious Package — Do not touch, clear area, notify authorities.</div>
+        <div class="app-card">🔴 Active Threat — Run, hide, fight (as last resort); follow law enforcement.</div>
+      </div>
+      <div id="flashOverlay" class="hidden fixed inset-0 z-70" style="background:#fff;"></div>
+      <video id="flashVideo" class="hidden"></video>
+    </section>
+
+    <!-- INCIDENT REPORT -->
+    <section id="incident" class="view" aria-labelledby="incidentHeading">
+      <h2 id="incidentHeading" class="text-xl font-bold accent mb-4">Incident Report</h2>
+      <form id="incidentForm" class="space-y-3 max-w-2xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Date / Time</div>
+            <input id="incidentDateTime" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" required />
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Guard Name</div>
+            <input id="incidentGuardName" type="text" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Your name" required />
+          </label>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Post / Assignment</div>
+            <input id="incidentPost" type="text" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Location / Post" />
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Incident Type</div>
+            <select id="incidentType" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+              <option>Trespass</option>
+              <option>Disturbance</option>
+              <option>Theft</option>
+              <option>Medical</option>
+              <option>Property Damage</option>
+              <option>Other</option>
+            </select>
+          </label>
+        </div>
+        <label class="block">
+          <div class="text-sm text-gray-300 mb-1">Description</div>
+          <textarea id="incidentDesc" rows="5" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Describe what happened" required></textarea>
+        </label>
+        <label class="block">
+          <div class="text-sm text-gray-300 mb-1">Upload Photo / Video (optional)</div>
+          <input id="incidentFiles" type="file" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" accept="image/*,video/*" multiple />
+        </label>
+        <div class="flex items-center gap-3">
+          <button type="submit" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Submit Report</button>
+          <div id="incidentStatus" class="text-sm text-gray-400"></div>
+        </div>
+      </form>
+      <div class="mt-6">
+        <h3 class="font-semibold mb-2">Recent Reports</h3>
+        <div id="incidentList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- CHECK IN / OUT -->
+    <section id="check" class="view" aria-labelledby="checkHeading">
+      <h2 id="checkHeading" class="text-xl font-bold accent mb-4">Check In / Check Out</h2>
+      <div class="flex flex-wrap gap-3 mb-3">
+        <button id="checkInBtn" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">✅ Clock In</button>
+        <button id="checkOutBtn" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">🚪 Clock Out</button>
+        <div id="checkStatus" class="text-sm text-gray-400"></div>
+      </div>
+      <div class="app-card">
+        <div class="font-semibold mb-2">History</div>
+        <div id="checkHistory" class="text-sm text-gray-300 space-y-1"></div>
+      </div>
+    </section>
+
+    <!-- ASSIGNMENTS / MISSION DETAILS -->
+    <section id="assignments" class="view" aria-labelledby="assignmentsHeading">
+      <h2 id="assignmentsHeading" class="text-xl font-bold accent mb-4">Mission / Post Details</h2>
+      <div class="space-y-4 max-w-3xl">
+        <div class="app-card">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Current & Upcoming Assignments</div>
+            <button id="addAssignmentToggle" class="px-3 py-1 rounded-md bg-[#111] border border-white/10 ripple-container">Add</button>
+          </div>
+          <div id="assignmentsList" class="mt-3 space-y-2"></div>
+        </div>
+        <form id="assignmentForm" class="app-card hidden space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="block"><div class="text-sm mb-1">Business Name</div><input id="asgnBusiness" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+            <label class="block"><div class="text-sm mb-1">Address</div><input id="asgnAddress" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="block"><div class="text-sm mb-1">Shift Start</div><input id="asgnStart" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+            <label class="block"><div class="text-sm mb-1">Shift End</div><input id="asgnEnd" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="block"><div class="text-sm mb-1">Manager Name</div><input id="asgnManager" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+            <label class="block"><div class="text-sm mb-1">Manager Phone</div><input id="asgnPhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+          </div>
+          <label class="block"><div class="text-sm mb-1">Notes / Special Instructions</div><textarea id="asgnNotes" rows="3" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea></label>
+          <button class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Save Assignment</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- RULES & SOPs -->
+    <section id="rules" class="view" aria-labelledby="rulesHeading">
+      <h2 id="rulesHeading" class="text-xl font-bold accent mb-4">Company Rules & SOPs</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="app-card"><div class="font-semibold mb-1">Uniform Standards</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Clean, pressed uniform at all times</li><li>Badge and ID visible</li><li>No unauthorized gear</li></ul></div>
+        <div class="app-card"><div class="font-semibold mb-1">Conduct & Reporting</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Professional communication</li><li>Accurate, timely reports</li><li>Chain of command</li></ul></div>
+        <div class="app-card"><div class="font-semibold mb-1">Emergency Response</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Call 911 for life safety</li><li>Notify supervisor immediately</li><li>Document actions taken</li></ul></div>
+        <div class="app-card"><div class="font-semibold mb-1">Use of Force Policy</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>De-escalation first</li><li>Proportional response</li><li>Report all force used</li></ul></div>
+        <div class="app-card"><div class="font-semibold mb-1">Customer Service</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Respectful, helpful demeanor</li><li>Positive representation of client</li></ul></div>
+      </div>
+    </section>
+
+    <!-- RESOURCES -->
+    <section id="resources" class="view" aria-labelledby="resourcesHeading">
+      <h2 id="resourcesHeading" class="text-xl font-bold accent mb-4">Guard Resources</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="app-card">
+          <div class="font-semibold mb-2">Shift Calendar (Upcoming)</div>
+          <div id="calendarList" class="space-y-2 text-sm text-gray-300"></div>
+          <form id="calendarForm" class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+            <input id="calTitle" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5" placeholder="Title (optional)" />
+            <input id="calStart" type="datetime-local" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5" />
+            <input id="calEnd" type="datetime-local" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5" />
+            <div class="md:col-span-3"><button class="px-3 py-1.5 rounded-md bg-[#111] border border-white/10">Add Shift</button></div>
+          </form>
+        </div>
+        <div class="app-card">
+          <div class="font-semibold mb-2">Equipment Checklist</div>
+          <div id="equipmentList" class="space-y-1 text-sm text-gray-300"></div>
+          <div class="mt-2"><input id="equipmentNew" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5 w-2/3" placeholder="Add item" /> <button id="equipmentAdd" class="px-3 py-1.5 rounded-md bg-[#111] border border-white/10">Add</button></div>
+        </div>
+        <div class="app-card">
+          <div class="font-semibold mb-2">Lost & Found</div>
+          <form id="lostFoundForm" class="space-y-2">
+            <input id="lfItem" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Item description" />
+            <input id="lfLocation" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Where found" />
+            <button class="px-3 py-1.5 rounded-md bg-[#111] border border-white/10">Submit</button>
+            <div id="lfStatus" class="text-sm text-gray-400"></div>
+          </form>
+        </div>
+        <div class="app-card">
+          <div class="font-semibold mb-2">Weather / Time</div>
+          <div id="timeNow" class="text-lg"></div>
+          <div id="weatherNow" class="text-sm text-gray-300 mt-1">Fetching location…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="profile" class="view" aria-labelledby="profileHeading">
+      <h2 id="profileHeading" class="text-xl font-bold accent mb-4">Profile</h2>
+      <form id="profileForm" class="space-y-3 max-w-xl">
+        <label class="block"><div class="text-sm mb-1">Name</div><input id="profName" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" required /></label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="block"><div class="text-sm mb-1">Badge #</div><input id="profBadge" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" /></label>
+          <label class="block"><div class="text-sm mb-1">Guard Card Expiration</div><input id="profExpiry" type="date" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" /></label>
+        </div>
+        <label class="block"><div class="text-sm mb-1">Upload ID / Credentials</div><input id="profIdUpload" type="file" accept="image/*,application/pdf" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" /></label>
+        <div class="flex items-center gap-3">
+          <button class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Save Profile</button>
+          <button id="resetPasswordBtn" type="button" class="px-4 py-2 rounded-md bg-[#111] border border-white/10">Reset Password</button>
+          <div id="profileStatus" class="text-sm text-gray-400"></div>
+        </div>
+      </form>
+    </section>
+
+    <!-- SUPPORT & CONTACT -->
+    <section id="support" class="view" aria-labelledby="supportHeading">
+      <h2 id="supportHeading" class="text-xl font-bold accent mb-4">Support & Contact</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="app-card">
+          <div class="font-semibold mb-2">Operations Contacts</div>
+          <form id="supportForm" class="space-y-2">
+            <label class="block"><div class="text-sm mb-1">Operations Hotline</div><input id="opsHotline" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="tel: e.g., +1-555-555-5555"/></label>
+            <label class="block"><div class="text-sm mb-1">Operations Email</div><input id="opsEmail" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="ops@example.com"/></label>
+            <label class="block"><div class="text-sm mb-1">Supervisor Phone</div><input id="supervisorPhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+            <label class="block"><div class="text-sm mb-1">Local Police Phone</div><input id="policePhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+            <label class="block"><div class="text-sm mb-1">Medical / 911</div><input id="medicalPhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
+            <label class="block"><div class="text-sm mb-1">Ops Webhook URL (optional)</div><input id="opsWebhook" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="https://..."/></label>
+            <label class="block"><div class="text-sm mb-1">Check-in Grace (minutes)</div><input id="checkGrace" type="number" min="0" max="60" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="5"/></label>
+            <button class="px-4 py-2 rounded-md bg-[#111] border border-white/10">Save</button>
+            <div id="supportStatus" class="text-sm text-gray-400"></div>
+          </form>
+        </div>
+        <div class="app-card">
+          <div class="font-semibold mb-2">Direct Message to Manager</div>
+          <form id="dmForm" class="space-y-2">
+            <input id="dmSubject" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Subject" />
+            <textarea id="dmBody" rows="5" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Message"></textarea>
+            <div class="flex items-center gap-2">
+              <a id="dmEmailLink" class="px-4 py-2 rounded-md bg-[#111] border border-white/10" href="#">Send Email</a>
+              <div class="text-sm text-gray-400">Opens your email client</div>
+            </div>
+          </form>
+        </div>
       </div>
     </section>
 
@@ -199,12 +447,21 @@
 
     <!-- TRAINING -->
     <section id="training" class="view" aria-labelledby="trainingHeading">
-      <h2 id="trainingHeading" class="text-xl font-bold accent mb-4">Training & Quiz</h2>
-      <p class="text-gray-400 mb-6">Flashcards, quizzes, and training resources.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="app-card ripple-container">🎓 Quick Quiz</div>
-        <div class="app-card ripple-container">📚 Flashcards</div>
-        <div class="app-card ripple-container">📝 Training Manual</div>
+      <h2 id="trainingHeading" class="text-xl font-bold accent mb-4">Training</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="app-card">
+          <div class="font-semibold mb-2">Modules</div>
+          <div id="trainingList" class="space-y-2 text-sm text-gray-300"></div>
+          <div class="mt-3 text-xs text-gray-400" id="trainingSummary"></div>
+        </div>
+        <div class="app-card">
+          <div class="font-semibold mb-2">Resources</div>
+          <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
+            <li><a class="underline" href="#" onclick="alert('Open training manual (placeholder)');return false;">Training Manual (PDF)</a></li>
+            <li><a class="underline" href="#" onclick="alert('Open radio procedures video (placeholder)');return false;">Radio Procedures (Video)</a></li>
+            <li><a class="underline" href="#" onclick="alert('Open de-escalation quiz (placeholder)');return false;">De-escalation Quiz</a></li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -253,7 +510,13 @@
     function playSiren() {
       const audio = document.getElementById('siren');
       audio.currentTime = 0;
+      audio.loop = true;
       audio.play();
+    }
+    function stopSiren() {
+      const audio = document.getElementById('siren');
+      audio.pause();
+      audio.currentTime = 0;
     }
 
     // Ripple effect
@@ -538,6 +801,393 @@
       clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applySearch(''); });
     }
 
+    // Client storage helpers
+    const STORE_KEYS = {
+      profile: 'sss_profile',
+      support: 'sss_support',
+      checkHistory: 'sss_check_history',
+      incidents: 'sss_incidents',
+      assignments: 'sss_assignments',
+      equipment: 'sss_equipment',
+      calendar: 'sss_calendar'
+    };
+
+    function loadJson(key, fallback){
+      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+    }
+    function saveJson(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+
+    async function getPosition() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('Geolocation unavailable'));
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy }),
+          (err) => reject(err),
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      });
+    }
+
+    function telHref(number){ return number ? `tel:${number.replace(/\s+/g,'')}` : '#'; }
+
+    function setWelcomeName(){
+      const prof = loadJson(STORE_KEYS.profile, {});
+      const el = document.getElementById('welcomeName');
+      el.textContent = prof.name ? prof.name : 'Officer';
+    }
+
+    function renderCheckHistory(){
+      const list = loadJson(STORE_KEYS.checkHistory, []);
+      const el = document.getElementById('checkHistory');
+      el.innerHTML = list.map(r => `<div>${r.type} — ${new Date(r.time).toLocaleString()}${r.lat?` @ ${r.lat.toFixed(4)},${r.lon.toFixed(4)}`:''}</div>`).join('') || '<div class="text-gray-400">No records yet.</div>';
+    }
+
+    function renderAssignments(){
+      const arr = loadJson(STORE_KEYS.assignments, []);
+      const list = document.getElementById('assignmentsList');
+      list.innerHTML = arr.map((a,i)=>{
+        const maps = a.address ? `<a class="text-[--accent] underline" href="https://maps.google.com/?q=${encodeURIComponent(a.address)}" target="_blank" rel="noopener">Map</a>` : '';
+        const when = a.start || a.end ? `${a.start?new Date(a.start).toLocaleString():''} ${a.end?'— '+new Date(a.end).toLocaleString():''}` : '';
+        return `<div class="p-3 rounded-md border border-white/10">`
+          + `<div class="font-semibold">${a.business||'Untitled'} <span class="text-xs text-gray-400">${when}</span></div>`
+          + `<div class="text-sm text-gray-300">${a.address||''} ${maps}</div>`
+          + `<div class="text-sm text-gray-300">Manager: ${a.manager||''} ${a.phone?`<a class=\"underline\" href=\"tel:${a.phone}\">${a.phone}</a>`:''}</div>`
+          + `<div class="text-sm text-gray-400">${a.notes||''}</div>`
+          + `<div class="mt-2"><button data-del="${i}" class="px-2 py-1 bg-[#111] border border-white/10 rounded-md">Delete</button></div>`
+          + `</div>`;
+      }).join('') || '<div class="text-gray-400">No assignments saved.</div>';
+      list.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = Number(btn.getAttribute('data-del'));
+          const updated = loadJson(STORE_KEYS.assignments, []);
+          updated.splice(idx,1);
+          saveJson(STORE_KEYS.assignments, updated);
+          renderAssignments();
+        });
+      });
+    }
+
+    function renderEquipment(){
+      const items = loadJson(STORE_KEYS.equipment, []);
+      const list = document.getElementById('equipmentList');
+      list.innerHTML = items.map((t,i)=>`<label class="flex items-center gap-2"><input data-eidx="${i}" type="checkbox" ${t.done?'checked':''}/><span class="flex-1">${t.text}</span><button data-del-e="${i}" class="text-xs text-gray-400">Remove</button></label>`).join('') || '<div class="text-gray-400">No items yet.</div>';
+      list.querySelectorAll('[data-eidx]').forEach(cb=>{
+        cb.addEventListener('change', ()=>{
+          const idx = Number(cb.getAttribute('data-eidx'));
+          const arr = loadJson(STORE_KEYS.equipment, []);
+          if(arr[idx]) arr[idx].done = cb.checked;
+          saveJson(STORE_KEYS.equipment, arr);
+        });
+      });
+      list.querySelectorAll('[data-del-e]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = Number(btn.getAttribute('data-del-e'));
+          const arr = loadJson(STORE_KEYS.equipment, []);
+          arr.splice(idx,1);
+          saveJson(STORE_KEYS.equipment, arr);
+          renderEquipment();
+        });
+      });
+    }
+
+    function renderCalendar(){
+      const arr = loadJson(STORE_KEYS.calendar, []);
+      const list = document.getElementById('calendarList');
+      list.innerHTML = arr.map((c,i)=>`<div class="p-2 rounded-md border border-white/10"><div class="flex items-center justify-between"><div><div class=\"font-medium\">${c.title||'Shift'}</div><div class=\"text-sm text-gray-400\">${new Date(c.start).toLocaleString()} — ${new Date(c.end).toLocaleString()}</div></div><button data-del-cal=\"${i}\" class=\"text-xs text-gray-400\">Remove</button></div></div>`).join('') || '<div class="text-gray-400">No upcoming shifts.</div>';
+      list.querySelectorAll('[data-del-cal]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = Number(btn.getAttribute('data-del-cal'));
+          const arr2 = loadJson(STORE_KEYS.calendar, []);
+          arr2.splice(idx,1);
+          saveJson(STORE_KEYS.calendar, arr2);
+          renderCalendar();
+        });
+      });
+    }
+
+    function setupCalendar(){
+      renderCalendar();
+      const form = document.getElementById('calendarForm');
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const title = document.getElementById('calTitle').value;
+        const start = document.getElementById('calStart').value;
+        const end = document.getElementById('calEnd').value;
+        if(!start || !end) return;
+        const arr = loadJson(STORE_KEYS.calendar, []);
+        arr.push({ title, start, end });
+        saveJson(STORE_KEYS.calendar, arr);
+        form.reset();
+        renderCalendar();
+        monitorCheckInGrace();
+      });
+    }
+
+    function renderSupport(){
+      const s = loadJson(STORE_KEYS.support, {});
+      document.getElementById('opsHotline').value = s.hotline||'';
+      document.getElementById('opsEmail').value = s.email||'';
+      document.getElementById('supervisorPhone').value = s.supervisor||'';
+      document.getElementById('policePhone').value = s.police||'';
+      document.getElementById('medicalPhone').value = s.medical||'';
+      document.getElementById('opsWebhook').value = s.webhook||'';
+      document.getElementById('checkGrace').value = s.grace||'';
+      // Bind emergency call links
+      const sup = document.getElementById('callSupervisor');
+      const pol = document.getElementById('callPolice');
+      const med = document.getElementById('callMedical');
+      if (sup) sup.href = telHref(s.supervisor||'');
+      if (pol) pol.href = telHref(s.police||'');
+      if (med) med.href = telHref(s.medical||'');
+    }
+
+    function setupFlashlight(){
+      const overlay = document.getElementById('flashOverlay');
+      const video = document.getElementById('flashVideo');
+      const btn = document.getElementById('flashlightToggle');
+      if(!btn) return;
+      let stream, track;
+      async function on(){
+        try{
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+          video.srcObject = stream; video.play();
+          track = stream.getVideoTracks()[0];
+          const caps = track.getCapabilities?.();
+          if (caps && 'torch' in caps) {
+            await track.applyConstraints({ advanced: [{ torch: true }] });
+          } else {
+            overlay.classList.remove('hidden');
+          }
+        }catch(e){ overlay.classList.remove('hidden'); }
+      }
+      function off(){
+        overlay.classList.add('hidden');
+        try{ if(track){ track.applyConstraints({ advanced: [{ torch: false }] }); } }catch{}
+        if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+      }
+      let active=false;
+      btn.addEventListener('click', ()=>{ active?off():on(); active=!active; });
+    }
+
+    async function notifyOps(eventType, payload){
+      const s = loadJson(STORE_KEYS.support, {});
+      if(!s.webhook) return;
+      try{
+        await fetch(s.webhook, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ event:eventType, payload, ts: Date.now() }) });
+      }catch{}
+    }
+
+    function setupIncidentForm(){
+      const form = document.getElementById('incidentForm');
+      const status = document.getElementById('incidentStatus');
+      const listEl = document.getElementById('incidentList');
+      document.getElementById('incidentDateTime').value = new Date().toISOString().slice(0,16);
+      form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const data = {
+          at: new Date(document.getElementById('incidentDateTime').value).toISOString(),
+          guard: document.getElementById('incidentGuardName').value,
+          post: document.getElementById('incidentPost').value,
+          type: document.getElementById('incidentType').value,
+          desc: document.getElementById('incidentDesc').value,
+          files: Array.from(document.getElementById('incidentFiles').files).map(f=>({name:f.name,size:f.size,type:f.type}))
+        };
+        const arr = loadJson(STORE_KEYS.incidents, []);
+        arr.unshift(data);
+        saveJson(STORE_KEYS.incidents, arr);
+        status.textContent = 'Saved locally';
+        renderIncidents();
+        await notifyOps('incident_report', data);
+        status.textContent += ' — sent to Ops (if configured)';
+        form.reset();
+        document.getElementById('incidentDateTime').value = new Date().toISOString().slice(0,16);
+      });
+      function renderIncidents(){
+        const arr = loadJson(STORE_KEYS.incidents, []);
+        listEl.innerHTML = arr.map(i=>`<div class="p-3 rounded-md border border-white/10"><div class="font-semibold">${i.type} — ${new Date(i.at).toLocaleString()}</div><div class="text-sm text-gray-300">${i.post||''}</div><div class="text-sm text-gray-300">${i.desc||''}</div></div>`).join('') || '<div class="text-gray-400">No incident reports yet.</div>';
+      }
+      renderIncidents();
+    }
+
+    function setupCheckInOut(){
+      const status = document.getElementById('checkStatus');
+      const add = async (type)=>{
+        let coords=null;
+        try{ coords = await getPosition(); }catch{}
+        const rec = { type, time: Date.now(), ...(coords||{}) };
+        const arr = loadJson(STORE_KEYS.checkHistory, []);
+        arr.unshift(rec);
+        saveJson(STORE_KEYS.checkHistory, arr);
+        renderCheckHistory();
+        status.textContent = `${type} recorded`;
+        await notifyOps('check_'+type.toLowerCase(), rec);
+      };
+      document.getElementById('checkInBtn').addEventListener('click', ()=>add('IN'));
+      document.getElementById('checkOutBtn').addEventListener('click', ()=>add('OUT'));
+    }
+
+    function setupAssignments(){
+      const toggle = document.getElementById('addAssignmentToggle');
+      const form = document.getElementById('assignmentForm');
+      toggle.addEventListener('click', ()=>{ form.classList.toggle('hidden'); });
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const data = {
+          business: document.getElementById('asgnBusiness').value,
+          address: document.getElementById('asgnAddress').value,
+          start: document.getElementById('asgnStart').value,
+          end: document.getElementById('asgnEnd').value,
+          manager: document.getElementById('asgnManager').value,
+          phone: document.getElementById('asgnPhone').value,
+          notes: document.getElementById('asgnNotes').value
+        };
+        const arr = loadJson(STORE_KEYS.assignments, []);
+        arr.push(data);
+        saveJson(STORE_KEYS.assignments, arr);
+        renderAssignments();
+        form.reset();
+        form.classList.add('hidden');
+      });
+    }
+    // Auto alert if not checked in within grace period of shift start
+    function monitorCheckInGrace(){
+      const support = loadJson(STORE_KEYS.support, {});
+      const graceMin = Number(support.grace||0);
+      if (!graceMin) return;
+      const assignments = loadJson(STORE_KEYS.assignments, []);
+      const now = Date.now();
+      const soonest = assignments
+        .map(a=>({start: a.start ? Date.parse(a.start) : NaN, a}))
+        .filter(x=>!isNaN(x.start) && now <= x.start + graceMin*60*1000)
+        .sort((x,y)=>x.start-y.start)[0];
+      if (!soonest) return;
+      const due = soonest.start + graceMin*60*1000;
+      const already = sessionStorage.getItem('sss_grace_alert_for') === String(soonest.start);
+      if (already) return;
+      const timer = setInterval(()=>{
+        const lastCheck = (loadJson(STORE_KEYS.checkHistory, [])[0]||{}).time||0;
+        if (Date.now() >= due && lastCheck < soonest.start) {
+          sessionStorage.setItem('sss_grace_alert_for', String(soonest.start));
+          clearInterval(timer);
+          alert('Reminder: You have not checked in for your shift. Please Check In.');
+          notifyOps('checkin_missed', { start: soonest.start, graceMin });
+        }
+      }, 15000);
+    }
+
+    function setupEquipment(){
+      renderEquipment();
+      document.getElementById('equipmentAdd').addEventListener('click', ()=>{
+        const input = document.getElementById('equipmentNew');
+        const text = input.value.trim();
+        if(!text) return;
+        const arr = loadJson(STORE_KEYS.equipment, []);
+        arr.push({ text, done:false });
+        saveJson(STORE_KEYS.equipment, arr);
+        input.value='';
+        renderEquipment();
+      });
+    }
+
+    function setupLostFound(){
+      document.getElementById('lostFoundForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        document.getElementById('lfStatus').textContent = 'Submitted.';
+      });
+    }
+
+    function setupWeatherTime(){
+      const clock = document.getElementById('timeNow');
+      setInterval(()=>{ clock.textContent = new Date().toLocaleString(); }, 1000);
+      const w = document.getElementById('weatherNow');
+      getPosition().then(({lat,lon})=>{ w.textContent = `Your location: ${lat.toFixed(3)}, ${lon.toFixed(3)}`; }).catch(()=>{ w.textContent = 'Location unavailable'; });
+    }
+
+    function setupProfile(){
+      const form = document.getElementById('profileForm');
+      const prof = loadJson(STORE_KEYS.profile, {});
+      document.getElementById('profName').value = prof.name||'';
+      document.getElementById('profBadge').value = prof.badge||'';
+      document.getElementById('profExpiry').value = prof.expiry||'';
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const data = {
+          name: document.getElementById('profName').value,
+          badge: document.getElementById('profBadge').value,
+          expiry: document.getElementById('profExpiry').value
+        };
+        saveJson(STORE_KEYS.profile, data);
+        setWelcomeName();
+        document.getElementById('profileStatus').textContent = 'Saved.';
+      });
+      document.getElementById('resetPasswordBtn').addEventListener('click', ()=>{
+        alert('Password reset link sent to your registered email (placeholder).');
+      });
+    }
+
+    function setupSupport(){
+      const form = document.getElementById('supportForm');
+      const dmLink = document.getElementById('dmEmailLink');
+      renderSupport();
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const data = {
+          hotline: document.getElementById('opsHotline').value,
+          email: document.getElementById('opsEmail').value,
+          supervisor: document.getElementById('supervisorPhone').value,
+          police: document.getElementById('policePhone').value,
+          medical: document.getElementById('medicalPhone').value,
+          webhook: document.getElementById('opsWebhook').value,
+          grace: document.getElementById('checkGrace').value
+        };
+        saveJson(STORE_KEYS.support, data);
+        renderSupport();
+        document.getElementById('supportStatus').textContent = 'Saved.';
+      });
+      function updateDmLink(){
+        const s = loadJson(STORE_KEYS.support, {});
+        const to = s.email || '';
+        const subject = encodeURIComponent(document.getElementById('dmSubject').value || 'Message from Guard');
+        const body = encodeURIComponent(document.getElementById('dmBody').value || '');
+        dmLink.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      }
+      document.getElementById('dmSubject').addEventListener('input', updateDmLink);
+      document.getElementById('dmBody').addEventListener('input', updateDmLink);
+      updateDmLink();
+    }
+
+    function setupTraining(){
+      const KEY = 'sss_training_modules';
+      const defaults = [
+        { id:'radio', title:'Radio Procedures Basics', done:false },
+        { id:'codes', title:'10-Codes & Plain Language', done:false },
+        { id:'deescalation', title:'De-escalation Techniques', done:false },
+        { id:'reporting', title:'Incident Reporting Standards', done:false },
+        { id:'safety', title:'Personal & Scene Safety', done:false }
+      ];
+      const listEl = document.getElementById('trainingList');
+      const summaryEl = document.getElementById('trainingSummary');
+      function load(){ return loadJson(KEY, defaults); }
+      function save(v){ saveJson(KEY, v); }
+      function render(){
+        const modules = load();
+        const total = modules.length;
+        const completed = modules.filter(m=>m.done).length;
+        listEl.innerHTML = modules.map((m,i)=>`<label class="flex items-center gap-3 p-2 rounded-md border border-white/10"><input data-tidx="${i}" type="checkbox" ${m.done?'checked':''}/> <span class="flex-1">${m.title}</span><span class="text-xs ${m.done?'text-green-400':'text-yellow-300'}">${m.done?'Completed':'Pending'}</span></label>`).join('');
+        summaryEl.textContent = `${completed} of ${total} completed`;
+        listEl.querySelectorAll('[data-tidx]').forEach(cb=>{
+          cb.addEventListener('change', ()=>{
+            const idx = Number(cb.getAttribute('data-tidx'));
+            const arr = load();
+            if(arr[idx]) arr[idx].done = cb.checked;
+            save(arr);
+            render();
+          });
+        });
+      }
+      render();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('sss_large') === 'true') document.body.classList.add('text-lg');
 
@@ -565,6 +1215,27 @@
           navigateTo(id, evt);
         });
       });
+
+      // Emergency tools
+      const stopBtn = document.getElementById('stopSirenBtn');
+      if (stopBtn) stopBtn.addEventListener('click', stopSiren);
+      setupFlashlight();
+
+      // Feature modules
+      setWelcomeName();
+      setupIncidentForm();
+      setupCheckInOut();
+      renderCheckHistory();
+      setupAssignments();
+      renderAssignments();
+      setupEquipment();
+      setupLostFound();
+      setupWeatherTime();
+      setupProfile();
+      setupSupport();
+      setupTraining();
+      setupCalendar();
+      monitorCheckInGrace();
 
       // Hash routing on load and change
       const initial = (location.hash || '#home').replace('#', '');

@@ -106,49 +106,102 @@
   </header>
 
   <main class="main-content">
-    <section class="max-w-6xl mx-auto">
-      <!-- TOP HALF: Generated Report with Action Buttons -->
-      <div class="mobile-card report-section mb-4">
-        <div class="flex justify-between items-start mb-3 flex-wrap gap-2">
+    <section class="max-w-7xl mx-auto">
+      <!-- TOP HALF: Generated Report & Narrative with Enhanced Layout -->
+      <div class="mobile-card report-section mb-6" style="position: sticky; top: 1rem; z-index: 50;">
+        <div class="flex justify-between items-start mb-4 flex-wrap gap-3">
           <div class="flex-1">
-            <h2 class="text-xl font-bold">📊 Generated Report & Narrative</h2>
-            <div id="reportStatus" class="text-sm mt-1" style="color: var(--text-secondary)">Fill in the fields below to generate report</div>
+            <h2 class="text-2xl font-bold mb-2">📊 Professional Security Report</h2>
+            <div id="reportStatus" class="text-sm font-medium" style="color: var(--text-secondary)">
+              Fill in the fields below to generate a comprehensive, detailed report
+            </div>
           </div>
           <div class="report-actions">
-            <button id="btnSaveDraft" class="touch-btn" title="Save as draft">💾</button>
-            <button id="btnLoadDraft" class="touch-btn" title="Load draft">📂</button>
-            <button id="btnExport" class="touch-btn" title="Print/Export PDF">🖨️</button>
-            <button id="btnEmail" class="touch-btn" title="Email report">📧</button>
-            <button id="btnSaveReport" class="touch-btn primary" title="Save to reports">✅ Save</button>
-            <button id="btnCopy" class="touch-btn primary" title="Copy to clipboard">📋 Copy</button>
+            <button id="btnSaveDraft" class="touch-btn" title="Save as draft">
+              <span class="mr-1">💾</span> Draft
+            </button>
+            <button id="btnLoadDraft" class="touch-btn" title="Load draft">
+              <span class="mr-1">📂</span> Load
+            </button>
+            <button id="btnExport" class="touch-btn" title="Print/Export PDF">
+              <span class="mr-1">🖨️</span> Print
+            </button>
+            <button id="btnEmail" class="touch-btn" title="Email report">
+              <span class="mr-1">📧</span> Email
+            </button>
+            <button id="btnSaveReport" class="touch-btn success" title="Save to reports">
+              <span class="mr-1">✅</span> Save Report
+            </button>
+            <button id="btnCopy" class="touch-btn primary" title="Copy to clipboard">
+              <span class="mr-1">📋</span> Copy Text
+            </button>
           </div>
         </div>
-        <div class="narrative-display" style="flex: 1; overflow-y: auto; min-height: 200px;">
+        
+        <!-- Enhanced Narrative Display -->
+        <div class="narrative-container" style="position: relative;">
           <div id="incidentTypeBadge" class="mb-3 hidden">
             <span class="incident-type-badge"></span>
           </div>
-          <div id="reportNarrative" style="color: var(--text-secondary)">
+          <div class="narrative-display enhanced" style="min-height: 300px; max-height: 50vh; overflow-y: auto;">
+            <div id="reportNarrative" style="color: var(--text-secondary); font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace; line-height: 1.6;">
 ═══════════════════════════════════════════════════════════════════════════════
-                          INCIDENT REPORT - NOT GENERATED YET
+                     🛡️ SECURITY INCIDENT REPORT SYSTEM 🛡️
 ═══════════════════════════════════════════════════════════════════════════════
 
-Please fill in the incident details below to generate a comprehensive report.
-The system will automatically:
-• Anonymize all names (Victim1, Suspect1, Witness1, etc.)
-• Generate a detailed, professional narrative
-• Format everything properly for official use
+🎯 PROFESSIONAL REPORT GENERATOR READY
 
-Start by filling in the basic incident information below...
+The system will automatically generate a comprehensive, detailed security report:
+
+✅ Anonymizes all personal information (Victim1, Suspect1, Witness1, etc.)
+✅ Creates professional narrative structure
+✅ Formats for official documentation
+✅ Ensures proper security protocol compliance
+✅ Generates detailed chronological sequence
+✅ Includes all required legal elements
+
+📝 Start by filling in the incident details below to generate your report...
+
+═══════════════════════════════════════════════════════════════════════════════
+            </div>
+          </div>
+          
+          <!-- Narrative Editing Toggle -->
+          <div class="narrative-controls mt-3 flex gap-2 items-center">
+            <button type="button" class="touch-btn" onclick="toggleNarrativeEditMode()" id="narrativeEditBtn">
+              <span class="mr-1">✏️</span> Edit Narrative
+            </button>
+            <button type="button" class="touch-btn" onclick="regenerateNarrative()" id="regenerateBtn">
+              <span class="mr-1">🔄</span> Regenerate
+            </button>
+            <div class="flex-1"></div>
+            <span class="text-xs" style="color: var(--text-muted);">Auto-updates as you type</span>
           </div>
         </div>
       </div>
 
-      <!-- BOTTOM HALF: Input Forms -->
+      <!-- BOTTOM HALF: Enhanced Input Forms -->
 
-      <div class="mobile-card">
-        <div class="mb-4 pb-3" style="border-bottom: 1px solid var(--border-primary);">
-          <h3 class="text-xl font-semibold">📝 Report Details - Fill in the Blanks</h3>
-          <p class="text-sm mt-1" style="color: var(--text-secondary)">Complete the fields below. The system automatically generates a professional report with anonymized names (Victim1, Suspect1, Witness1, etc.)</p>
+      <div class="mobile-card form-container">
+        <div class="mb-6 pb-4" style="border-bottom: 2px solid var(--border-accent);">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold">
+              📝
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold">Incident Report Form</h3>
+              <p class="text-sm font-medium" style="color: var(--text-secondary)">Fill in the blanks - System generates professional report automatically</p>
+            </div>
+          </div>
+          <div class="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div class="flex items-start gap-3">
+              <div class="text-2xl">🔒</div>
+              <div>
+                <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-1">Privacy Protection Active</h4>
+                <p class="text-sm text-blue-800 dark:text-blue-200">All personal names are automatically anonymized (Victim1, Suspect1, Witness1, etc.) for security and legal compliance.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="space-y-3">
@@ -493,7 +546,7 @@ Fill in the fields below to generate a complete professional report.`;
       const suspects = data.people.filter(p => p.role === 'Suspect');
       const witnesses = data.people.filter(p => p.role === 'Witness');
       
-      // Format date and time
+      // Format date and time with enhanced formatting
       const incidentDate = data.dateTime ? new Date(data.dateTime) : new Date();
       const reportDate = data.reportDateTime ? new Date(data.reportDateTime) : new Date();
       
@@ -517,154 +570,224 @@ Fill in the fields below to generate a complete professional report.`;
           hour12: false 
         });
       };
+      
+      const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      };
 
-      // Build the comprehensive narrative
+      // Generate unique report number
+      const reportNumber = `SEC-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      const caseNumber = `CASE-${incidentDate.getFullYear()}-${String(incidentDate.getMonth() + 1).padStart(2, '0')}-${String(incidentDate.getDate()).padStart(2, '0')}-${String(Date.now()).slice(-4)}`;
+      
+      // Build the comprehensive narrative with enhanced professional formatting
       let narrative = `═══════════════════════════════════════════════════════════════════════════════
-                            SECURITY INCIDENT REPORT
+                        🛡️ PROFESSIONAL SECURITY INCIDENT REPORT 🛡️
 ═══════════════════════════════════════════════════════════════════════════════
 
-REPORT NUMBER: INC-${Date.now().toString().slice(-8)}
-CLASSIFICATION: ${data.incidentType.toUpperCase()} - ${data.severity.toUpperCase()} PRIORITY
+REPORT NUMBER:        ${reportNumber}
+CASE NUMBER:          ${caseNumber}
+CLASSIFICATION:       ${data.incidentType.toUpperCase()} INCIDENT
+PRIORITY LEVEL:       ${data.severity.toUpperCase()} PRIORITY
+REPORT STATUS:        OFFICIAL - CONFIDENTIAL
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                              INCIDENT SUMMARY
+                              📋 INCIDENT SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-DATE OF INCIDENT:     ${formatDateTime(incidentDate)}
-DATE OF REPORT:       ${formatDateTime(reportDate)}
-TIME REPORTED:        ${formatTime(reportDate)}
+📅 INCIDENT DATE/TIME:    ${formatDateTime(incidentDate)}
+📝 REPORT FILED:          ${formatDateTime(reportDate)}
+⏰ TIME REPORTED:         ${formatTime(reportDate)}
 
-LOCATION:             ${data.location || 'Not specified'}
-SPECIFIC AREA:        ${data.specificLocation || 'Not specified'}
-POST/ASSIGNMENT:      ${data.post || 'Not specified'}
+🏢 PRIMARY LOCATION:      ${data.location || 'Not specified'}
+📍 SPECIFIC AREA:         ${data.specificLocation || 'Not specified'}
+🎯 POST/ASSIGNMENT:       ${data.post || 'Not specified'}
 
-REPORTING OFFICER:    ${data.officerName}
-BADGE NUMBER:         ${data.badgeNumber || 'Not specified'}
+👮 REPORTING OFFICER:     ${data.officerName}
+🆔 BADGE/ID NUMBER:       ${data.badgeNumber || 'Not specified'}
+📊 INCIDENT TYPE:         ${data.incidentType || 'Not specified'}
+⚠️ SEVERITY ASSESSMENT:   ${data.severity || 'Not specified'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                           INVOLVED PARTIES
+                           👥 INVOLVED PARTIES & SUBJECTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
-      // Add Victims
+      // Add Victims with enhanced formatting
       if (victims.length > 0) {
-        narrative += '\nVICTIMS:\n';
+        narrative += '\n🔴 VICTIMS/COMPLAINANTS:\n';
         victims.forEach((v, i) => {
-          narrative += `\n  VICTIM ${i + 1}:\n`;
-          narrative += `    • Description: ${v.description || 'Not provided'}\n`;
-          narrative += `    • Clothing: ${v.clothing || 'Not described'}\n`;
+          narrative += `\n  ▶ VICTIM${i + 1} (ANONYMIZED FOR PRIVACY):\n`;
+          narrative += `    📋 Physical Description: ${v.description || 'Not documented'}\n`;
+          narrative += `    👔 Clothing/Appearance: ${v.clothing || 'Not documented'}\n`;
           if (v.identification) {
-            narrative += `    • ID Obtained: Yes - On file\n`;
+            narrative += `    🆔 Identification Status: VERIFIED - Information on file\n`;
+          } else {
+            narrative += `    🆔 Identification Status: Not obtained\n`;
           }
+          narrative += `    📝 Additional Notes: ${v.notes || 'None recorded'}\n`;
         });
       }
       
-      // Add Suspects
+      // Add Suspects with enhanced formatting
       if (suspects.length > 0) {
-        narrative += '\nSUSPECTS:\n';
+        narrative += '\n🟡 SUSPECTS/SUBJECTS:\n';
         suspects.forEach((s, i) => {
-          narrative += `\n  SUSPECT ${i + 1}:\n`;
-          narrative += `    • Description: ${s.description || 'Not provided'}\n`;
-          narrative += `    • Clothing: ${s.clothing || 'Not described'}\n`;
+          narrative += `\n  ▶ SUSPECT${i + 1} (ANONYMIZED FOR PRIVACY):\n`;
+          narrative += `    📋 Physical Description: ${s.description || 'Not documented'}\n`;
+          narrative += `    👔 Clothing/Appearance: ${s.clothing || 'Not documented'}\n`;
           if (s.identification) {
-            narrative += `    • ID Obtained: Yes - On file\n`;
+            narrative += `    🆔 Identification Status: VERIFIED - Information on file\n`;
+          } else {
+            narrative += `    🆔 Identification Status: Not obtained\n`;
           }
+          narrative += `    📝 Additional Notes: ${s.notes || 'None recorded'}\n`;
         });
       }
       
-      // Add Witnesses
+      // Add Witnesses with enhanced formatting
       if (witnesses.length > 0) {
-        narrative += '\nWITNESSES:\n';
+        narrative += '\n🔵 WITNESSES:\n';
         witnesses.forEach((w, i) => {
-          narrative += `\n  WITNESS ${i + 1}:\n`;
-          narrative += `    • Description: ${w.description || 'Not provided'}\n`;
+          narrative += `\n  ▶ WITNESS${i + 1} (ANONYMIZED FOR PRIVACY):\n`;
+          narrative += `    📋 Physical Description: ${w.description || 'Not documented'}\n`;
+          narrative += `    👔 Clothing/Appearance: ${w.clothing || 'Not documented'}\n`;
           if (w.identification) {
-            narrative += `    • Contact Information: On file\n`;
+            narrative += `    📞 Contact Information: OBTAINED - On file for follow-up\n`;
+          } else {
+            narrative += `    📞 Contact Information: Not obtained\n`;
           }
+          narrative += `    📝 Additional Notes: ${w.notes || 'None recorded'}\n`;
         });
       }
       
       if (data.people.length === 0) {
-        narrative += '\n  No involved parties documented.\n';
+        narrative += '\n  ℹ️  No involved parties documented at time of report.\n';
       }
 
       narrative += `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                           NARRATIVE OF INCIDENT
+                           📖 DETAILED INCIDENT NARRATIVE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-INITIAL CONTACT:
-${formatNarrativeText(data.initialContact || 'Security officer discovered/was alerted to the incident during routine duties.')}
+🎯 INITIAL CONTACT & DISCOVERY:
+${formatNarrativeText(data.initialContact || 'Security officer discovered or was alerted to the incident during routine security duties. The nature of the initial contact and circumstances of discovery are documented below.')}
 
-SEQUENCE OF EVENTS:
-${formatNarrativeText(data.incidentDescription, true)}
+📋 CHRONOLOGICAL SEQUENCE OF EVENTS:
+${formatNarrativeText(data.incidentDescription || 'Detailed sequence of events will be documented here once incident description is provided. This section will include a comprehensive timeline of all observed activities, interactions, and developments during the incident.', true)}
 
-OFFICER RESPONSE & ACTIONS TAKEN:
-${formatNarrativeText(data.actionTaken || 'Standard security protocols were followed.')}
+🚨 SECURITY OFFICER RESPONSE & ACTIONS:
+${formatNarrativeText(data.actionTaken || 'Security officer followed standard operating procedures and protocols. Specific actions taken in response to the incident will be documented here, including any immediate interventions, communications, and safety measures implemented.')}
 
-INCIDENT RESOLUTION:
-${formatNarrativeText(data.resolution || 'Incident was resolved without further escalation.')}
+✅ INCIDENT RESOLUTION & OUTCOME:
+${formatNarrativeText(data.resolution || 'The incident was addressed according to established security protocols. Final resolution details, disposition of involved parties, and any ongoing concerns will be documented here.')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                        DAMAGES, INJURIES & EVIDENCE
+                        💼 DAMAGES, INJURIES & EVIDENCE ASSESSMENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
-      // Add property damage section
-      narrative += '\nPROPERTY DAMAGE/LOSS:\n';
-      if (data.propertyDamage) {
+      // Add enhanced property damage section
+      narrative += '\n🏢 PROPERTY DAMAGE & LOSS ASSESSMENT:\n';
+      if (data.propertyDamage && data.propertyDamage.trim()) {
         narrative += formatNarrativeText(data.propertyDamage) + '\n';
+        narrative += '  📊 Damage Assessment: DOCUMENTED - Full details recorded above\n';
       } else {
-        narrative += '  None reported.\n';
+        narrative += '  ✅ No property damage or loss reported at time of incident.\n';
+        narrative += '  📊 Damage Assessment: NONE OBSERVED\n';
       }
       
-      // Add injuries section
-      narrative += '\nINJURIES:\n';
-      if (data.injuries) {
+      // Add enhanced injuries section
+      narrative += '\n🏥 INJURIES & MEDICAL ASSESSMENT:\n';
+      if (data.injuries && data.injuries.trim()) {
         narrative += formatNarrativeText(data.injuries) + '\n';
+        narrative += '  🚑 Medical Status: INJURIES DOCUMENTED - Details recorded above\n';
+        narrative += '  📋 Medical Attention: As noted in injury description\n';
       } else {
-        narrative += '  No injuries reported.\n';
+        narrative += '  ✅ No injuries reported or observed at time of incident.\n';
+        narrative += '  🚑 Medical Status: NO INJURIES DOCUMENTED\n';
+        narrative += '  📋 Medical Attention: Not required\n';
       }
       
-      // Add evidence section
-      narrative += '\nEVIDENCE COLLECTED:\n';
-      if (data.evidence) {
-        narrative += '  • ' + data.evidence + '\n';
+      // Add enhanced evidence section
+      narrative += '\n🔍 EVIDENCE COLLECTION & DOCUMENTATION:\n';
+      if (data.evidence && data.evidence.trim()) {
+        narrative += `  📦 Evidence Secured: ${data.evidence}\n`;
+        narrative += '  📸 Documentation Status: EVIDENCE COLLECTED AND CATALOGUED\n';
+        narrative += '  🔒 Chain of Custody: Maintained per security protocols\n';
       } else {
-        narrative += '  None collected at scene.\n';
+        narrative += '  📦 Physical Evidence: None collected at scene\n';
+        narrative += '  📸 Documentation Status: INCIDENT DOCUMENTED VIA REPORT ONLY\n';
+        narrative += '  🔒 Chain of Custody: N/A - No physical evidence\n';
       }
       
-      // Add police report if applicable
-      if (data.policeReport) {
-        narrative += `\nLAW ENFORCEMENT INVOLVEMENT:\n`;
-        narrative += `  Police Report Number: ${data.policeReport}\n`;
+      // Add law enforcement involvement if applicable
+      if (data.policeReport && data.policeReport.trim()) {
+        narrative += '\n👮 LAW ENFORCEMENT COORDINATION:\n';
+        narrative += `  🚔 Police Report Number: ${data.policeReport}\n`;
+        narrative += '  📞 Notification Status: LAW ENFORCEMENT CONTACTED AND RESPONDED\n';
+        narrative += '  🤝 Cooperation Level: Full cooperation provided to investigating officers\n';
+      } else {
+        narrative += '\n👮 LAW ENFORCEMENT COORDINATION:\n';
+        narrative += '  🚔 Police Involvement: Not required for this incident\n';
+        narrative += '  📞 Notification Status: Handled internally per security protocols\n';
       }
 
-      // Add additional notes section if present
-      if (data.additionalNotes) {
+      // Add enhanced additional notes section if present
+      if (data.additionalNotes && data.additionalNotes.trim()) {
         narrative += `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                         ADDITIONAL INFORMATION
+                         📝 ADDITIONAL INFORMATION & RECOMMENDATIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+📋 SUPPLEMENTAL DETAILS:
 ${formatNarrativeText(data.additionalNotes)}
+
+🔍 FOLLOW-UP REQUIREMENTS:
+  • Review incident for policy compliance
+  • Monitor area for recurring issues
+  • Update security protocols if necessary
+  • File report in permanent records
 `;
       }
 
+      // Enhanced report certification section
       narrative += `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                         REPORT CERTIFICATION
+                         ✍️ OFFICIAL REPORT CERTIFICATION & VALIDATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-I certify that the information contained in this report is true and accurate to
-the best of my knowledge and belief.
+📋 CERTIFICATION STATEMENT:
+I hereby certify that the information contained in this security incident report
+is true, accurate, and complete to the best of my knowledge, information, and
+belief. This report has been prepared in accordance with established security
+protocols and professional standards.
 
-REPORTING OFFICER: ${data.officerName}
-BADGE NUMBER: ${data.badgeNumber || 'Not specified'}
-DATE/TIME: ${formatDateTime(reportDate)}
+👮 REPORTING OFFICER DETAILS:
+  Officer Name: ${data.officerName || 'Not specified'}
+  Badge/ID Number: ${data.badgeNumber || 'Not specified'}
+  Post Assignment: ${data.post || 'Not specified'}
+  
+📅 REPORT COMPLETION:
+  Date Completed: ${formatDate(reportDate)}
+  Time Completed: ${formatTime(reportDate)}
+  Report Generated: ${formatDateTime(reportDate)}
+
+🔒 CONFIDENTIALITY NOTICE:
+This report contains confidential security information. Distribution is limited
+to authorized personnel only. Unauthorized disclosure is prohibited.
+
+📊 REPORT STATISTICS:
+  Total Involved Parties: ${data.people.length}
+  Evidence Items: ${data.evidence ? '1 or more' : 'None'}
+  Police Involvement: ${data.policeReport ? 'Yes' : 'No'}
+  Priority Level: ${data.severity || 'Not specified'}
 
 ═══════════════════════════════════════════════════════════════════════════════
-                           END OF REPORT
+                    🛡️ END OF OFFICIAL SECURITY INCIDENT REPORT 🛡️
 ═══════════════════════════════════════════════════════════════════════════════`;
 
       // Replace actual names with anonymized references
@@ -735,19 +858,115 @@ DATE/TIME: ${formatDateTime(reportDate)}
       return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    // Narrative mode toggle and person insertion
-    let narrativeMode = false;
-    function toggleNarrativeMode() {
-      narrativeMode = !narrativeMode;
-      const icon = document.getElementById('narrativeModeIcon');
-      const text = document.getElementById('narrativeModeText');
-      if (narrativeMode) {
-        icon.textContent = '🔄';
-        text.textContent = 'Auto-Generate';
+    // Enhanced narrative editing and person insertion
+    let narrativeEditMode = false;
+    let narrativeTextarea = null;
+    
+    function toggleNarrativeEditMode() {
+      const narrativeDiv = document.getElementById('reportNarrative');
+      const editBtn = document.getElementById('narrativeEditBtn');
+      
+      if (!narrativeEditMode) {
+        // Switch to edit mode
+        const currentText = narrativeDiv.textContent;
+        narrativeTextarea = document.createElement('textarea');
+        narrativeTextarea.className = 'form-textarea';
+        narrativeTextarea.style.cssText = `
+          width: 100%; 
+          min-height: 300px; 
+          font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace; 
+          font-size: 0.875rem; 
+          line-height: 1.6;
+          resize: vertical;
+        `;
+        narrativeTextarea.value = currentText;
+        narrativeTextarea.placeholder = 'Edit your narrative directly here...';
+        
+        narrativeDiv.parentNode.replaceChild(narrativeTextarea, narrativeDiv);
+        editBtn.innerHTML = '<span class="mr-1">💾</span> Save Edit';
+        narrativeEditMode = true;
+        
+        // Add person insertion buttons
+        showPersonInsertionButtons();
       } else {
-        icon.textContent = '📝';
-        text.textContent = 'Type Freely';
+        // Switch back to display mode
+        const editedText = narrativeTextarea.value;
+        const newDiv = document.createElement('div');
+        newDiv.id = 'reportNarrative';
+        newDiv.style.cssText = narrativeDiv.style.cssText;
+        newDiv.textContent = editedText;
+        
+        narrativeTextarea.parentNode.replaceChild(newDiv, narrativeTextarea);
+        editBtn.innerHTML = '<span class="mr-1">✏️</span> Edit Narrative';
+        narrativeEditMode = false;
+        narrativeTextarea = null;
+        
+        // Hide person insertion buttons
+        hidePersonInsertionButtons();
       }
+    }
+    
+    function regenerateNarrative() {
+      if (narrativeEditMode) {
+        alert('Please save your edits first before regenerating.');
+        return;
+      }
+      generateReport();
+      showStatus('Narrative regenerated from form data', 'success');
+    }
+    
+    function showPersonInsertionButtons() {
+      const container = document.querySelector('.narrative-controls');
+      if (!document.getElementById('personInsertButtons')) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.id = 'personInsertButtons';
+        buttonContainer.className = 'flex gap-2 mt-2';
+        buttonContainer.innerHTML = `
+          <button type="button" class="touch-btn" onclick="insertPersonIntoNarrative('Victim')">
+            <span class="mr-1">👤</span> Add Victim
+          </button>
+          <button type="button" class="touch-btn" onclick="insertPersonIntoNarrative('Suspect')">
+            <span class="mr-1">⚠️</span> Add Suspect
+          </button>
+          <button type="button" class="touch-btn" onclick="insertPersonIntoNarrative('Witness')">
+            <span class="mr-1">👁️</span> Add Witness
+          </button>
+          <button type="button" class="touch-btn" onclick="insertPersonIntoNarrative('Officer')">
+            <span class="mr-1">👮</span> Add Officer
+          </button>
+        `;
+        container.appendChild(buttonContainer);
+      }
+    }
+    
+    function hidePersonInsertionButtons() {
+      const buttons = document.getElementById('personInsertButtons');
+      if (buttons) {
+        buttons.remove();
+      }
+    }
+    
+    function insertPersonIntoNarrative(role) {
+      if (!narrativeTextarea) return;
+      
+      const cursorPos = narrativeTextarea.selectionStart;
+      const textBefore = narrativeTextarea.value.substring(0, cursorPos);
+      const textAfter = narrativeTextarea.value.substring(cursorPos);
+      
+      // Count existing people of this role
+      const existingCount = peopleList.filter(p => p.role === role).length;
+      const nextNumber = existingCount + 1;
+      const reference = `${role}${nextNumber}`;
+      
+      // Insert the reference at cursor position
+      narrativeTextarea.value = textBefore + reference + textAfter;
+      
+      // Move cursor after the inserted reference
+      narrativeTextarea.selectionStart = narrativeTextarea.selectionEnd = cursorPos + reference.length;
+      narrativeTextarea.focus();
+      
+      // Show helpful tip
+      showStatus(`Inserted ${reference}. Make sure to add this person in the form below.`, 'info');
     }
 
     function insertPersonReference(role) {

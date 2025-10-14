@@ -113,40 +113,67 @@
 
     const TEMPLATE = {
       id: 'shift_report',
-      name: 'Shift Report',
+      name: 'Professional Shift Report',
       fields: [
         { key:'date', label:'Date', type:'date' },
         { key:'guardName', label:'Guard Name', type:'text' },
         { key:'post', label:'Post / Location', type:'text' },
         { key:'startTime', label:'Shift Start', type:'time' },
         { key:'endTime', label:'Shift End', type:'time' },
-        { key:'patrols', label:'Patrols Conducted', type:'textarea', rows:3, placeholder:'Times/areas' },
-        { key:'contacts', label:'Contacts / Interactions', type:'textarea', rows:3 },
-        { key:'incidents', label:'Incidents (if any)', type:'textarea', rows:3 },
-        { key:'alarms', label:'Alarms / Calls Responded', type:'textarea', rows:3 },
-        { key:'visitors', label:'Visitors / Deliveries', type:'textarea', rows:3 },
-        { key:'maintenanceIssues', label:'Maintenance / Safety Issues', type:'textarea', rows:3 },
-        { key:'equipmentIssues', label:'Equipment Issues', type:'textarea', rows:3 },
-        { key:'handoffNotes', label:'Handoff Notes for Next Shift', type:'textarea', rows:3 },
-        { key:'notes', label:'Other Notes', type:'textarea', rows:3 }
+        { key:'weather', label:'Weather Conditions', type:'select', options:['Clear', 'Partly Cloudy', 'Overcast', 'Light Rain', 'Heavy Rain', 'Snow', 'Fog', 'Windy'] },
+        { key:'patrols', label:'Patrols Conducted (Summary)', type:'textarea', rows:3, placeholder:'Brief summary of patrol activities, times, and areas covered' },
+        { key:'patrolDetails', label:'Detailed Patrol Information', type:'textarea', rows:4, placeholder:'Detailed observations, security concerns, checkpoints visited, any issues noted during patrols' },
+        { key:'contacts', label:'Contacts / Interactions', type:'textarea', rows:3, placeholder:'Visitor interactions, staff contacts, vendor interactions, etc.' },
+        { key:'incidents', label:'Incidents (if any)', type:'textarea', rows:3, placeholder:'Any incidents that occurred during shift - reference incident report numbers if applicable' },
+        { key:'alarms', label:'Alarms / Calls Responded', type:'textarea', rows:3, placeholder:'Alarm activations, emergency calls, system alerts responded to' },
+        { key:'visitors', label:'Visitors / Deliveries', type:'textarea', rows:3, placeholder:'Visitor log, delivery tracking, contractor access' },
+        { key:'maintenanceIssues', label:'Maintenance / Safety Issues', type:'textarea', rows:3, placeholder:'Equipment malfunctions, safety hazards, facility issues requiring attention' },
+        { key:'equipmentIssues', label:'Equipment Issues', type:'textarea', rows:3, placeholder:'Security equipment problems, radio issues, vehicle concerns' },
+        { key:'securityObservations', label:'Security Observations', type:'textarea', rows:3, placeholder:'Suspicious activities, security vulnerabilities, recommendations for improvement' },
+        { key:'handoffNotes', label:'Handoff Notes for Next Shift', type:'textarea', rows:3, placeholder:'Important information for incoming shift, ongoing situations, follow-up required' },
+        { key:'notes', label:'Additional Notes', type:'textarea', rows:3, placeholder:'Any other relevant information or observations' }
       ],
       body: (
-        'Shift Report\n' +
-        'Date: {date}\n' +
-        'Guard: {guardName}\n' +
-        'Post: {post}\n' +
-        'Shift: {startTime} - {endTime}\n\n' +
-        'Patrols:\n{patrols}\n\n' +
-        'Contacts/Interactions:\n{contacts}\n\n' +
-        'Incidents:\n{incidents}\n\n' +
-        'Alarms / Calls Responded:\n{alarms}\n\n' +
-        'Visitors / Deliveries:\n{visitors}\n\n' +
-        'Maintenance / Safety Issues:\n{maintenanceIssues}\n\n' +
-        'Equipment Issues:\n{equipmentIssues}\n\n' +
-        'Handoff Notes:\n{handoffNotes}\n\n' +
-        'Other Notes:\n{notes}\n\n' +
-        'Attached Incidents:\n{attachedIncidentsSection}\n\n' +
-        'Attached Patrols:\n{attachedPatrolsSection}'
+        '═══════════════════════════════════════════════════════════════════════════════\n' +
+        '                        🛡️ PROFESSIONAL SHIFT REPORT 🛡️\n' +
+        '═══════════════════════════════════════════════════════════════════════════════\n\n' +
+        '📅 SHIFT INFORMATION:\n' +
+        '  Date: {date}\n' +
+        '  Guard: {guardName}\n' +
+        '  Post/Location: {post}\n' +
+        '  Shift Duration: {startTime} - {endTime}\n' +
+        '  Weather Conditions: {weather}\n\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+        '                              🚶 PATROL ACTIVITIES\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+        '📋 PATROL SUMMARY:\n{patrols}\n\n' +
+        '🔍 DETAILED PATROL OBSERVATIONS:\n{patrolDetails}\n\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+        '                              👥 INTERACTIONS & ACTIVITIES\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+        '🤝 CONTACTS/INTERACTIONS:\n{contacts}\n\n' +
+        '🚨 INCIDENTS:\n{incidents}\n\n' +
+        '📞 ALARMS / CALLS RESPONDED:\n{alarms}\n\n' +
+        '👥 VISITORS / DELIVERIES:\n{visitors}\n\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+        '                              🔧 MAINTENANCE & EQUIPMENT\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+        '🛠️ MAINTENANCE / SAFETY ISSUES:\n{maintenanceIssues}\n\n' +
+        '📡 EQUIPMENT ISSUES:\n{equipmentIssues}\n\n' +
+        '🔍 SECURITY OBSERVATIONS:\n{securityObservations}\n\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+        '                              📝 SHIFT TRANSITION\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+        '🔄 HANDOFF NOTES FOR NEXT SHIFT:\n{handoffNotes}\n\n' +
+        '📋 ADDITIONAL NOTES:\n{notes}\n\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+        '                              📎 ATTACHED DOCUMENTATION\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+        '📄 ATTACHED INCIDENT REPORTS:\n{attachedIncidentsSection}\n\n' +
+        '🚶 DETAILED PATROL LOGS:\n{attachedPatrolsSection}\n\n' +
+        '═══════════════════════════════════════════════════════════════════════════════\n' +
+        '                           🛡️ END OF SHIFT REPORT 🛡️\n' +
+        '═══════════════════════════════════════════════════════════════════════════════'
       )
     };
 
@@ -194,41 +221,44 @@
           const notes = Array.isArray(rec.notes) ? rec.notes : [];
           const details = rec.details || {};
 
-          const header = `[${idx+1}] Patrol — ${start?fmtDate(start):''} ${start?fmtTime(start):''}${end?(' - '+fmtTime(end)) : ''}`.trim();
-          const meta = `Duration: ${pad2(durH)}:${pad2(durM)}  •  Checkpoints: ${cp.length}  •  Notes: ${notes.length}`;
+          const header = `🚶 PATROL LOG #${idx+1} — ${start?fmtDate(start):''} ${start?fmtTime(start):''}${end?(' - '+fmtTime(end)) : ''}`.trim();
+          const meta = `⏱️ Duration: ${pad2(durH)}:${pad2(durM)}  •  📍 Checkpoints: ${cp.length}  •  📝 Notes: ${notes.length}`;
 
-          // Add patrol details if available
+          // Enhanced patrol details section
           let detailsBlock = '';
           if (details.area || details.weather || details.purpose || details.observations || details.securityConcerns) {
             const detailLines = [];
-            if (details.area) detailLines.push(`Area/Route: ${details.area}`);
-            if (details.weather) detailLines.push(`Weather: ${details.weather}`);
-            if (details.purpose) detailLines.push(`Purpose: ${details.purpose}`);
-            if (details.observations) detailLines.push(`Observations: ${details.observations}`);
-            if (details.securityConcerns) detailLines.push(`Security Concerns: ${details.securityConcerns}`);
+            if (details.area) detailLines.push(`🗺️ Area/Route: ${details.area}`);
+            if (details.weather) detailLines.push(`🌤️ Weather: ${details.weather}`);
+            if (details.purpose) detailLines.push(`🎯 Purpose: ${details.purpose}`);
+            if (details.observations) detailLines.push(`👁️ Observations: ${details.observations}`);
+            if (details.securityConcerns) detailLines.push(`⚠️ Security Concerns: ${details.securityConcerns}`);
             
-            detailsBlock = `Patrol Details:\n${detailLines.map(line => `  - ${line}`).join('\n')}`;
+            detailsBlock = `📋 PATROL DETAILS:\n${detailLines.map(line => `  ${line}`).join('\n')}`;
           }
 
+          // Enhanced checkpoints section
           const cpLines = cp.map((c,i) => {
             const t = c.timestamp ? new Date(c.timestamp) : null;
             const timeStr = t ? fmtTime(t) : '--:--';
             const loc = c.location || 'Checkpoint';
             const n = (c.notes||'').trim();
-            return `  - ${timeStr} — ${loc}${n?` — ${n}`:''}`;
+            return `  📍 ${timeStr} — ${loc}${n?` — ${n}`:''}`;
           }).join('\n');
 
+          // Enhanced notes section
           const noteLines = notes.map((nObj,i) => {
             const t = nObj.timestamp ? new Date(nObj.timestamp) : null;
             const timeStr = t ? fmtTime(t) : '--:--';
             const text = (nObj.text||'').trim();
-            return `  - ${timeStr} — ${text}`;
+            return `  📝 ${timeStr} — ${text}`;
           }).join('\n');
 
-          const cpBlock = cp.length ? `Checkpoints:\n${cpLines}` : '';
-          const notesBlock = notes.length ? `Notes:\n${noteLines}` : '';
+          const cpBlock = cp.length ? `📍 CHECKPOINTS VISITED:\n${cpLines}` : '📍 CHECKPOINTS: None recorded';
+          const notesBlock = notes.length ? `📝 PATROL NOTES:\n${noteLines}` : '📝 PATROL NOTES: None recorded';
           const bodyParts = [detailsBlock, cpBlock, notesBlock].filter(Boolean).join('\n\n');
-          return `${header}\n${meta}${bodyParts?`\n\n${bodyParts}`:''}`;
+          
+          return `${header}\n${meta}\n\n${bodyParts}\n\n${'─'.repeat(60)}`;
         });
         return parts.join('\n\n');
       }catch{ return ''; }

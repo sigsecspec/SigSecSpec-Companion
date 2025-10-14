@@ -70,8 +70,8 @@
         <button class="touch-btn primary" id="missionToggleBtn" onclick="toggleMission()">
           <span class="mr-2" id="missionToggleIcon">▶️</span> <span id="missionToggleText">Start Mission</span>
         </button>
-        <button class="touch-btn" onclick="startPatrol()">
-          <span class="mr-2">🚶</span> Start Patrol
+        <button class="touch-btn" id="patrolActionBtn" onclick="handlePatrolAction()">
+          <span class="mr-2" id="patrolActionIcon">🚶</span> <span id="patrolActionText">Start Patrol</span>
         </button>
       </div>
       
@@ -159,7 +159,7 @@
       </div>
     </section>
 
-    <!-- My Missions -->
+      <!-- My Missions -->
     <section class="mobile-card mb-6">
       <div class="flex justify-between items-center mb-3">
         <h3 class="text-lg font-semibold">My Missions</h3>
@@ -177,6 +177,14 @@
       <h3 class="text-lg font-semibold mb-3">Recent Activity</h3>
       <div id="recentActivity" class="space-y-3">
         <!-- Activity items will be populated here -->
+      </div>
+    </section>
+
+    <!-- Today's Patrol Log -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-3">Today's Patrol Log</h3>
+      <div id="todayPatrolLog" class="space-y-3">
+        <!-- Today's patrol entries will be populated here -->
       </div>
     </section>
   </main>
@@ -291,8 +299,71 @@
     </div>
   </div>
 
+  <!-- Custom Popup System -->
+  <div id="customPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
+    <div class="mobile-card max-w-md mx-4 my-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="popupTitle" class="text-xl font-bold"></h3>
+        <button class="touch-btn" onclick="closeCustomPopup()" style="min-width: auto; padding: 0.5rem;">✕</button>
+      </div>
+      <div id="popupContent" class="space-y-3">
+        <!-- Dynamic content will be inserted here -->
+      </div>
+      <div id="popupActions" class="flex gap-3 mt-6">
+        <!-- Dynamic action buttons will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Mission Confirmation Popup -->
+  <div id="missionConfirmPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-md mx-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+      <h3 class="text-xl font-bold mb-4">⚠️ Start Unscheduled Mission</h3>
+      <p class="mb-4" style="color: var(--text-secondary)">This mission is not scheduled. Are you sure you want to start it? Please provide mission information:</p>
+      
+      <div class="space-y-3 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Mission Title</label>
+          <input type="text" id="unscheduledMissionTitle" class="w-full px-3 py-2 rounded-lg" 
+                 style="background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary);"
+                 placeholder="e.g., Emergency Response, Special Event">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Location/Area</label>
+          <input type="text" id="unscheduledMissionLocation" class="w-full px-3 py-2 rounded-lg" 
+                 style="background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary);"
+                 placeholder="e.g., Building A, Parking Lot">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Description</label>
+          <textarea id="unscheduledMissionDescription" rows="3" class="w-full px-3 py-2 rounded-lg" 
+                    style="background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary);"
+                    placeholder="Brief description of the mission..."></textarea>
+        </div>
+      </div>
+      
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="closeMissionConfirmPopup()">Cancel</button>
+        <button class="touch-btn primary flex-1" onclick="confirmStartUnscheduledMission()">Start Mission</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mission Confirmation Popup -->
+  <div id="endMissionConfirmPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-md mx-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+      <h3 class="text-xl font-bold mb-4">⚠️ End Mission</h3>
+      <p class="mb-4" style="color: var(--text-secondary)">Are you sure you want to end the current mission? This action cannot be undone.</p>
+      
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="closeEndMissionConfirmPopup()">Cancel</button>
+        <button class="touch-btn danger flex-1" onclick="confirmEndMission()">End Mission</button>
+      </div>
+    </div>
+  </div>
+
   <div id="equipmentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
-    <div class="mobile-card max-w-md mx-4 my-4">
+    <div class="mobile-card max-w-md mx-4 my-4" style="position: relative; top: 50%; transform: translateY(-50%);">
       <h3 class="text-xl font-bold mb-4">🎒 Equipment Check</h3>
       <p class="text-sm mb-4" style="color: var(--text-secondary)">Complete your daily equipment inspection</p>
       
@@ -515,14 +586,115 @@
       );
     }
 
+    // Custom Popup System
+    function showCustomPopup(title, content, actions = []) {
+      document.getElementById('popupTitle').textContent = title;
+      document.getElementById('popupContent').innerHTML = content;
+      
+      const actionsContainer = document.getElementById('popupActions');
+      actionsContainer.innerHTML = actions.map(action => 
+        `<button class="touch-btn ${action.class || ''}" onclick="${action.onclick}">${action.text}</button>`
+      ).join('');
+      
+      document.getElementById('customPopup').classList.remove('hidden');
+      document.getElementById('customPopup').classList.add('flex');
+    }
+
+    function closeCustomPopup() {
+      document.getElementById('customPopup').classList.add('hidden');
+      document.getElementById('customPopup').classList.remove('flex');
+    }
+
+    // Mission Confirmation Functions
+    function openMissionConfirmPopup() {
+      document.getElementById('missionConfirmPopup').classList.remove('hidden');
+      document.getElementById('missionConfirmPopup').classList.add('flex');
+    }
+
+    function closeMissionConfirmPopup() {
+      document.getElementById('missionConfirmPopup').classList.add('hidden');
+      document.getElementById('missionConfirmPopup').classList.remove('flex');
+      // Clear form
+      document.getElementById('unscheduledMissionTitle').value = '';
+      document.getElementById('unscheduledMissionLocation').value = '';
+      document.getElementById('unscheduledMissionDescription').value = '';
+    }
+
+    function confirmStartUnscheduledMission() {
+      const title = document.getElementById('unscheduledMissionTitle').value.trim();
+      const location = document.getElementById('unscheduledMissionLocation').value.trim();
+      const description = document.getElementById('unscheduledMissionDescription').value.trim();
+      
+      if (!title) {
+        showCustomPopup('⚠️ Missing Information', 
+          '<p>Please provide a mission title.</p>',
+          [{ text: 'OK', onclick: 'closeCustomPopup()' }]
+        );
+        return;
+      }
+      
+      // Create and save the unscheduled mission to schedule
+      const mission = {
+        id: Date.now(),
+        title: title,
+        date: new Date().toISOString().split('T')[0],
+        startTime: new Date().toTimeString().slice(0, 5),
+        endTime: '',
+        location: location,
+        description: description,
+        enableNotifications: false,
+        status: 'scheduled',
+        createdAt: new Date().toISOString(),
+        isUnscheduled: true
+      };
+      
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      scheduledMissions.push(mission);
+      localStorage.setItem('scheduledMissions', JSON.stringify(scheduledMissions));
+      
+      closeMissionConfirmPopup();
+      startMissionDirectly(mission);
+    }
+
+    // End Mission Confirmation Functions
+    function openEndMissionConfirmPopup() {
+      document.getElementById('endMissionConfirmPopup').classList.remove('hidden');
+      document.getElementById('endMissionConfirmPopup').classList.add('flex');
+    }
+
+    function closeEndMissionConfirmPopup() {
+      document.getElementById('endMissionConfirmPopup').classList.add('hidden');
+      document.getElementById('endMissionConfirmPopup').classList.remove('flex');
+    }
+
+    function confirmEndMission() {
+      closeEndMissionConfirmPopup();
+      endMission();
+    }
+
+    // Patrol Action Handler
+    function handlePatrolAction() {
+      const currentPatrol = JSON.parse(localStorage.getItem('currentPatrol') || 'null');
+      
+      if (currentPatrol && currentPatrol.startTime) {
+        // End patrol
+        endPatrol();
+      } else {
+        // Start patrol
+        startPatrol();
+      }
+    }
+
     function startPatrol() {
       // Check if there's an active mission
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission || activeMission.status !== 'active') {
-        if (confirm('No active mission found. Would you like to start a mission first?')) {
-          toggleMission();
-          return;
-        }
+        showCustomPopup('⚠️ No Active Mission', 
+          '<p>You cannot start a patrol without an active mission. Please start a mission first.</p>',
+          [{ text: 'Start Mission', onclick: 'closeCustomPopup(); toggleMission();', class: 'primary' },
+           { text: 'Cancel', onclick: 'closeCustomPopup()' }]
+        );
+        return;
       }
       
       // Start patrol directly (same logic as patrol.html startPatrol function)
@@ -544,6 +716,9 @@
       // Save patrol state to localStorage
       localStorage.setItem('currentPatrol', JSON.stringify(currentPatrol));
       
+      // Update patrol button
+      updatePatrolButton();
+      
       // Show success notification
       if (window.securityNotifications) {
         window.securityNotifications.showLocalNotification(
@@ -552,7 +727,63 @@
           { tag: 'patrol-start', requireInteraction: false }
         );
       } else {
-        alert('Patrol started successfully! Go to Patrol page to manage your patrol.');
+        showCustomPopup('✅ Patrol Started', 
+          '<p>Patrol has been started successfully. Go to Patrol page to manage your patrol.</p>',
+          [{ text: 'OK', onclick: 'closeCustomPopup()' }]
+        );
+      }
+    }
+
+    function endPatrol() {
+      const currentPatrol = JSON.parse(localStorage.getItem('currentPatrol') || 'null');
+      if (!currentPatrol) return;
+
+      currentPatrol.endTime = new Date();
+      
+      // Save completed patrol
+      const patrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      patrols.unshift(currentPatrol);
+      localStorage.setItem('completedPatrols', JSON.stringify(patrols.slice(0, 50))); // Keep last 50
+      
+      // Clear current patrol
+      localStorage.removeItem('currentPatrol');
+      
+      // Update patrol button
+      updatePatrolButton();
+      
+      // Update today's patrol log
+      updateTodayPatrolLog();
+      
+      // Show success notification
+      if (window.securityNotifications) {
+        const duration = Math.floor((currentPatrol.endTime - new Date(currentPatrol.startTime)) / (1000 * 60));
+        window.securityNotifications.showLocalNotification(
+          '✅ Patrol Completed',
+          `Patrol finished successfully. Duration: ${duration} minutes`,
+          { tag: 'patrol-complete' }
+        );
+      } else {
+        showCustomPopup('✅ Patrol Completed', 
+          '<p>Patrol has been completed and saved successfully.</p>',
+          [{ text: 'OK', onclick: 'closeCustomPopup()' }]
+        );
+      }
+    }
+
+    function updatePatrolButton() {
+      const currentPatrol = JSON.parse(localStorage.getItem('currentPatrol') || 'null');
+      const patrolBtn = document.getElementById('patrolActionBtn');
+      const patrolIcon = document.getElementById('patrolActionIcon');
+      const patrolText = document.getElementById('patrolActionText');
+      
+      if (currentPatrol && currentPatrol.startTime) {
+        patrolBtn.className = 'touch-btn danger flex-1';
+        patrolIcon.textContent = '⏹️';
+        patrolText.textContent = 'End Patrol';
+      } else {
+        patrolBtn.className = 'touch-btn flex-1';
+        patrolIcon.textContent = '🚶';
+        patrolText.textContent = 'Start Patrol';
       }
     }
 
@@ -563,22 +794,72 @@
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       
       if (!activeMission || activeMission.status !== 'active') {
-        startMission();
+        // Check if there's an active patrol
+        const currentPatrol = JSON.parse(localStorage.getItem('currentPatrol') || 'null');
+        if (currentPatrol && currentPatrol.startTime) {
+          showCustomPopup('⚠️ Active Patrol', 
+            '<p>You cannot start a mission while a patrol is active. Please end the current patrol first.</p>',
+            [{ text: 'End Patrol', onclick: 'closeCustomPopup(); endPatrol();', class: 'danger' },
+             { text: 'Cancel', onclick: 'closeCustomPopup()' }]
+          );
+          return;
+        }
+        
+        // Check if this is a scheduled mission
+        const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+        const now = new Date();
+        const currentScheduledMission = scheduledMissions.find(mission => {
+          if (mission.status !== 'scheduled') return false;
+          const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+          const timeDiff = Math.abs(now - missionDateTime);
+          return timeDiff <= 30 * 60 * 1000; // Within 30 minutes
+        });
+        
+        if (currentScheduledMission) {
+          startMissionDirectly(currentScheduledMission);
+        } else {
+          // Show confirmation for unscheduled mission
+          openMissionConfirmPopup();
+        }
       } else {
-        endMission();
+        // Check if there's an active patrol
+        const currentPatrol = JSON.parse(localStorage.getItem('currentPatrol') || 'null');
+        if (currentPatrol && currentPatrol.startTime) {
+          showCustomPopup('⚠️ Active Patrol', 
+            '<p>You cannot end a mission while a patrol is active. Please end the current patrol first.</p>',
+            [{ text: 'End Patrol', onclick: 'closeCustomPopup(); endPatrol();', class: 'danger' },
+             { text: 'Cancel', onclick: 'closeCustomPopup()' }]
+          );
+          return;
+        }
+        
+        openEndMissionConfirmPopup();
       }
     }
     
-    function startMission() {
+    function startMissionDirectly(missionData = null) {
       const mission = {
         id: Date.now(),
         startTime: new Date().toISOString(),
         status: 'active',
-        type: 'manual'
+        type: missionData ? 'scheduled' : 'manual',
+        originalMission: missionData
       };
       
       localStorage.setItem('activeMission', JSON.stringify(mission));
+      
+      // If this was a scheduled mission, mark it as started
+      if (missionData) {
+        const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+        const missionIndex = scheduledMissions.findIndex(m => m.id === missionData.id);
+        if (missionIndex !== -1) {
+          scheduledMissions[missionIndex].status = 'started';
+          localStorage.setItem('scheduledMissions', JSON.stringify(scheduledMissions));
+        }
+      }
+      
       updateMissionUI();
+      updateMyMissions();
       
       // Start mission timer
       if (missionTimer) clearInterval(missionTimer);
@@ -590,7 +871,16 @@
       // Show success message
       if (window.securityNotifications) {
         window.securityNotifications.sendShiftNotification('start', 'Mission started successfully');
+      } else {
+        showCustomPopup('✅ Mission Started', 
+          '<p>Mission has been started successfully.</p>',
+          [{ text: 'OK', onclick: 'closeCustomPopup()' }]
+        );
       }
+    }
+    
+    function startMission() {
+      startMissionDirectly();
     }
     
     function endMission() {
@@ -632,6 +922,11 @@
       // Show completion message
       if (window.securityNotifications) {
         window.securityNotifications.sendShiftNotification('end', 'Mission completed successfully');
+      } else {
+        showCustomPopup('✅ Mission Completed', 
+          '<p>Mission has been completed successfully.</p>',
+          [{ text: 'OK', onclick: 'closeCustomPopup()' }]
+        );
       }
     }
     
@@ -922,7 +1217,7 @@
       }
     }
 
-    // Update recent activity
+    // Update recent activity with clickable items
     function updateRecentActivity() {
       const container = document.getElementById('recentActivity');
       const activities = [];
@@ -934,7 +1229,9 @@
           icon: '🎒',
           title: 'Equipment Check Completed',
           time: `${equipCheck.date} at ${equipCheck.time}`,
-          status: 'status-complete'
+          status: 'status-complete',
+          type: 'equipment',
+          data: equipCheck
         });
       }
       
@@ -947,7 +1244,9 @@
           icon: '🚶',
           title: 'Patrol Completed',
           time: startTime ? startTime.toLocaleString() : 'Recently',
-          status: 'status-complete'
+          status: 'status-complete',
+          type: 'patrol',
+          data: latest
         });
       }
       
@@ -959,7 +1258,9 @@
           icon: '📝',
           title: `Incident Report: ${latest.meta?.type || 'Report'}`,
           time: latest.meta?.dateTime || new Date(latest.at).toLocaleString(),
-          status: 'status-online'
+          status: 'status-online',
+          type: 'incident',
+          data: latest
         });
       }
       
@@ -974,8 +1275,10 @@
           </div>
         `;
       } else {
-        container.innerHTML = activities.slice(0, 5).map(activity => `
-          <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-tertiary)">
+        container.innerHTML = activities.slice(0, 5).map((activity, index) => `
+          <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
+               style="background: var(--bg-tertiary)" 
+               onclick="viewActivityDetails(${index}, '${activity.type}')">
             <div class="flex items-center gap-3">
               <div class="text-2xl">${activity.icon}</div>
               <div>
@@ -983,10 +1286,242 @@
                 <div class="text-sm" style="color: var(--text-secondary)">${activity.time}</div>
               </div>
             </div>
-            <div class="status-indicator ${activity.status}"></div>
+            <div class="flex items-center gap-2">
+              <div class="status-indicator ${activity.status}"></div>
+              <div class="text-sm" style="color: var(--text-muted)">👁️</div>
+            </div>
           </div>
         `).join('');
       }
+    }
+
+    // View activity details in popup
+    function viewActivityDetails(index, type) {
+      const activities = [];
+      
+      // Rebuild activities array (same logic as updateRecentActivity)
+      const equipCheck = JSON.parse(localStorage.getItem('lastEquipmentCheck') || '{}');
+      if (equipCheck.date) {
+        activities.push({
+          icon: '🎒',
+          title: 'Equipment Check Completed',
+          time: `${equipCheck.date} at ${equipCheck.time}`,
+          status: 'status-complete',
+          type: 'equipment',
+          data: equipCheck
+        });
+      }
+      
+      const patrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      if (patrols.length > 0) {
+        const latest = patrols[0];
+        const startTime = latest.startTime ? new Date(latest.startTime) : null;
+        activities.push({
+          icon: '🚶',
+          title: 'Patrol Completed',
+          time: startTime ? startTime.toLocaleString() : 'Recently',
+          status: 'status-complete',
+          type: 'patrol',
+          data: latest
+        });
+      }
+      
+      const incidents = JSON.parse(localStorage.getItem('sss_saved_incident_reports') || '[]');
+      if (incidents.length > 0) {
+        const latest = incidents[0];
+        activities.push({
+          icon: '📝',
+          title: `Incident Report: ${latest.meta?.type || 'Report'}`,
+          time: latest.meta?.dateTime || new Date(latest.at).toLocaleString(),
+          status: 'status-online',
+          type: 'incident',
+          data: latest
+        });
+      }
+      
+      const activity = activities[index];
+      if (!activity) return;
+      
+      let content = '';
+      let title = activity.title;
+      
+      if (type === 'equipment') {
+        const data = activity.data;
+        const items = data.items || {};
+        content = `
+          <div class="space-y-3">
+            <div><strong>Date:</strong> ${data.date}</div>
+            <div><strong>Time:</strong> ${data.time}</div>
+            <div><strong>Equipment Status:</strong></div>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div>📻 Radio: ${items.radio ? '✅' : '❌'}</div>
+              <div>🔦 Flashlight: ${items.flashlight ? '✅' : '❌'}</div>
+              <div>🔑 Keys: ${items.keys ? '✅' : '❌'}</div>
+              <div>📝 Notebook: ${items.notebook ? '✅' : '❌'}</div>
+              <div>🩹 First Aid: ${items.firstaid ? '✅' : '❌'}</div>
+              <div>📱 Phone: ${items.phone ? '✅' : '❌'}</div>
+              <div>👕 Uniform: ${items.uniform ? '✅' : '❌'}</div>
+            </div>
+            ${data.notes ? `<div><strong>Notes:</strong><br>${data.notes}</div>` : ''}
+          </div>
+        `;
+      } else if (type === 'patrol') {
+        const data = activity.data;
+        const startTime = data.startTime ? new Date(data.startTime) : null;
+        const endTime = data.endTime ? new Date(data.endTime) : null;
+        const duration = (startTime && endTime) ? Math.floor((endTime - startTime) / (1000 * 60)) : 0;
+        
+        content = `
+          <div class="space-y-3">
+            <div><strong>Start Time:</strong> ${startTime ? startTime.toLocaleString() : 'Unknown'}</div>
+            <div><strong>End Time:</strong> ${endTime ? endTime.toLocaleString() : 'Unknown'}</div>
+            <div><strong>Duration:</strong> ${duration} minutes</div>
+            <div><strong>Checkpoints:</strong> ${data.checkpoints ? data.checkpoints.length : 0}</div>
+            <div><strong>Notes:</strong> ${data.notes ? data.notes.length : 0}</div>
+            ${data.details && data.details.area ? `<div><strong>Area:</strong> ${data.details.area}</div>` : ''}
+            ${data.details && data.details.weather ? `<div><strong>Weather:</strong> ${data.details.weather}</div>` : ''}
+          </div>
+        `;
+      } else if (type === 'incident') {
+        const data = activity.data;
+        content = `
+          <div class="space-y-3">
+            <div><strong>Type:</strong> ${data.meta?.type || 'Unknown'}</div>
+            <div><strong>Location:</strong> ${data.meta?.where || 'Unknown'}</div>
+            <div><strong>Date/Time:</strong> ${data.meta?.dateTime || new Date(data.at).toLocaleString()}</div>
+            <div><strong>Post:</strong> ${data.meta?.post || 'Unknown'}</div>
+            <div class="mt-3">
+              <button class="touch-btn primary w-full" onclick="closeCustomPopup(); viewIncidentReport('${data.id}')">
+                📄 View Full Report
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      
+      showCustomPopup(title, content, [
+        { text: 'Close', onclick: 'closeCustomPopup()' }
+      ]);
+    }
+
+    // View incident report
+    function viewIncidentReport(reportId) {
+      const incidents = JSON.parse(localStorage.getItem('sss_saved_incident_reports') || '[]');
+      const report = incidents.find(r => r.id === reportId);
+      if (!report) return;
+      
+      showCustomPopup(`📝 ${report.meta?.type || 'Incident Report'}`, 
+        `<pre style="white-space: pre-wrap; font-family: monospace; font-size: 0.875rem; line-height: 1.4; max-height: 400px; overflow-y: auto;">${report.body || 'No content available'}</pre>`,
+        [{ text: 'Close', onclick: 'closeCustomPopup()' }]
+      );
+    }
+
+    // Update Today's Patrol Log
+    function updateTodayPatrolLog() {
+      const container = document.getElementById('todayPatrolLog');
+      const today = new Date().toDateString();
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      
+      // Filter patrols from today
+      const todayPatrols = completedPatrols.filter(patrol => {
+        if (!patrol.startTime) return false;
+        const patrolDate = new Date(patrol.startTime).toDateString();
+        return patrolDate === today;
+      });
+      
+      if (todayPatrols.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8" style="color: var(--text-muted)">
+            <div class="text-3xl mb-2">🚶</div>
+            <div>No patrols completed today</div>
+            <div class="text-sm mt-1">Start a patrol to see entries here</div>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = todayPatrols.map((patrol, index) => {
+        const startTime = patrol.startTime ? new Date(patrol.startTime) : null;
+        const endTime = patrol.endTime ? new Date(patrol.endTime) : null;
+        const duration = (startTime && endTime) ? Math.floor((endTime - startTime) / (1000 * 60)) : 0;
+        
+        return `
+          <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
+               style="background: var(--bg-tertiary)" 
+               onclick="viewPatrolDetails(${index})">
+            <div class="flex items-center gap-3">
+              <div class="text-2xl">🚶</div>
+              <div>
+                <div class="font-medium">Patrol #${index + 1}</div>
+                <div class="text-sm" style="color: var(--text-secondary)">
+                  ${startTime ? startTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : 'Unknown'} • ${duration}min
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="status-indicator status-complete"></div>
+              <div class="text-sm" style="color: var(--text-muted)">👁️</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // View patrol details
+    function viewPatrolDetails(index) {
+      const today = new Date().toDateString();
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      const todayPatrols = completedPatrols.filter(patrol => {
+        if (!patrol.startTime) return false;
+        const patrolDate = new Date(patrol.startTime).toDateString();
+        return patrolDate === today;
+      });
+      
+      const patrol = todayPatrols[index];
+      if (!patrol) return;
+      
+      const startTime = patrol.startTime ? new Date(patrol.startTime) : null;
+      const endTime = patrol.endTime ? new Date(patrol.endTime) : null;
+      const duration = (startTime && endTime) ? Math.floor((endTime - startTime) / (1000 * 60)) : 0;
+      
+      const content = `
+        <div class="space-y-3">
+          <div><strong>Start Time:</strong> ${startTime ? startTime.toLocaleString() : 'Unknown'}</div>
+          <div><strong>End Time:</strong> ${endTime ? endTime.toLocaleString() : 'Unknown'}</div>
+          <div><strong>Duration:</strong> ${duration} minutes</div>
+          <div><strong>Checkpoints:</strong> ${patrol.checkpoints ? patrol.checkpoints.length : 0}</div>
+          <div><strong>Notes:</strong> ${patrol.notes ? patrol.notes.length : 0}</div>
+          
+          ${patrol.details ? `
+            <div class="mt-4 pt-3 border-t" style="border-color: var(--border-primary)">
+              <div><strong>Patrol Details:</strong></div>
+              ${patrol.details.area ? `<div>Area: ${patrol.details.area}</div>` : ''}
+              ${patrol.details.weather ? `<div>Weather: ${patrol.details.weather}</div>` : ''}
+              ${patrol.details.purpose ? `<div>Purpose: ${patrol.details.purpose}</div>` : ''}
+              ${patrol.details.observations ? `<div>Observations: ${patrol.details.observations}</div>` : ''}
+            </div>
+          ` : ''}
+          
+          ${patrol.checkpoints && patrol.checkpoints.length > 0 ? `
+            <div class="mt-4 pt-3 border-t" style="border-color: var(--border-primary)">
+              <div><strong>Checkpoints:</strong></div>
+              ${patrol.checkpoints.map(cp => `
+                <div class="mt-2 p-2 rounded" style="background: var(--bg-secondary)">
+                  <div class="font-medium">${cp.location}</div>
+                  <div class="text-sm" style="color: var(--text-secondary)">
+                    ${new Date(cp.timestamp).toLocaleTimeString()}
+                  </div>
+                  ${cp.notes ? `<div class="text-sm mt-1">${cp.notes}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      showCustomPopup(`🚶 Patrol #${index + 1} Details`, content, [
+        { text: 'Close', onclick: 'closeCustomPopup()' }
+      ]);
     }
 
     // Mission scheduler functions
@@ -1074,7 +1609,9 @@
       if (activeMission && activeMission.status === 'active') {
         const startTime = new Date(activeMission.startTime);
         content += `
-          <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-secondary); border: 2px solid var(--success);">
+          <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
+               style="background: var(--bg-secondary); border: 2px solid var(--success);"
+               onclick="viewMissionDetails('active', '${activeMission.id}')">
             <div class="flex items-center gap-3">
               <div class="text-2xl">🟢</div>
               <div>
@@ -1082,7 +1619,10 @@
                 <div class="text-sm" style="color: var(--text-secondary)">Started: ${startTime.toLocaleString()}</div>
               </div>
             </div>
-            <div class="status-indicator status-active"></div>
+            <div class="flex items-center gap-2">
+              <div class="status-indicator status-active"></div>
+              <div class="text-sm" style="color: var(--text-muted)">👁️</div>
+            </div>
           </div>
         `;
       }
@@ -1112,7 +1652,9 @@
         }
         
         content += `
-          <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-tertiary);">
+          <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
+               style="background: var(--bg-tertiary);"
+               onclick="viewMissionDetails('scheduled', '${mission.id}')">
             <div class="flex items-center gap-3">
               <div class="text-2xl">📅</div>
               <div>
@@ -1121,7 +1663,10 @@
                 ${mission.location ? `<div class="text-xs" style="color: var(--text-muted)">📍 ${mission.location}</div>` : ''}
               </div>
             </div>
-            <div class="status-indicator status-pending"></div>
+            <div class="flex items-center gap-2">
+              <div class="status-indicator status-pending"></div>
+              <div class="text-sm" style="color: var(--text-muted)">👁️</div>
+            </div>
           </div>
         `;
       });
@@ -1134,15 +1679,20 @@
         const duration = Math.floor((endTime - startTime) / (1000 * 60 * 60));
         
         content += `
-          <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-tertiary);">
+          <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
+               style="background: var(--bg-tertiary);"
+               onclick="viewMissionDetails('completed', '${mission.id}')">
             <div class="flex items-center gap-3">
               <div class="text-2xl">✅</div>
               <div>
-                <div class="font-medium">${mission.type === 'manual' ? 'Manual Mission' : mission.title || 'Mission'}</div>
+                <div class="font-medium">${mission.originalMission?.title || (mission.type === 'manual' ? 'Manual Mission' : 'Mission')}</div>
                 <div class="text-sm" style="color: var(--text-secondary)">${startTime.toLocaleDateString()} • ${duration}h duration</div>
               </div>
             </div>
-            <div class="status-indicator status-complete"></div>
+            <div class="flex items-center gap-2">
+              <div class="status-indicator status-complete"></div>
+              <div class="text-sm" style="color: var(--text-muted)">👁️</div>
+            </div>
           </div>
         `;
       });
@@ -1158,6 +1708,94 @@
       }
       
       container.innerHTML = content;
+    }
+
+    // View mission details
+    function viewMissionDetails(type, missionId) {
+      let mission = null;
+      let title = '';
+      
+      if (type === 'active') {
+        mission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+        title = '🟢 Active Mission Details';
+      } else if (type === 'scheduled') {
+        const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+        mission = scheduledMissions.find(m => m.id == missionId);
+        title = '📅 Scheduled Mission Details';
+      } else if (type === 'completed') {
+        const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        mission = missionHistory.find(m => m.id == missionId);
+        title = '✅ Completed Mission Details';
+      }
+      
+      if (!mission) return;
+      
+      let content = '';
+      
+      if (type === 'active') {
+        const startTime = new Date(mission.startTime);
+        const now = new Date();
+        const duration = Math.floor((now - startTime) / (1000 * 60));
+        
+        content = `
+          <div class="space-y-3">
+            <div><strong>Status:</strong> Active</div>
+            <div><strong>Started:</strong> ${startTime.toLocaleString()}</div>
+            <div><strong>Duration:</strong> ${duration} minutes</div>
+            <div><strong>Type:</strong> ${mission.type === 'scheduled' ? 'Scheduled' : 'Manual'}</div>
+            ${mission.originalMission ? `
+              <div class="mt-4 pt-3 border-t" style="border-color: var(--border-primary)">
+                <div><strong>Mission Details:</strong></div>
+                <div>Title: ${mission.originalMission.title}</div>
+                ${mission.originalMission.location ? `<div>Location: ${mission.originalMission.location}</div>` : ''}
+                ${mission.originalMission.description ? `<div>Description: ${mission.originalMission.description}</div>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else if (type === 'scheduled') {
+        const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+        const now = new Date();
+        const timeUntil = missionDateTime - now;
+        const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+        
+        content = `
+          <div class="space-y-3">
+            <div><strong>Title:</strong> ${mission.title}</div>
+            <div><strong>Date:</strong> ${mission.date}</div>
+            <div><strong>Time:</strong> ${mission.startTime}${mission.endTime ? ` - ${mission.endTime}` : ''}</div>
+            <div><strong>Status:</strong> ${hoursUntil > 0 ? `Starts in ${Math.floor(hoursUntil / 24)} days, ${hoursUntil % 24} hours` : 'Starting soon'}</div>
+            ${mission.location ? `<div><strong>Location:</strong> ${mission.location}</div>` : ''}
+            ${mission.description ? `<div><strong>Description:</strong> ${mission.description}</div>` : ''}
+            <div><strong>Notifications:</strong> ${mission.enableNotifications ? 'Enabled' : 'Disabled'}</div>
+          </div>
+        `;
+      } else if (type === 'completed') {
+        const startTime = new Date(mission.startTime);
+        const endTime = new Date(mission.endTime);
+        const duration = Math.floor((endTime - startTime) / (1000 * 60 * 60));
+        
+        content = `
+          <div class="space-y-3">
+            <div><strong>Title:</strong> ${mission.originalMission?.title || (mission.type === 'manual' ? 'Manual Mission' : 'Mission')}</div>
+            <div><strong>Started:</strong> ${startTime.toLocaleString()}</div>
+            <div><strong>Ended:</strong> ${endTime.toLocaleString()}</div>
+            <div><strong>Duration:</strong> ${duration} hours, ${Math.floor(((endTime - startTime) % (1000 * 60 * 60)) / (1000 * 60))} minutes</div>
+            <div><strong>Type:</strong> ${mission.type === 'scheduled' ? 'Scheduled' : 'Manual'}</div>
+            ${mission.originalMission ? `
+              <div class="mt-4 pt-3 border-t" style="border-color: var(--border-primary)">
+                <div><strong>Original Mission Details:</strong></div>
+                ${mission.originalMission.location ? `<div>Location: ${mission.originalMission.location}</div>` : ''}
+                ${mission.originalMission.description ? `<div>Description: ${mission.originalMission.description}</div>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+      
+      showCustomPopup(title, content, [
+        { text: 'Close', onclick: 'closeCustomPopup()' }
+      ]);
     }
     
     function scheduleMissionNotifications(mission) {
@@ -1212,6 +1850,12 @@
       // Initialize mission UI
       updateMissionUI();
       updateMyMissions();
+      
+      // Initialize patrol button state
+      updatePatrolButton();
+      
+      // Update today's patrol log
+      updateTodayPatrolLog();
       
       // Start mission timer if there's an active mission
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');

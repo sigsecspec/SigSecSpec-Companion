@@ -318,11 +318,8 @@
       // Check if there's an active mission
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission || activeMission.status !== 'active') {
-        if (confirm('No active mission found. Patrols should be conducted during active missions. Continue anyway?')) {
-          // Allow patrol without mission but warn user
-        } else {
-          return;
-        }
+        alert('You cannot start a patrol without an active mission. Please start a mission first from the Home page.');
+        return;
       }
       
       currentPatrol = {

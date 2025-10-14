@@ -123,8 +123,6 @@
     </div>
     <div class="flex space-x-2">
       <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10 ripple-container">A+</button>
-      <button onclick="playSiren()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10 ripple-container">Siren</button>
-      <audio id="siren"><source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="/></audio>
     </div>
   </header>
 
@@ -134,23 +132,12 @@
       <h2 class="text-xl font-bold accent mb-2">Welcome, Officer <span id="welcomeName">Officer</span></h2>
       <p class="text-gray-400 mb-4">Quick access to your core tools. Your preferences are saved on this device.</p>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <a href="#assignments" data-route="assignments" class="app-card ripple-container">📋<div class="font-semibold mt-2">View Assignments</div></a>
-        <a href="#incident" data-route="incident" class="app-card ripple-container">📝<div class="font-semibold mt-2">Incident Report</div></a>
-        <a href="#check" data-route="check" class="app-card ripple-container">✅<div class="font-semibold mt-2">Check In / Out</div></a>
-        <a href="#resources" data-route="resources" class="app-card ripple-container">📚<div class="font-semibold mt-2">Resources</div></a>
-      </div>
+      <!-- Removed quick links to non-essential sections -->
 
       <div class="app-grid">
         <a href="#codes" data-route="codes" class="app-card ripple-container">🔢<div class="font-semibold mt-2">10-Codes</div></a>
         <a href="#radio" data-route="radio" class="app-card ripple-container">🅰️<div class="font-semibold mt-2">Phonetic Alphabet</div></a>
-        <a href="#emergency" data-route="emergency" class="app-card ripple-container">🚨<div class="font-semibold mt-2">Emergency Tools</div></a>
-        <a href="#tools" data-route="tools" class="app-card ripple-container">🧰<div class="font-semibold mt-2">Field Tools</div></a>
         <a href="#templates" data-route="templates" class="app-card ripple-container">📄<div class="font-semibold mt-2">Report Templates</div></a>
-        <a href="#training" data-route="training" class="app-card ripple-container">🎓<div class="font-semibold mt-2">Training & Quiz</div></a>
-        <a href="#game" data-route="game" class="app-card ripple-container">🎮<div class="font-semibold mt-2">Boredom Breaker</div></a>
-        <a href="#profile" data-route="profile" class="app-card ripple-container">🪪<div class="font-semibold mt-2">Profile</div></a>
-        <a href="#support" data-route="support" class="app-card ripple-container">🆘<div class="font-semibold mt-2">Support & Contact</div></a>
       </div>
     </section>
 
@@ -220,78 +207,10 @@
       </div>
     </section>
 
-    <!-- EMERGENCY -->
-    <section id="emergency" class="view" aria-labelledby="emergencyHeading">
-      <h2 id="emergencyHeading" class="text-xl font-bold accent mb-4">Emergency Tools</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <a id="callSupervisor" class="app-card" href="#" target="_self">📞 Supervisor</a>
-        <a id="callPolice" class="app-card" href="#" target="_self">🚓 Local Police</a>
-        <a id="callMedical" class="app-card" href="#" target="_self">🚑 Medical / 911</a>
-        <button id="flashlightToggle" class="app-card ripple-container">🔦 Flashlight</button>
-      </div>
-      <div class="flex gap-3 mb-6">
-        <button onclick="playSiren()" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Siren / Alarm</button>
-        <button id="stopSirenBtn" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Stop Siren</button>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="app-card">🔥 Fire — Pull alarm, call 911, evacuate, meet at assembly point.</div>
-        <div class="app-card">🚑 Medical — Call 911, render aid if trained, document incident.</div>
-        <div class="app-card">📦 Suspicious Package — Do not touch, clear area, notify authorities.</div>
-        <div class="app-card">🔴 Active Threat — Run, hide, fight (as last resort); follow law enforcement.</div>
-      </div>
-      <div id="flashOverlay" class="hidden fixed inset-0 z-70" style="background:#fff;"></div>
-      <video id="flashVideo" class="hidden"></video>
-    </section>
+    <!-- EMERGENCY removed -->
 
     <!-- INCIDENT REPORT -->
-    <section id="incident" class="view" aria-labelledby="incidentHeading">
-      <h2 id="incidentHeading" class="text-xl font-bold accent mb-4">Incident Report</h2>
-      <form id="incidentForm" class="space-y-3 max-w-2xl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <label class="block">
-            <div class="text-sm text-gray-300 mb-1">Date / Time</div>
-            <input id="incidentDateTime" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" required />
-          </label>
-          <label class="block">
-            <div class="text-sm text-gray-300 mb-1">Guard Name</div>
-            <input id="incidentGuardName" type="text" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Your name" required />
-          </label>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <label class="block">
-            <div class="text-sm text-gray-300 mb-1">Post / Assignment</div>
-            <input id="incidentPost" type="text" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Location / Post" />
-          </label>
-          <label class="block">
-            <div class="text-sm text-gray-300 mb-1">Incident Type</div>
-            <select id="incidentType" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
-              <option>Trespass</option>
-              <option>Disturbance</option>
-              <option>Theft</option>
-              <option>Medical</option>
-              <option>Property Damage</option>
-              <option>Other</option>
-            </select>
-          </label>
-        </div>
-        <label class="block">
-          <div class="text-sm text-gray-300 mb-1">Description</div>
-          <textarea id="incidentDesc" rows="5" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Describe what happened" required></textarea>
-        </label>
-        <label class="block">
-          <div class="text-sm text-gray-300 mb-1">Upload Photo / Video (optional)</div>
-          <input id="incidentFiles" type="file" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" accept="image/*,video/*" multiple />
-        </label>
-        <div class="flex items-center gap-3">
-          <button type="submit" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Submit Report</button>
-          <div id="incidentStatus" class="text-sm text-gray-400"></div>
-        </div>
-      </form>
-      <div class="mt-6">
-        <h3 class="font-semibold mb-2">Recent Reports</h3>
-        <div id="incidentList" class="space-y-2"></div>
-      </div>
-    </section>
+    <!-- Incident section removed -->
 
     <!-- REPORT TEMPLATES -->
     <section id="templates" class="view" aria-labelledby="templatesHeading">
@@ -320,201 +239,33 @@
     </section>
 
     <!-- CHECK IN / OUT -->
-    <section id="check" class="view" aria-labelledby="checkHeading">
-      <h2 id="checkHeading" class="text-xl font-bold accent mb-4">Check In / Check Out</h2>
-      <div class="flex flex-wrap gap-3 mb-3">
-        <button id="checkInBtn" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">✅ Clock In</button>
-        <button id="checkOutBtn" class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">🚪 Clock Out</button>
-        <div id="checkStatus" class="text-sm text-gray-400"></div>
-      </div>
-      <div class="app-card">
-        <div class="font-semibold mb-2">History</div>
-        <div id="checkHistory" class="text-sm text-gray-300 space-y-1"></div>
-      </div>
-    </section>
+    <!-- Check section removed -->
 
-    <!-- ASSIGNMENTS / MISSION DETAILS -->
-    <section id="assignments" class="view" aria-labelledby="assignmentsHeading">
-      <h2 id="assignmentsHeading" class="text-xl font-bold accent mb-4">Mission / Post Details</h2>
-      <div class="space-y-4 max-w-3xl">
-        <div class="app-card">
-          <div class="flex items-center justify-between">
-            <div class="font-semibold">Current & Upcoming Assignments</div>
-            <button id="addAssignmentToggle" class="px-3 py-1 rounded-md bg-[#111] border border-white/10 ripple-container">Add</button>
-          </div>
-          <div id="assignmentsList" class="mt-3 space-y-2"></div>
-        </div>
-        <form id="assignmentForm" class="app-card hidden space-y-3">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <label class="block"><div class="text-sm mb-1">Business Name</div><input id="asgnBusiness" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-            <label class="block"><div class="text-sm mb-1">Address</div><input id="asgnAddress" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <label class="block"><div class="text-sm mb-1">Shift Start</div><input id="asgnStart" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-            <label class="block"><div class="text-sm mb-1">Shift End</div><input id="asgnEnd" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <label class="block"><div class="text-sm mb-1">Manager Name</div><input id="asgnManager" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-            <label class="block"><div class="text-sm mb-1">Manager Phone</div><input id="asgnPhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-          </div>
-          <label class="block"><div class="text-sm mb-1">Notes / Special Instructions</div><textarea id="asgnNotes" rows="3" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea></label>
-          <button class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Save Assignment</button>
-        </form>
-      </div>
-    </section>
+    <!-- Assignments section removed -->
 
-    <!-- RULES & SOPs -->
-    <section id="rules" class="view" aria-labelledby="rulesHeading">
-      <h2 id="rulesHeading" class="text-xl font-bold accent mb-4">Company Rules & SOPs</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="app-card"><div class="font-semibold mb-1">Uniform Standards</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Clean, pressed uniform at all times</li><li>Badge and ID visible</li><li>No unauthorized gear</li></ul></div>
-        <div class="app-card"><div class="font-semibold mb-1">Conduct & Reporting</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Professional communication</li><li>Accurate, timely reports</li><li>Chain of command</li></ul></div>
-        <div class="app-card"><div class="font-semibold mb-1">Emergency Response</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Call 911 for life safety</li><li>Notify supervisor immediately</li><li>Document actions taken</li></ul></div>
-        <div class="app-card"><div class="font-semibold mb-1">Use of Force Policy</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>De-escalation first</li><li>Proportional response</li><li>Report all force used</li></ul></div>
-        <div class="app-card"><div class="font-semibold mb-1">Customer Service</div><ul class="list-disc list-inside text-sm text-gray-300 space-y-1"><li>Respectful, helpful demeanor</li><li>Positive representation of client</li></ul></div>
-      </div>
-    </section>
+    <!-- Rules section removed -->
 
-    <!-- RESOURCES -->
-    <section id="resources" class="view" aria-labelledby="resourcesHeading">
-      <h2 id="resourcesHeading" class="text-xl font-bold accent mb-4">Guard Resources</h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="app-card">
-          <div class="font-semibold mb-2">Shift Calendar (Upcoming)</div>
-          <div id="calendarList" class="space-y-2 text-sm text-gray-300"></div>
-          <form id="calendarForm" class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
-            <input id="calTitle" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5" placeholder="Title (optional)" />
-            <input id="calStart" type="datetime-local" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5" />
-            <input id="calEnd" type="datetime-local" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5" />
-            <div class="md:col-span-3"><button class="px-3 py-1.5 rounded-md bg-[#111] border border-white/10">Add Shift</button></div>
-          </form>
-        </div>
-        <div class="app-card">
-          <div class="font-semibold mb-2">Equipment Checklist</div>
-          <div id="equipmentList" class="space-y-1 text-sm text-gray-300"></div>
-          <div class="mt-2"><input id="equipmentNew" class="bg-[#111] border border-white/10 rounded-md px-3 py-1.5 w-2/3" placeholder="Add item" /> <button id="equipmentAdd" class="px-3 py-1.5 rounded-md bg-[#111] border border-white/10">Add</button></div>
-        </div>
-        <div class="app-card">
-          <div class="font-semibold mb-2">Lost & Found</div>
-          <form id="lostFoundForm" class="space-y-2">
-            <input id="lfItem" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Item description" />
-            <input id="lfLocation" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Where found" />
-            <button class="px-3 py-1.5 rounded-md bg-[#111] border border-white/10">Submit</button>
-            <div id="lfStatus" class="text-sm text-gray-400"></div>
-          </form>
-        </div>
-        <div class="app-card">
-          <div class="font-semibold mb-2">Weather / Time</div>
-          <div id="timeNow" class="text-lg"></div>
-          <div id="weatherNow" class="text-sm text-gray-300 mt-1">Fetching location…</div>
-        </div>
-      </div>
-    </section>
+    <!-- Resources section removed -->
 
-    <!-- PROFILE -->
-    <section id="profile" class="view" aria-labelledby="profileHeading">
-      <h2 id="profileHeading" class="text-xl font-bold accent mb-4">Profile</h2>
-      <form id="profileForm" class="space-y-3 max-w-xl">
-        <label class="block"><div class="text-sm mb-1">Name</div><input id="profName" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" required /></label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <label class="block"><div class="text-sm mb-1">Badge #</div><input id="profBadge" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" /></label>
-          <label class="block"><div class="text-sm mb-1">Guard Card Expiration</div><input id="profExpiry" type="date" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" /></label>
-        </div>
-        <label class="block"><div class="text-sm mb-1">Upload ID / Credentials</div><input id="profIdUpload" type="file" accept="image/*,application/pdf" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" /></label>
-        <div class="flex items-center gap-3">
-          <button class="px-4 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Save Profile</button>
-          <button id="resetPasswordBtn" type="button" class="px-4 py-2 rounded-md bg-[#111] border border-white/10">Reset Password</button>
-          <div id="profileStatus" class="text-sm text-gray-400"></div>
-        </div>
-      </form>
-    </section>
+    <!-- Profile section removed -->
 
-    <!-- SUPPORT & CONTACT -->
-    <section id="support" class="view" aria-labelledby="supportHeading">
-      <h2 id="supportHeading" class="text-xl font-bold accent mb-4">Support & Contact</h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="app-card">
-          <div class="font-semibold mb-2">Operations Contacts</div>
-          <form id="supportForm" class="space-y-2">
-            <label class="block"><div class="text-sm mb-1">Operations Hotline</div><input id="opsHotline" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="tel: e.g., +1-555-555-5555"/></label>
-            <label class="block"><div class="text-sm mb-1">Operations Email</div><input id="opsEmail" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="ops@example.com"/></label>
-            <label class="block"><div class="text-sm mb-1">Supervisor Phone</div><input id="supervisorPhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-            <label class="block"><div class="text-sm mb-1">Local Police Phone</div><input id="policePhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-            <label class="block"><div class="text-sm mb-1">Medical / 911</div><input id="medicalPhone" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"/></label>
-            <label class="block"><div class="text-sm mb-1">Ops Webhook URL (optional)</div><input id="opsWebhook" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="https://..."/></label>
-            <label class="block"><div class="text-sm mb-1">Check-in Grace (minutes)</div><input id="checkGrace" type="number" min="0" max="60" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="5"/></label>
-            <button class="px-4 py-2 rounded-md bg-[#111] border border-white/10">Save</button>
-            <div id="supportStatus" class="text-sm text-gray-400"></div>
-          </form>
-        </div>
-        <div class="app-card">
-          <div class="font-semibold mb-2">Direct Message to Manager</div>
-          <form id="dmForm" class="space-y-2">
-            <input id="dmSubject" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Subject" />
-            <textarea id="dmBody" rows="5" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Message"></textarea>
-            <div class="flex items-center gap-2">
-              <a id="dmEmailLink" class="px-4 py-2 rounded-md bg-[#111] border border-white/10" href="#">Send Email</a>
-              <div class="text-sm text-gray-400">Opens your email client</div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
+    <!-- Support section removed -->
 
-    <!-- TOOLS -->
-    <section id="tools" class="view" aria-labelledby="toolsHeading">
-      <h2 id="toolsHeading" class="text-xl font-bold accent mb-4">Field Tools</h2>
-      <p class="text-gray-400 mb-6">Stopwatch, maps, flashlight guidance.</p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="app-card ripple-container">⏱ Stopwatch</div>
-        <div class="app-card ripple-container">🗺 Map Quick Links</div>
-        <div class="app-card ripple-container">🔦 Flashlight Guide</div>
-      </div>
-    </section>
+    <!-- Tools section removed -->
 
     <!-- TRAINING -->
-    <section id="training" class="view" aria-labelledby="trainingHeading">
-      <h2 id="trainingHeading" class="text-xl font-bold accent mb-4">Training</h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="app-card">
-          <div class="font-semibold mb-2">Modules</div>
-          <div id="trainingList" class="space-y-2 text-sm text-gray-300"></div>
-          <div class="mt-3 text-xs text-gray-400" id="trainingSummary"></div>
-        </div>
-        <div class="app-card">
-          <div class="font-semibold mb-2">Resources</div>
-          <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
-            <li><a class="underline" href="#" onclick="alert('Open training manual (placeholder)');return false;">Training Manual (PDF)</a></li>
-            <li><a class="underline" href="#" onclick="alert('Open radio procedures video (placeholder)');return false;">Radio Procedures (Video)</a></li>
-            <li><a class="underline" href="#" onclick="alert('Open de-escalation quiz (placeholder)');return false;">De-escalation Quiz</a></li>
-          </ul>
-        </div>
-      </div>
-    </section>
+    <!-- Training section removed -->
 
     <!-- GAME -->
-    <section id="game" class="view" aria-labelledby="gameHeading">
-      <h2 id="gameHeading" class="text-xl font-bold accent mb-4">Boredom Breaker</h2>
-      <p class="text-gray-400 mb-6">Mini-game placeholder. Add canvas game logic.</p>
-      <div class="app-card mb-4 ripple-container">
-        <canvas id="gameCanvas" style="background:linear-gradient(180deg,#0b0b0b,#151515);border-radius:12px;width:100%;height:300px;"></canvas>
-        <div class="mt-2 flex space-x-2">
-          <button class="px-3 py-1 rounded bg-[#222] border border-white/10 ripple-container">Start</button>
-          <button class="px-3 py-1 rounded bg-[#222] border border-white/10 ripple-container">Pause</button>
-          <button class="px-3 py-1 rounded bg-[#222] border border-white/10 ripple-container">Reset</button>
-        </div>
-        <div class="mt-2 text-gray-400">Score: 0</div>
-      </div>
-    </section>
+    <!-- Game section removed -->
   </main>
 
   <!-- Bottom Navigation -->
   <nav id="bottomNav">
     <a href="#home" data-route="home" class="nav-link ripple-container">Home</a>
     <a href="#codes" data-route="codes" class="nav-link ripple-container">Codes</a>
-    <a href="#radio" data-route="radio" class="nav-link ripple-container">Radio</a>
-    <a href="#emergency" data-route="emergency" class="nav-link ripple-container">Emergency</a>
-    <a href="#game" data-route="game" class="nav-link ripple-container">Game</a>
+    <a href="#radio" data-route="radio" class="nav-link ripple-container">Phonetics</a>
+    <a href="#templates" data-route="templates" class="nav-link ripple-container">Templates</a>
   </nav>
 
   <!-- Page transition curtain -->
@@ -534,17 +285,7 @@
       document.body.classList.toggle('text-lg');
       localStorage.setItem('sss_large', document.body.classList.contains('text-lg'));
     }
-    function playSiren() {
-      const audio = document.getElementById('siren');
-      audio.currentTime = 0;
-      audio.loop = true;
-      audio.play();
-    }
-    function stopSiren() {
-      const audio = document.getElementById('siren');
-      audio.pause();
-      audio.currentTime = 0;
-    }
+    
 
     // Ripple effect
     function attachRipple(e) {
@@ -567,11 +308,7 @@
       home: 'Resource Companion — quick references & field tools',
       codes: '10-Codes — quick references',
       radio: 'Radio & Phonetic — quick references',
-      emergency: 'Emergency Procedures — quick references',
-      tools: 'Field Tools — quick references',
-      training: 'Training & Quiz — quick references',
-      templates: 'Report Templates — fill and copy',
-      game: 'Boredom Breaker — mini-game'
+      templates: 'Report Templates — fill and copy'
     };
 
     let currentViewId = 'home';
@@ -1193,6 +930,7 @@
       el.textContent = prof.name ? prof.name : 'Officer';
     }
 
+    /* Removed non-essential modules
     function renderCheckHistory(){
       const list = loadJson(STORE_KEYS.checkHistory, []);
       const el = document.getElementById('checkHistory');
@@ -1573,26 +1311,9 @@
         });
       });
 
-      // Emergency tools
-      const stopBtn = document.getElementById('stopSirenBtn');
-      if (stopBtn) stopBtn.addEventListener('click', stopSiren);
-      setupFlashlight();
-
       // Feature modules
       setWelcomeName();
-      setupIncidentForm();
-      setupCheckInOut();
-      renderCheckHistory();
-      setupAssignments();
-      renderAssignments();
-      setupEquipment();
-      setupLostFound();
-      setupWeatherTime();
-      setupProfile();
-      setupSupport();
-      setupTraining();
-      setupCalendar();
-      monitorCheckInGrace();
+      */
 
       // Hash routing on load and change
       const initial = (location.hash || '#home').replace('#', '');

@@ -1,6 +1,7 @@
 /**
  * Security Companion - Professional Push Notification System
  * Enhanced push notifications for security guard operations
+ * Compatible with Median and progressive web apps
  */
 
 class SecurityNotificationManager {
@@ -8,42 +9,105 @@ class SecurityNotificationManager {
     this.subscription = null;
     this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
     this.vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI0DLLuxN-RgKBWw_dUabGrLpHyHUNBEQRilh7J7-fKKRJQQiOOk1gUzSA';
+    this.isMedianApp = this.detectMedianEnvironment();
+    this.notificationQueue = [];
+    this.isInitialized = false;
+  }
+
+  // Detect if running in Median app environment
+  detectMedianEnvironment() {
+    return (
+      typeof window !== 'undefined' && 
+      (window.median || window.gonative || navigator.userAgent.includes('Median'))
+    );
   }
 
   // Initialize the notification system
   async initialize() {
-    if (!this.isSupported) {
+    if (this.isInitialized) return true;
+
+    // Enhanced support detection for Median apps
+    if (!this.isSupported && !this.isMedianApp) {
       console.warn('Push notifications not supported');
+      this.updateUI(false);
       return false;
     }
 
     try {
-      // Register service worker
-      const registration = await navigator.serviceWorker.register('sw.js');
-      console.log('ServiceWorker registered:', registration);
-
-      // Check existing subscription
-      this.subscription = await registration.pushManager.getSubscription();
-      
-      if (!this.subscription) {
-        // Request permission
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          await this.subscribeToPush(registration);
-        } else {
-          console.log('Notification permission denied');
-          return false;
-        }
+      // Handle Median app initialization
+      if (this.isMedianApp) {
+        await this.initializeMedianNotifications();
       } else {
-        console.log('Already subscribed to push notifications');
+        // Standard web app initialization
+        await this.initializeWebNotifications();
       }
 
+      this.isInitialized = true;
       this.updateUI(true);
+      
+      // Process any queued notifications
+      this.processNotificationQueue();
+      
+      // Schedule periodic security reminders
+      this.scheduleSecurityReminders();
+      
       return true;
     } catch (error) {
       console.error('Failed to initialize notifications:', error);
       this.updateUI(false);
       return false;
+    }
+  }
+
+  // Initialize notifications for Median apps
+  async initializeMedianNotifications() {
+    // Request permission for Median apps
+    const permission = await this.requestMedianPermission();
+    if (permission !== 'granted') {
+      throw new Error('Notification permission denied in Median app');
+    }
+
+    // Set up Median-specific notification handlers
+    if (window.median && window.median.notifications) {
+      window.median.notifications.registerForPushNotifications();
+    }
+
+    console.log('Median notifications initialized');
+  }
+
+  // Initialize notifications for standard web apps
+  async initializeWebNotifications() {
+    // Register service worker
+    const registration = await navigator.serviceWorker.register('sw.js');
+    console.log('ServiceWorker registered:', registration);
+
+    // Check existing subscription
+    this.subscription = await registration.pushManager.getSubscription();
+    
+    if (!this.subscription) {
+      // Request permission
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        await this.subscribeToPush(registration);
+      } else {
+        throw new Error('Notification permission denied');
+      }
+    } else {
+      console.log('Already subscribed to push notifications');
+    }
+  }
+
+  // Request permission for Median apps
+  async requestMedianPermission() {
+    if (window.median && window.median.notifications) {
+      return new Promise((resolve) => {
+        window.median.notifications.requestPermission((result) => {
+          resolve(result);
+        });
+      });
+    } else {
+      // Fallback to standard permission request
+      return await Notification.requestPermission();
     }
   }
 
@@ -90,8 +154,38 @@ class SecurityNotificationManager {
     return outputArray;
   }
 
-  // Show local notification
+  // Process notification queue
+  processNotificationQueue() {
+    while (this.notificationQueue.length > 0) {
+      const notification = this.notificationQueue.shift();
+      this.showLocalNotification(notification.title, notification.body, notification.options);
+    }
+  }
+
+  // Queue notification if system not ready
+  queueNotification(title, body, options = {}) {
+    this.notificationQueue.push({ title, body, options });
+    
+    // Limit queue size
+    if (this.notificationQueue.length > 10) {
+      this.notificationQueue.shift();
+    }
+  }
+
+  // Enhanced notification display with Median support
   showLocalNotification(title, body, options = {}) {
+    // Queue if not initialized
+    if (!this.isInitialized) {
+      this.queueNotification(title, body, options);
+      return;
+    }
+
+    // Handle Median app notifications
+    if (this.isMedianApp && window.median && window.median.notifications) {
+      return this.showMedianNotification(title, body, options);
+    }
+
+    // Standard web notifications
     if (Notification.permission !== 'granted') {
       console.warn('Notification permission not granted');
       return;
@@ -105,7 +199,8 @@ class SecurityNotificationManager {
       requireInteraction: false,
       data: {
         timestamp: Date.now(),
-        url: '/'
+        url: '/',
+        type: 'security'
       }
     };
 
@@ -129,6 +224,25 @@ class SecurityNotificationManager {
     }
 
     return notification;
+  }
+
+  // Show notification in Median app
+  showMedianNotification(title, body, options = {}) {
+    const medianOptions = {
+      title: title,
+      body: body,
+      icon: options.icon || 'patch-bg.png',
+      sound: options.sound || 'default',
+      vibrate: options.vibrate || [200, 100, 200],
+      data: options.data || {}
+    };
+
+    if (window.median.notifications.show) {
+      window.median.notifications.show(medianOptions);
+    } else {
+      // Fallback to local notification
+      return new Notification(title, { body, ...options });
+    }
   }
 
   // Send emergency alert
@@ -310,28 +424,61 @@ class SecurityNotificationManager {
     return true;
   }
 
-  // Schedule periodic notifications (for demo purposes)
-  schedulePeriodicNotifications() {
-    // Equipment check reminder (every 8 hours)
+  // Enhanced security reminder scheduling
+  scheduleSecurityReminders() {
+    // Equipment check reminder (every 4 hours during shift)
     setInterval(() => {
-      if (this.isSubscribed()) {
+      if (this.isInitialized && this.isOnDuty()) {
         this.showLocalNotification(
           '🎒 Equipment Check Reminder',
-          'Time for your daily equipment inspection',
+          'Time for your scheduled equipment inspection',
           {
             tag: 'equipment-reminder',
+            requireInteraction: true,
             data: { type: 'reminder', url: '/?equipment=true' }
           }
         );
       }
-    }, 8 * 60 * 60 * 1000);
+    }, 4 * 60 * 60 * 1000);
 
-    // Patrol reminder (every 2 hours during active shift)
+    // Patrol reminder (every 90 minutes during active shift)
     setInterval(() => {
-      if (this.isSubscribed() && this.isOnDuty()) {
-        this.sendPatrolReminder('assigned areas', this.getTimeRemaining());
+      if (this.isInitialized && this.isOnDuty()) {
+        this.sendPatrolReminder('assigned patrol areas', this.getTimeRemaining());
       }
-    }, 2 * 60 * 60 * 1000);
+    }, 90 * 60 * 1000);
+
+    // Shift report reminder (30 minutes before shift end)
+    setInterval(() => {
+      if (this.isInitialized && this.isOnDuty()) {
+        const timeRemaining = this.getTimeRemainingMinutes();
+        if (timeRemaining <= 30 && timeRemaining > 25) {
+          this.sendShiftNotification(
+            'end', 
+            'Shift ending soon. Remember to complete your shift report.'
+          );
+        }
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    // Security check reminder (every 3 hours)
+    setInterval(() => {
+      if (this.isInitialized && this.isOnDuty()) {
+        this.showLocalNotification(
+          '🔍 Security Check Reminder',
+          'Perform security perimeter check and verify all access points',
+          {
+            tag: 'security-check',
+            data: { type: 'security', url: '/patrol.html' }
+          }
+        );
+      }
+    }, 3 * 60 * 60 * 1000);
+  }
+
+  // Schedule periodic notifications (for demo purposes)
+  schedulePeriodicNotifications() {
+    this.scheduleSecurityReminders();
   }
 
   // Helper methods
@@ -356,6 +503,20 @@ class SecurityNotificationManager {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     return `${hours}h ${minutes}m`;
+  }
+
+  getTimeRemainingMinutes() {
+    // Calculate time remaining in minutes
+    const shiftEnd = localStorage.getItem('shiftEndTime');
+    if (!shiftEnd) return 0;
+    
+    const now = new Date();
+    const end = new Date(shiftEnd);
+    const diff = end - now;
+    
+    if (diff <= 0) return 0;
+    
+    return Math.floor(diff / (1000 * 60));
   }
 }
 

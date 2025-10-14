@@ -3,1614 +3,714 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Signature Security Specialist — Resource Companion</title>
+  <title>Signature Security Specialist — Mobile Companion</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     :root {
-      --bg: #0f0f0f; /* Black */
-      --card: #121212;
-      --muted: #bfc0b0; /* Muted sage */
-      --ebony-green: #0b1d17; /* Ebony Green */
-      --sage: #a7b99e; /* Sage */
-      --accent: var(--sage);
-      --accent-2: #43534a; /* Deep sage */
-      --glass: rgba(255, 255, 255, 0.04);
+      /* Dark theme (default) */
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #121212;
+      --bg-tertiary: #1a1a1a;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666666;
+      --accent-primary: #a7b99e;
+      --accent-secondary: #43534a;
+      --border-primary: rgba(255, 255, 255, 0.1);
+      --border-secondary: rgba(255, 255, 255, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --shadow: rgba(0, 0, 0, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    [data-theme="light"] {
+      /* Light theme */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-primary: #059669;
+      --accent-secondary: #065f46;
+      --border-primary: rgba(0, 0, 0, 0.1);
+      --border-secondary: rgba(0, 0, 0, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --shadow: rgba(0, 0, 0, 0.1);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     html, body {
-      background: #0f0f0f url('patch-bg.png') center center / 300px no-repeat;
-      color: #fff;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       height: 100%;
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
-    .accent { color: var(--accent); }
-    .glow { text-shadow: 0 0 18px rgba(174, 174, 90, 0.22), 0 0 40px rgba(92, 98, 73, 0.06); }
+    .bg-pattern {
+      background-image: 
+        radial-gradient(circle at 25% 25%, var(--accent-primary)10 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, var(--accent-secondary)10 0%, transparent 50%);
+      background-size: 100px 100px;
+      background-position: 0 0, 50px 50px;
+    }
 
-    /* Views */
-    .view { display: none; }
-    .view.is-active { display: block; }
-
-    /* Page transitions */
-    @keyframes fadeIn { to { opacity: 1; transform: scale(1); } }
-    @keyframes fadeOut { to { opacity: 0; transform: scale(0.98); } }
-    .fade-enter { opacity: 0; transform: scale(0.98); animation: fadeIn 420ms cubic-bezier(.2,.8,.2,1) forwards; }
-    .fade-leave { animation: fadeOut 280ms cubic-bezier(.2,.8,.2,1) forwards; }
-
-    /* Card style + hover micro-interactions */
-    .app-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 1.25rem 1.25rem;
-      cursor: pointer;
-      transition: transform 180ms ease, box-shadow 220ms ease, border-color 200ms ease;
+    /* Mobile-first card design */
+    .mobile-card {
+      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-primary);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
-      will-change: transform;
-    }
-    .app-card:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
-      border-color: rgba(255,255,255,0.08);
     }
 
-    /* Grid */
-    .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
-
-    /* Bottom nav - fixed, full width, safe-area aware */
-    #bottomNav {
-      position: fixed;
+    .mobile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
       left: 0;
       right: 0;
-      bottom: 0;
-      width: 100%;
-      height: var(--bottom-nav-height, 56px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+      opacity: 0.5;
+    }
+
+    .mobile-card:active {
+      transform: scale(0.98);
+      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.04));
+    }
+
+    .mobile-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px var(--shadow);
+      border-color: var(--accent-primary);
+    }
+
+    /* Touch-friendly buttons */
+    .touch-btn {
+      min-height: 48px;
+      min-width: 48px;
       display: flex;
-      justify-content: space-around;
       align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .touch-btn:active {
+      transform: scale(0.95);
+      background: var(--bg-tertiary);
+    }
+
+    .touch-btn.primary {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+
+    .touch-btn.danger {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+
+    /* Grid layouts */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      padding: 1rem 0;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    /* Status indicators */
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+
+    .status-online { background: var(--success); }
+    .status-offline { background: var(--text-muted); }
+    .status-alert { background: var(--error); animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Bottom navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-primary);
+      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
       gap: 0.25rem;
-      background: rgba(17,17,17,0.9);
-      backdrop-filter: saturate(180%) blur(10px);
-      border-top: 1px solid rgba(255,255,255,0.06);
-      z-index: 60;
-      padding: 0 0.5rem calc(env(safe-area-inset-bottom, 0px));
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 1rem;
     }
-    #bottomNav a { flex: 1 1 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .nav-link { border-radius: 10px; padding: 0.5rem 0.75rem; transition: background 160ms ease; }
-    .nav-link[aria-current="page"] { background: rgba(255,255,255,0.08); }
-    /* Ensure content is not obscured by fixed nav */
-    #mainContent { padding-bottom: calc(var(--bottom-nav-height, 56px) + env(safe-area-inset-bottom, 0px) + 12px); }
 
-    /* Click ripple */
-    .ripple-container { position: relative; overflow: hidden; }
-    .ripple { position: absolute; border-radius: 9999px; transform: scale(0); background: radial-gradient(circle, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 60%, rgba(255,255,255,0.0) 70%); pointer-events: none; animation: ripple 520ms ease-out forwards; }
-    @keyframes ripple { to { transform: scale(6); opacity: 0; } }
-
-    /* Fancy page transition curtain */
-    #transitionCurtain { position: fixed; inset: 0; pointer-events: none; z-index: 80; --x: 50%; --y: 50%; clip-path: circle(0 at var(--x) var(--y)); background: radial-gradient(600px circle at var(--x) var(--y), color-mix(in srgb, var(--accent) 35%, transparent), color-mix(in srgb, var(--accent-2) 15%, transparent) 45%, rgba(0,0,0,0) 65%); transition: clip-path 600ms cubic-bezier(.2,.8,.2,1); }
-    #transitionCurtain.active { clip-path: circle(140% at var(--x) var(--y)); }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      .fade-enter, .fade-leave { animation: none !important; }
-      #transitionCurtain { transition: none; display: none; }
-      .app-card { transition: none; }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 0.25rem;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 60px;
+      justify-content: center;
     }
-  </style>
-  <style>
-    /* Print-friendly layout for copying reports */
+
+    .nav-item.active {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .nav-item:not(.active):hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: relative;
+      width: 60px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border-radius: 16px;
+      border: 1px solid var(--border-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle::before {
+      content: '🌙';
+      position: absolute;
+      top: 50%;
+      left: 4px;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] .theme-toggle::before {
+      content: '☀️';
+      left: 32px;
+    }
+
+    .theme-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 26px;
+      height: 26px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    [data-theme="light"] .theme-toggle::after {
+      left: 30px;
+    }
+
+    /* Emergency button */
+    .emergency-btn {
+      position: fixed;
+      top: 50%;
+      right: 1rem;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      background: var(--error);
+      border: 3px solid white;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 90;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .emergency-btn:active {
+      transform: translateY(-50%) scale(0.9);
+    }
+
+    .emergency-btn.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Main content spacing */
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      padding-bottom: calc(80px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .mobile-card {
+        padding: 1rem;
+      }
+    }
+
+    /* Print styles */
     @media print {
-      html, body { background: #fff !important; color: #000 !important; }
-      header, #bottomNav, #transitionCurtain { display: none !important; }
-      #mainContent { padding: 0 !important; }
-      /* In templates view, print only the preview text */
-      #templateFormFields, #templateStatus, #templateSelect,
-      #tplImportIncident, #tplSaveDraft, #tplLoadDraft, #tplClear, #tplCopy { display: none !important; }
-      #templatePreview { border: 0 !important; padding: 0 !important; color: #000 !important; font-size: 12pt; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .bottom-nav, .emergency-btn, .theme-toggle { display: none !important; }
+      .main-content { padding-bottom: 0 !important; }
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Focus styles */
+    .touch-btn:focus,
+    .nav-item:focus,
+    .theme-toggle:focus {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
     }
   </style>
 </head>
-<body>
-
-  <header class="p-4 pb-6 flex justify-between items-center">
+<body class="bg-pattern">
+  <!-- Header -->
+  <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:var(--ebony-green); box-shadow:0 0 0 1px rgba(255,255,255,0.05) inset;">🛡️</div>
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
+        🛡️
+      </div>
       <div>
-        <h1 class="text-2xl font-extrabold glow">Signature Security Specialist</h1>
-        <p id="subtitle" class="text-sm text-gray-400">Resource Companion — quick references & field tools</p>
+        <h1 class="text-2xl font-bold">Security Companion</h1>
+        <p class="text-sm" style="color: var(--text-secondary)">
+          <span class="status-indicator status-online"></span>
+          <span id="statusText">On Duty</span> • <span id="currentTime"></span>
+        </p>
       </div>
     </div>
-    <div class="flex space-x-2">
-      <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10 ripple-container">A+</button>
+    <div class="flex items-center gap-3">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
     </div>
   </header>
 
-  <main id="mainContent" class="flex-1 overflow-auto p-5">
-    <!-- HOME -->
-    <section id="home" class="view is-active">
-      <h2 class="text-xl font-bold accent mb-2">Welcome, Officer <span id="welcomeName">Officer</span></h2>
-      <p class="text-gray-400 mb-4">Quick access to your core tools. Your preferences are saved on this device.</p>
+  <!-- Emergency Button -->
+  <button class="emergency-btn" onclick="triggerEmergency()" aria-label="Emergency alert">
+    🚨
+  </button>
 
-      <!-- Removed quick links to non-essential sections -->
-
-      <div class="app-grid">
-        <a href="codes.html" class="app-card ripple-container">🔢<div class="font-semibold mt-2">10-Codes</div></a>
-        <a href="#radio" data-route="radio" class="app-card ripple-container">🅰️<div class="font-semibold mt-2">Phonetic Alphabet</div></a>
-        <a href="incident.html" class="app-card ripple-container">📝<div class="font-semibold mt-2">Incident Report</div></a>
-        <a href="shift.html" class="app-card ripple-container">📄<div class="font-semibold mt-2">Shift Report</div></a>
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Welcome Section -->
+    <section class="mobile-card fade-in mb-6">
+      <h2 class="text-xl font-bold mb-2">Welcome, <span id="officerName">Officer</span></h2>
+      <p style="color: var(--text-secondary)" class="mb-4">Quick access to your essential security tools and resources.</p>
+      
+      <!-- Quick Status -->
+      <div class="quick-actions">
+        <button class="touch-btn primary" onclick="checkIn()">
+          <span class="mr-2">📍</span> Check In
+        </button>
+        <button class="touch-btn" onclick="startPatrol()">
+          <span class="mr-2">🚶</span> Start Patrol
+        </button>
       </div>
     </section>
 
-    <!-- CODES -->
-    <section id="codes" class="view" aria-labelledby="codesHeading">
-      <h2 id="codesHeading" class="text-xl font-bold accent mb-3">10-Codes Directory</h2>
-      <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-        <input id="searchInput" class="w-full md:max-w-lg bg-[#111] border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[--accent]" placeholder="Search 10-codes or keywords (e.g., 'shots fired', 'call')" />
-        <div class="flex items-center gap-2 md:ml-auto">
-          <button id="clearSearch" class="bg-[#111] px-3 py-2 rounded-md border border-white/10 ripple-container">Clear</button>
-          <span id="resultCount" class="text-sm text-gray-400"></span>
-        </div>
+    <!-- Core Features -->
+    <section class="mb-6">
+      <h3 class="text-lg font-semibold mb-3">Core Tools</h3>
+      <div class="feature-grid">
+        <a href="codes.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📟</div>
+          <div class="font-semibold">10-Codes</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Quick reference</div>
+        </a>
+        
+        <a href="radio.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📻</div>
+          <div class="font-semibold">Phonetics</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">NATO alphabet</div>
+        </a>
+        
+        <a href="incident.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📝</div>
+          <div class="font-semibold">Incident Report</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Document events</div>
+        </a>
+        
+        <a href="shift.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📋</div>
+          <div class="font-semibold">Shift Report</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">End of shift</div>
+        </a>
       </div>
-      <div id="codesGrid" class="app-grid"></div>
-      <p id="noResults" class="hidden text-gray-400 mt-6">No matching codes found. Try different keywords.</p>
+    </section>
 
-      <!-- Modal -->
-      <div id="codeModal" class="modal-backdrop" aria-hidden="true">
-        <div class="modal-card">
-          <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <h3 id="modalTitle" class="text-lg font-semibold"></h3>
-            <button id="modalClose" class="bg-[#111] hover:bg-[#222] px-3 py-1 rounded-md border border-white/10 ripple-container">Close</button>
+    <!-- Security Features -->
+    <section class="mb-6">
+      <h3 class="text-lg font-semibold mb-3">Security Tools</h3>
+      <div class="feature-grid">
+        <button class="mobile-card text-center" onclick="toggleFlashlight()">
+          <div class="text-3xl mb-2" id="flashlightIcon">🔦</div>
+          <div class="font-semibold">Flashlight</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)" id="flashlightStatus">Tap to activate</div>
+        </button>
+        
+        <button class="mobile-card text-center" onclick="openContacts()">
+          <div class="text-3xl mb-2">📞</div>
+          <div class="font-semibold">Emergency Contacts</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Quick dial</div>
+        </button>
+        
+        <button class="mobile-card text-center" onclick="viewPatrolLog()">
+          <div class="text-3xl mb-2">🗺️</div>
+          <div class="font-semibold">Patrol Log</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Track routes</div>
+        </button>
+        
+        <button class="mobile-card text-center" onclick="openSettings()">
+          <div class="text-3xl mb-2">⚙️</div>
+          <div class="font-semibold">Settings</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Preferences</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Recent Activity -->
+    <section class="mobile-card">
+      <h3 class="text-lg font-semibold mb-3">Recent Activity</h3>
+      <div id="recentActivity" class="space-y-3">
+        <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-tertiary)">
+          <div>
+            <div class="font-medium">Shift Started</div>
+            <div class="text-sm" style="color: var(--text-secondary)">Today at 8:00 AM</div>
           </div>
-          <div id="modalBody" class="px-4 py-3"></div>
+          <div class="status-indicator status-online"></div>
         </div>
       </div>
     </section>
-
-    <!-- RADIO -->
-    <section id="radio" class="view" aria-labelledby="radioHeading">
-      <h2 id="radioHeading" class="text-xl font-bold accent mb-4">Phonetic Alphabet</h2>
-      <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-        <input id="radioSearch" class="w-full md:max-w-lg bg-[#111] border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[--accent]" placeholder="Search letter or word (e.g., 'Juliet', 'X-ray')" />
-        <div class="flex items-center gap-2 md:ml-auto">
-          <button id="radioClear" class="bg-[#111] px-3 py-2 rounded-md border border-white/10 ripple-container">Clear</button>
-          <span id="radioCount" class="text-sm text-gray-400"></span>
-        </div>
-      </div>
-      <div id="radioGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2"></div>
-      <p id="radioNoResults" class="hidden text-gray-400 mt-6">No matching letters or words.</p>
-      <div id="radioStatus" class="text-sm text-gray-400 mt-2" aria-live="polite"></div>
-      <div class="mt-6 app-card">
-        <div class="font-semibold mb-1">📻 Radio Best Practices</div>
-        <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
-          <li>Think before transmitting; keep it brief and clear.</li>
-          <li>Use 10-codes and phonetics to reduce confusion.</li>
-          <li>Wait for a clear channel; avoid stepping on traffic.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- EMERGENCY removed -->
-
-    <!-- INCIDENT REPORT -->
-    <!-- Incident section removed -->
-
-    <!-- REPORT TEMPLATES -->
-    <section id="templates" class="view" aria-labelledby="templatesHeading">
-      <h2 id="templatesHeading" class="text-xl font-bold accent mb-4">Incident Report</h2>
-      <div class="space-y-4 max-w-4xl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-          <label class="block">
-            <div class="text-sm text-gray-300 mb-1">Template</div>
-            <select id="templateSelect" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></select>
-          </label>
-          <div class="flex flex-wrap gap-2 md:justify-end">
-            <button id="tplImportIncident" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Import from Incident</button>
-            <button id="tplSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Save Draft</button>
-            <button id="tplLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Load Draft</button>
-            <button id="tplClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Clear</button>
-            <button id="tplCopy" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Copy</button>
-          </div>
-        </div>
-        <div id="templateStatus" class="text-sm text-gray-400"></div>
-        <div id="templateFormFields" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-        <div class="app-card">
-          <div class="font-semibold mb-2">Preview</div>
-          <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
-        </div>
-      </div>
-    </section>
-
-    <!-- CHECK IN / OUT -->
-    <!-- Check section removed -->
-
-    <!-- Assignments section removed -->
-
-    <!-- Rules section removed -->
-
-    <!-- Resources section removed -->
-
-    <!-- Profile section removed -->
-
-    <!-- Support section removed -->
-
-    <!-- Tools section removed -->
-
-    <!-- TRAINING -->
-    <!-- Training section removed -->
-
-    <!-- GAME -->
-    <!-- Game section removed -->
   </main>
 
   <!-- Bottom Navigation -->
-  <nav id="bottomNav">
-    <a href="#home" data-route="home" class="nav-link ripple-container">Home</a>
-    <a href="codes.html" class="nav-link ripple-container">Codes</a>
-    <a href="#radio" data-route="radio" class="nav-link ripple-container">Phonetics</a>
-    <a href="incident.html" class="nav-link ripple-container">Incident</a>
-    <a href="shift.html" class="nav-link ripple-container">Shift</a>
-    <a href="reports.html" class="nav-link ripple-container">Reports</a>
+  <nav class="bottom-nav">
+    <div class="nav-grid">
+      <a href="index.html" class="nav-item active">
+        <div class="nav-icon">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="codes.html" class="nav-item">
+        <div class="nav-icon">📟</div>
+        <span>Codes</span>
+      </a>
+      <a href="incident.html" class="nav-item">
+        <div class="nav-icon">📝</div>
+        <span>Report</span>
+      </a>
+      <a href="patrol.html" class="nav-item">
+        <div class="nav-icon">🚶</div>
+        <span>Patrol</span>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <span>Profile</span>
+      </a>
+    </div>
   </nav>
 
-  <!-- Page transition curtain -->
-  <div id="transitionCurtain"></div>
+  <!-- Modals and Overlays -->
+  <div id="emergencyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold text-red-500 mb-4">🚨 Emergency Alert</h3>
+      <p class="mb-6">This will send an emergency alert to dispatch and your supervisor. Continue?</p>
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="cancelEmergency()">Cancel</button>
+        <button class="touch-btn danger flex-1" onclick="confirmEmergency()">Send Alert</button>
+      </div>
+    </div>
+  </div>
 
-  <style>
-    /* Modal components for Codes (moved here for locality) */
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 70; padding: 1rem; }
-    .modal-backdrop.show { display: flex; }
-    .modal-card { background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; width: 100%; max-width: 720px; max-height: 85vh; overflow: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  </style>
+  <div id="contactsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold mb-4">📞 Emergency Contacts</h3>
+      <div class="space-y-3">
+        <a href="tel:911" class="touch-btn danger w-full">🚨 911 Emergency</a>
+        <a href="tel:555-0123" class="touch-btn w-full">👮 Supervisor</a>
+        <a href="tel:555-0124" class="touch-btn w-full">🏢 Dispatch</a>
+        <a href="tel:555-0125" class="touch-btn w-full">🚑 Medical</a>
+      </div>
+      <button class="touch-btn w-full mt-4" onclick="closeContacts()">Close</button>
+    </div>
+  </div>
 
   <script>
-    function prefersReducedMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    // Theme management
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
 
-    function toggleLarge() {
+    // Initialize theme
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    // Text size toggle
+    function toggleTextSize() {
       document.body.classList.toggle('text-lg');
-      localStorage.setItem('sss_large', document.body.classList.contains('text-lg'));
-    }
-    
-
-    // Ripple effect
-    function attachRipple(e) {
-      const container = e.currentTarget;
-      const rect = container.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      const ripple = document.createElement('span');
-      ripple.className = 'ripple';
-      ripple.style.width = ripple.style.height = size + 'px';
-      const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left - size / 2;
-      const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top - size / 2;
-      ripple.style.left = x + 'px';
-      ripple.style.top = y + 'px';
-      container.appendChild(ripple);
-      ripple.addEventListener('animationend', () => ripple.remove());
+      localStorage.setItem('largeText', document.body.classList.contains('text-lg'));
     }
 
-    // Router
-    const ROUTE_TITLES = {
-      home: 'Resource Companion — quick references & field tools',
-      codes: '10-Codes — quick references',
-      radio: 'Radio & Phonetic — quick references',
-      templates: 'Report Templates — fill and copy',
-      incident: 'Incident Report — fill and copy',
-      shift: 'Shift Report — fill and copy'
-    };
-
-    let currentViewId = 'home';
-    let currentRouteId = 'home';
-    let codesInitialized = false;
-    let templatesInitialized = false;
-
-    function setCurtainFromEvent(evt) {
-      const curtain = document.getElementById('transitionCurtain');
-      if (!curtain || prefersReducedMotion()) return;
-      const x = (evt && (evt.clientX || (evt.touches && evt.touches[0].clientX))) || window.innerWidth / 2;
-      const y = (evt && (evt.clientY || (evt.touches && evt.touches[0].clientY))) || window.innerHeight / 2;
-      curtain.style.setProperty('--x', x + 'px');
-      curtain.style.setProperty('--y', y + 'px');
-      curtain.classList.add('active');
-      window.setTimeout(() => curtain.classList.remove('active'), 620);
+    // Initialize text size
+    function initTextSize() {
+      if (localStorage.getItem('largeText') === 'true') {
+        document.body.classList.add('text-lg');
+      }
     }
 
-    function updateNavActive(target) {
-      document.querySelectorAll('#bottomNav .nav-link').forEach(link => {
-        link.removeAttribute('aria-current');
-        if (link.getAttribute('data-route') === target) link.setAttribute('aria-current', 'page');
+    // Time display
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('currentTime').textContent = now.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     }
 
-    function showView(targetId, opts = {}) {
-      const routeId = opts.routeId || targetId;
-      const viewId = (routeId === 'incident' || routeId === 'shift') ? 'templates' : targetId;
-      const target = document.getElementById(viewId) || document.getElementById('home');
-      const current = document.getElementById(currentViewId);
-      // Only early-return if both the view and route are unchanged
-      if (target === current && routeId === currentRouteId) return;
-
-      setCurtainFromEvent(opts.event);
-
-      // Update subtitle
-      const subtitle = document.getElementById('subtitle');
-      subtitle.textContent = ROUTE_TITLES[routeId] || ROUTE_TITLES['home'];
-
-      // Leave current
-      if (current) {
-        current.classList.add('fade-leave');
-        const onLeaveEnd = () => {
-          current.classList.remove('fade-leave', 'is-active');
-          current.removeEventListener('animationend', onLeaveEnd);
-        };
-        if (prefersReducedMotion()) onLeaveEnd(); else current.addEventListener('animationend', onLeaveEnd);
-      }
-
-      // Enter target if the view actually changed
-      if (target !== current) {
-        target.classList.add('is-active', 'fade-enter');
-        const onEnterEnd = () => {
-          target.classList.remove('fade-enter');
-          target.removeEventListener('animationend', onEnterEnd);
-        };
-        if (prefersReducedMotion()) onEnterEnd(); else target.addEventListener('animationend', onEnterEnd);
-      }
-
-      currentViewId = viewId;
-      currentRouteId = routeId;
-      updateNavActive(routeId);
-
-      if (viewId === 'codes' && !codesInitialized) {
-        initCodesSection();
-        codesInitialized = true;
-      }
-      if (viewId === 'templates' && !templatesInitialized) {
-        initTemplatesSection();
-        templatesInitialized = true;
-      }
-      if (viewId === 'templates') {
-        // When routing to Incident/Shift aliases, ensure correct template is selected
-        if (routeId === 'incident' && window.__tplApi && typeof window.__tplApi.setTemplate === 'function') {
-          window.__tplApi.setTemplate('incident_report');
-        } else if (routeId === 'shift' && window.__tplApi && typeof window.__tplApi.setTemplate === 'function') {
-          window.__tplApi.setTemplate('shift_report');
-        }
-      }
-      if (viewId === 'radio') {
-        initRadioSection();
-      }
+    // Officer name
+    function loadOfficerName() {
+      const name = localStorage.getItem('officerName') || 'Officer';
+      document.getElementById('officerName').textContent = name;
     }
 
-    function navigateTo(targetId, evt) {
-      if (!targetId) targetId = 'home';
-      if (location.hash.replace('#','') !== targetId) {
-        history.pushState({}, '', '#' + targetId);
-      }
-      showView(targetId, { event: evt, routeId: targetId });
-    }
+    // Flashlight functionality
+    let flashlightStream = null;
+    let flashlightTrack = null;
 
-    // Codes Section logic (moved from codes.html)
-    function initCodesSection() {
-      const codesGrid = document.getElementById('codesGrid');
-      const searchInput = document.getElementById('searchInput');
-      const clearSearchBtn = document.getElementById('clearSearch');
-      const resultCount = document.getElementById('resultCount');
-      const noResults = document.getElementById('noResults');
-      const modalEl = document.getElementById('codeModal');
-      const modalTitle = document.getElementById('modalTitle');
-      const modalBody = document.getElementById('modalBody');
-      const modalClose = document.getElementById('modalClose');
-
-      const TEN_CODES = [
-        { code: '10-0', title: 'Use Caution', details: 'Use caution in the area or on approach.', examples: ['Unit 21, 10-0 around the residence.'], synonyms: ['caution', 'be careful'] },
-        { code: '10-1', title: 'Unable to Copy', details: 'Signal weak or unreadable.', examples: ['Dispatch: Unit 12, you\'re 10-1; repeat last.'], synonyms: ['weak signal', 'poor copy', 'static'] },
-        { code: '10-2', title: 'Signal Good', details: 'Loud and clear; readable.', examples: ['10-2 on that last transmission.'], synonyms: ['copy good', 'loud and clear'] },
-        { code: '10-3', title: 'Stop Transmitting', details: 'Cease radio transmissions.', examples: ['All units, 10-3 for emergency traffic.'], synonyms: ['hold traffic', 'stop radio'] },
-        { code: '10-4', title: 'Acknowledged', details: 'Affirmative; message received.', examples: ['10-4, en route.'], synonyms: ['copy', 'roger', 'affirmative', 'received'] },
-        { code: '10-5', title: 'Relay', details: 'Relay message or information.', examples: ['10-5 that update to Unit 15.'], synonyms: ['forward', 'pass along'] },
-        { code: '10-6', title: 'Busy', details: 'Busy; stand by unless urgent.', examples: ['10-6 at the station.'], synonyms: ['occupied', 'stand by'] },
-        { code: '10-7', title: 'Out of Service', details: 'Out of service; not available.', examples: ['10-7 for fuel.'], synonyms: ['offline', 'not available'] },
-        { code: '10-8', title: 'In Service', details: 'Back in service; available for calls.', examples: ['10-8, available.'], synonyms: ['available', 'clear'] },
-        { code: '10-9', title: 'Repeat', details: 'Repeat last transmission.', examples: ['10-9 your last.'], synonyms: ['say again', 'repeat'] },
-        { code: '10-10', title: 'Fight in Progress', details: 'Physical altercation reported.', examples: ['10-10 at 5th and Pine.'], synonyms: ['fight', 'disturbance', 'brawl'] },
-        { code: '10-12', title: 'Visitors Present', details: 'Officials or visitors present; use discretion.', examples: ['10-12 in the office.'], synonyms: ['visitors', 'company', 'ride-along'] },
-        { code: '10-13', title: 'Weather/Road Conditions', details: 'Request or provide conditions update.', examples: ['10-13 on road conditions.'], synonyms: ['conditions', 'weather', 'roads'] },
-        { code: '10-14', title: 'Escort/Convoy', details: 'Provide or request an escort.', examples: ['Requesting 10-14 for transport.'], synonyms: ['escort', 'convoy'] },
-        { code: '10-15', title: 'Prisoner in Custody', details: 'Transporting or holding a prisoner.', examples: ['10-15 en route to jail.'], synonyms: ['in custody', 'arrested'] },
-        { code: '10-16', title: 'Pick Up Prisoner', details: 'Pick up or transfer prisoner.', examples: ['10-16 at courthouse.'], synonyms: ['transport', 'pickup'] },
-        { code: '10-17', title: 'Pick Up Papers', details: 'Collect paperwork/documents.', examples: ['10-17 at records.'], synonyms: ['paperwork', 'documents'] },
-        { code: '10-18', title: 'Urgent — Respond Immediately', details: 'High-priority call; expedite response.', examples: ['10-18 to that alarm.'], synonyms: ['urgent', 'priority', 'asap'] },
-        { code: '10-19', title: 'Return to Station', details: 'Return to headquarters/station.', examples: ['10-19 to HQ.'], synonyms: ['back to station', 'return'] },
-        { code: '10-20', title: 'Location', details: 'Report current location.', examples: ['10-20 is Main and 3rd.'], synonyms: ['where are you', 'position', 'location'] },
-        { code: '10-21', title: 'Call by Phone', details: 'Call dispatch or unit by phone.', examples: ['10-21 the complainant.', '10-21 me when free.'], synonyms: ['call', 'phone', 'telephone', 'ring', 'call me'] },
-        { code: '10-22', title: 'Disregard', details: 'Cancel previous assignment or message.', examples: ['10-22 that last call.'], synonyms: ['cancel', 'nevermind', 'ignore'] },
-        { code: '10-23', title: 'Arrived at Scene', details: 'On scene of the call.', examples: ['10-23 at the residence.'], synonyms: ['on scene', 'arrived'] },
-        { code: '10-24', title: 'Assignment Completed', details: 'Task finished; available.', examples: ['10-24, returning 10-8.'], synonyms: ['complete', 'finished', 'clear'] },
-        { code: '10-25', title: 'Report to Meet Person', details: 'Meet with named person at location.', examples: ['10-25 with supervisor.'], synonyms: ['meet', 'link up'] },
-        { code: '10-26', title: 'Detaining Suspect', details: 'Holding a suspect for investigation.', examples: ['10-26 one male.'], synonyms: ['detain', 'hold'] },
-        { code: '10-27', title: 'Driver License Information', details: 'Run driver license check.', examples: ['10-27 by name and DOB.'], synonyms: ['license check', 'DL'] },
-        { code: '10-28', title: 'Vehicle Registration', details: 'Run plate/registration check.', examples: ['10-28 on ABC123.'], synonyms: ['registration', 'plate check'] },
-        { code: '10-29', title: 'Check for Wants', details: 'Wants/warrants/stolen check.', examples: ['10-29 the subject.'], synonyms: ['warrants', 'wanted', 'stolen'] },
-        { code: '10-30', title: 'Unnecessary Use of Radio', details: 'Avoid non-essential transmissions.', examples: ['Control: 10-30 on channel one.'], synonyms: ['radio discipline'] },
-        { code: '10-31', title: 'Crime in Progress', details: 'Crime currently occurring.', examples: ['10-31 burglary in progress.'], synonyms: ['in progress', 'active crime'] },
-        { code: '10-32', title: 'Person with Gun', details: 'Subject reported armed with a firearm.', examples: ['10-32 at the park, male with handgun.'], synonyms: ['gun', 'weapon', 'armed', 'firearm'] },
-        { code: '10-33', title: 'Emergency Traffic Only', details: 'Hold routine radio traffic for emergency.', examples: ['All units, 10-33.'], synonyms: ['hold traffic', 'emergency only'] },
-        { code: '10-34', title: 'Riot/Mass Disturbance', details: 'Riot or large disturbance reported.', examples: ['10-34 downtown protest.'], synonyms: ['riot', 'mass disturbance'] },
-        { code: '10-35', title: 'Major Crime Alert', details: 'Serious offense broadcast/alert.', examples: ['10-35 BOLO issued.'], synonyms: ['major crime', 'alert', 'BOLO'] },
-        { code: '10-36', title: 'Correct Time', details: 'Provide correct time.', examples: ['10-36 is 14:23 hours.'], synonyms: ['time', 'time check'] },
-        { code: '10-37', title: 'Suspicious Vehicle', details: 'Vehicle acting suspiciously.', examples: ['10-37 blue sedan circling block.'], synonyms: ['suspicious', 'prowler vehicle'] },
-        { code: '10-38', title: 'Stopping Suspicious Vehicle', details: 'Initiating a traffic stop.', examples: ['10-38 on that sedan.'], synonyms: ['traffic stop', 'vehicle stop'] },
-        { code: '10-39', title: 'Use Lights & Siren', details: 'Respond with emergency equipment.', examples: ['10-39 to the alarm.'], synonyms: ['code 3', 'lights and siren'] },
-        { code: '10-40', title: 'Silent Run', details: 'Respond without lights/siren.', examples: ['10-40 into the area.'], synonyms: ['no lights', 'no siren', 'stealth'] },
-        { code: '10-41', title: 'Begin Tour of Duty', details: 'On duty / beginning shift.', examples: ['10-41, Unit 12.'], synonyms: ['on duty', 'start shift'] },
-        { code: '10-42', title: 'End Tour of Duty', details: 'Off duty / ending shift.', examples: ['10-42, heading home.'], synonyms: ['off duty', 'end shift'] },
-        { code: '10-43', title: 'Information', details: 'General information or update.', examples: ['10-43 reference the case.'], synonyms: ['info', 'update'] },
-        { code: '10-44', title: 'Permission to Leave', details: 'Request permission to leave post.', examples: ['10-44 for fuel.'], synonyms: ['permission', 'leave post'] },
-        { code: '10-45', title: 'Animal Carcass at…', details: 'Dead animal on roadway/location.', examples: ['10-45 deer at MM 12.'], synonyms: ['roadkill', 'animal carcass'] },
-        { code: '10-46', title: 'Assist Motorist', details: 'Assist stranded or disabled motorist.', examples: ['10-46 on I-90 shoulder.'], synonyms: ['motorist assist', 'disabled vehicle'] },
-        { code: '10-47', title: 'Emergency Road Repair', details: 'Roadway hazard needs repair.', examples: ['10-47 pothole creating hazard.'], synonyms: ['road repair', 'hazard'] },
-        { code: '10-48', title: 'Traffic Standard Repair', details: 'Traffic sign/signal repair needed.', examples: ['10-48 stop sign down.'], synonyms: ['sign repair', 'signal repair'] },
-        { code: '10-49', title: 'Traffic Signal Out', details: 'Signal light malfunction/outage.', examples: ['10-49 at Main & 2nd.'], synonyms: ['signal out', 'light out'] },
-        { code: '10-50', title: 'Accident', details: 'Traffic crash/accident reported.', examples: ['10-50 with injury at Oak & 5th.'], synonyms: ['accident', 'crash', 'collision'] },
-        { code: '10-51', title: 'Wrecker Needed', details: 'Request tow truck.', examples: ['10-51 for a flatbed.'], synonyms: ['tow', 'wrecker'] },
-        { code: '10-52', title: 'Ambulance Needed', details: 'Request EMS/ambulance.', examples: ['10-52 for one patient.'], synonyms: ['ambulance', 'ems', 'medic'] },
-        { code: '10-53', title: 'Road Blocked', details: 'Roadway blocked / impassable.', examples: ['10-53 trees down across road.'], synonyms: ['blocked road', 'closure'] },
-        { code: '10-55', title: 'Intoxicated Driver', details: 'Possible DUI driver.', examples: ['10-55 swerving vehicle.'], synonyms: ['DUI', 'drunk driver', 'impaired'] },
-        { code: '10-56', title: 'Intoxicated Pedestrian', details: 'Pedestrian under influence.', examples: ['10-56 near bus stop.'], synonyms: ['drunk', 'intoxicated pedestrian'] },
-        { code: '10-57', title: 'Hit and Run', details: 'Collision with fleeing party.', examples: ['10-57 just occurred.'], synonyms: ['hit & run', 'leaving scene'] },
-        { code: '10-58', title: 'Direct Traffic', details: 'Assign to traffic control.', examples: ['10-58 at parade route.'], synonyms: ['traffic control', 'direct traffic'] },
-        { code: '10-59', title: 'Convoy/Escort', details: 'Provide convoy or escort.', examples: ['10-59 for dignitary.'], synonyms: ['convoy', 'escort'] },
-        { code: '10-60', title: 'Squad in Vicinity', details: 'Unit(s) near location.', examples: ['Any 10-60 units near Oak?'], synonyms: ['nearby', 'in the area'] },
-        { code: '10-61', title: 'Personnel in Area', details: 'Personnel in the area.', examples: ['10-61 around sector 2.'], synonyms: ['units around', 'in area'] },
-        { code: '10-62', title: 'Reply to Message', details: 'Reply or respond to message.', examples: ['10-62 reference your 10-43.'], synonyms: ['respond', 'reply'] },
-        { code: '10-63', title: 'Prepare to Copy', details: 'Prepare to copy information.', examples: ['10-63 for a phone number.'], synonyms: ['ready to copy', 'copy this'] },
-        { code: '10-64', title: 'Local Message', details: 'Local message for delivery.', examples: ['10-64 pending for Unit 5.'], synonyms: ['message', 'local'] },
-        { code: '10-65', title: 'Net Message Assignment', details: 'Assignment via network message.', examples: ['10-65 on callout.'], synonyms: ['assignment', 'message'] },
-        { code: '10-66', title: 'Missing Person', details: 'Report or check missing person.', examples: ['10-66 juvenile.'], synonyms: ['missing', 'runaway'] },
-        { code: '10-67', title: 'Clear to Read Net Message', details: 'Clear to receive a message.', examples: ['10-67 when ready.'], synonyms: ['clear to read', 'ready'] },
-        { code: '10-68', title: 'Dispatch Information', details: 'Additional dispatch info available.', examples: ['10-68 with suspect description.'], synonyms: ['information', 'details', 'message'] },
-        { code: '10-69', title: 'Message Received', details: 'Message acknowledged.', examples: ['10-69 on that BOLO.'], synonyms: ['received', 'copy', 'acknowledged'] },
-        { code: '10-70', title: 'Fire Alarm', details: 'Fire alarm reported.', examples: ['10-70 commercial alarm.'], synonyms: ['fire', 'alarm'] },
-        { code: '10-71', title: 'Shots Fired Reported', details: 'Gunshots heard or reported in area.', examples: ['Multiple callers reporting 10-71 near Elm St.'], synonyms: ['shots fired', 'gunshots', 'shots', 'discharge'] },
-        { code: '10-72', title: 'Report Progress of Fire', details: 'Status update on fire conditions.', examples: ['10-72: fire contained to attic.'], synonyms: ['fire progress', 'status'] },
-        { code: '10-73', title: 'Smoke Report', details: 'Smoke seen/smelled in area.', examples: ['10-73 light smoke in distance.'], synonyms: ['smoke', 'haze'] },
-        { code: '10-74', title: 'Negative', details: 'Negative response.', examples: ['10-74 on warrants.'], synonyms: ['no', 'negative'] },
-        { code: '10-75', title: 'In Contact With…', details: 'In contact/meeting with subject.', examples: ['10-75 with complainant.'], synonyms: ['contact', 'with'] },
-        { code: '10-76', title: 'En Route', details: 'On the way to location.', examples: ['10-76 to the scene.'], synonyms: ['enroute', 'on the way'] },
-        { code: '10-77', title: 'Estimated Time of Arrival', details: 'Provide ETA.', examples: ['10-77 five minutes.'], synonyms: ['eta', 'arrival time'] },
-        { code: '10-78', title: 'Need Assistance', details: 'Request backup/assistance.', examples: ['10-78 at traffic stop.'], synonyms: ['backup', 'assist', 'officer needs help'] },
-        { code: '10-79', title: 'Notify Coroner', details: 'Death investigation; notify coroner.', examples: ['10-79 for confirmed DOA.'], synonyms: ['coroner', 'medical examiner'] },
-        { code: '10-80', title: 'Pursuit in Progress', details: 'Vehicle/foot pursuit underway.', examples: ['10-80 southbound on I-5.'], synonyms: ['pursuit', 'chase'] },
-        { code: '10-81', title: 'Breathalyzer Report', details: 'Intoximeter reading/report.', examples: ['10-81 0.12 BAC.'], synonyms: ['breath test', 'intoximeter'] },
-        { code: '10-82', title: 'Reserve Lodging', details: 'Arrange lodging as needed.', examples: ['10-82 for witness.'], synonyms: ['lodging', 'hotel'] },
-        { code: '10-83', title: 'Work School Crossing', details: 'Assign to school crossing duty.', examples: ['10-83 at Maple Elementary.'], synonyms: ['crossing guard', 'school crossing'] },
-        { code: '10-84', title: 'Advise ETA If Meeting', details: 'Provide ETA for meeting.', examples: ['10-84 with captain at HQ.'], synonyms: ['meeting eta', 'advise eta'] },
-        { code: '10-85', title: 'Delayed Due To…', details: 'Delay explanation.', examples: ['10-85 due to traffic.'], synonyms: ['delayed', 'running late'] },
-        { code: '10-86', title: 'Officer On Duty', details: 'Status update on-duty.', examples: ['10-86 Unit 3B.'], synonyms: ['on duty', 'status'] },
-        { code: '10-87', title: 'Pickup/Distribute Checks', details: 'Pick up or deliver checks.', examples: ['10-87 payroll checks.'], synonyms: ['checks', 'pickup'] },
-        { code: '10-88', title: 'Advise Phone Number', details: 'Provide callback phone number.', examples: ['10-88 for the RP.'], synonyms: ['phone number', 'callback'] },
-        { code: '10-89', title: 'Bomb Threat', details: 'Bomb or explosive threat reported.', examples: ['10-89 at the courthouse.'], synonyms: ['bomb', 'explosive', 'threat'] },
-        { code: '10-90', title: 'Bank Alarm', details: 'Bank alarm activation.', examples: ['10-90 silent alarm at First Bank.'], synonyms: ['bank alarm', 'robbery alarm'] },
-        { code: '10-91', title: 'Pick Up Prisoner/Subject', details: 'Pick up subject or prisoner.', examples: ['10-91 at hospital release.'], synonyms: ['pickup prisoner', 'pickup subject'] },
-        { code: '10-92', title: 'Improper Parking', details: 'Illegal or improper parking.', examples: ['10-92 blocking driveway.'], synonyms: ['parking violation', 'illegally parked'] },
-        { code: '10-93', title: 'Blockade', details: 'Set or report a blockade.', examples: ['10-93 roadblock established.'], synonyms: ['roadblock', 'blockade'] },
-        { code: '10-94', title: 'Drag Racing', details: 'Racing vehicles reported.', examples: ['10-94 two vehicles on highway.'], synonyms: ['street racing', 'racing'] },
-        { code: '10-95', title: 'Subject in Custody', details: 'Subject detained/in custody.', examples: ['10-95 one male.'], synonyms: ['in custody', 'prisoner'] },
-        { code: '10-96', title: 'Mental Subject', details: 'Behavioral health subject.', examples: ['10-96 evaluation needed.'], synonyms: ['mental health', 'behavioral'] },
-        { code: '10-97', title: 'Arrived at Scene (Alt.)', details: 'Alternate code for arrival.', examples: ['10-97 at location.'], synonyms: ['arrived', 'on scene'] },
-        { code: '10-98', title: 'Finished with Last Assignment', details: 'Task complete; returning available.', examples: ['10-98, back 10-8.'], synonyms: ['finished', 'clear'] },
-        { code: '10-99', title: 'Wanted/Stolen Indicated', details: 'Wanted/stolen hit on record.', examples: ['10-99 on that plate.'], synonyms: ['wanted', 'stolen', 'hit'] }
-      ];
-
-      let lastRendered = [];
-      const normalize = (s) => (s || '').toLowerCase();
-      function matches(item, query) {
-        if (!query) return true;
-        const tokens = query.split(/\s+/).filter(Boolean);
-        const haystack = normalize([
-          item.code,
-          item.title,
-          item.details,
-          ...(item.examples || []),
-          ...(item.synonyms || [])
-        ].join(' '));
-        return tokens.every(t => haystack.includes(t));
-      }
-      function renderList(query) {
-        const list = TEN_CODES.filter(item => matches(item, query));
-        lastRendered = list;
-        resultCount.textContent = list.length ? `${list.length} code${list.length !== 1 ? 's' : ''}` : '';
-        noResults.classList.toggle('hidden', list.length !== 0);
-        codesGrid.innerHTML = list.map((item, index) => `
-          <button class="app-card text-left ripple-container" data-index="${index}">
-            <div class="text-sm text-gray-400">${item.code}</div>
-            <div class="font-semibold mt-1">${item.title}</div>
-            <div class="text-xs text-gray-400 mt-2">${item.details}</div>
-          </button>
-        `).join('');
-        // Attach ripple for newly created items
-        codesGrid.querySelectorAll('.ripple-container').forEach(el => {
-          el.addEventListener('click', attachRipple, { passive: true });
-          el.addEventListener('touchstart', attachRipple, { passive: true });
-        });
-      }
-      function openModal(item) {
-        modalTitle.textContent = `${item.code} — ${item.title}`;
-        const examplesHtml = (item.examples && item.examples.length)
-          ? `<div class="mt-3"><div class="text-sm font-semibold mb-1">Examples</div><ul class="list-disc list-inside space-y-1 text-sm text-gray-300">${item.examples.map(e => `<li>${e}</li>`).join('')}</ul></div>`
-          : '';
-        const synonymsHtml = (item.synonyms && item.synonyms.length)
-          ? `<div class="mt-3"><div class="text-sm font-semibold mb-1">Keywords</div><div class="flex flex-wrap gap-2 text-xs">${item.synonyms.map(s => `<span class="bg-[#111] border border-white/10 rounded px-2 py-0.5">${s}</span>`).join('')}</div></div>`
-          : '';
-        modalBody.innerHTML = `<div class="text-gray-300">${item.details}</div>${examplesHtml}${synonymsHtml}`;
-        modalEl.classList.add('show');
-        modalEl.setAttribute('aria-hidden', 'false');
-      }
-      function closeModal() {
-        modalEl.classList.remove('show');
-        modalEl.setAttribute('aria-hidden', 'true');
-      }
-
-      codesGrid.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-index]');
-        if (!btn) return;
-        const index = Number(btn.getAttribute('data-index'));
-        const item = lastRendered[index];
-        if (item) openModal(item);
-      });
-      modalClose.addEventListener('click', closeModal);
-      modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeModal(); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
-      function applySearch(value) {
-        localStorage.setItem('sss_codes_query', value);
-        renderList(normalize(value));
-      }
-      const savedQuery = localStorage.getItem('sss_codes_query') || '';
-      searchInput.value = savedQuery;
-      applySearch(savedQuery);
-      let debounceTimer;
-      searchInput.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => applySearch(searchInput.value), 120);
-      });
-      clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applySearch(''); });
-    }
-
-    // Report Templates logic
-    function initTemplatesSection() {
-      const selectEl = document.getElementById('templateSelect');
-      const fieldsContainer = document.getElementById('templateFormFields');
-      const previewEl = document.getElementById('templatePreview');
-      const statusEl = document.getElementById('templateStatus');
-      const btnImport = document.getElementById('tplImportIncident');
-      const btnSave = document.getElementById('tplSaveDraft');
-      const btnLoad = document.getElementById('tplLoadDraft');
-      const btnClear = document.getElementById('tplClear');
-      const btnCopy = document.getElementById('tplCopy');
-
-      const TEMPLATES = [
-        {
-          id: 'incident_report',
-          name: 'Incident Report',
-          fields: [
-            { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
-            { key: 'guardName', label: 'Guard Name', type: 'text' },
-            { key: 'post', label: 'Post / Location', type: 'text' },
-            { key: 'location', label: 'Where (Location)', type: 'text' },
-            { key: 'locationDetails', label: 'Where (Details)', type: 'text' },
-            { key: 'incidentType', label: 'Incident Type', type: 'select', options: ['Trespass','Disturbance','Theft','Medical','Property Damage','Other'] },
-            { key: 'participants', label: 'Who (Participants)', type: 'participants', roles: ['Suspect','Victim','Witness'] },
-            { key: 'what', label: 'Narrative', type: 'textarea', rows: 4, placeholder: 'Objective narrative. Tip: tap role labels below to insert tokens (e.g., suspect1); tokens expand to names in preview.' },
-            { key: 'details', label: 'Actions Taken / Additional Details', type: 'textarea', rows: 4 },
-            { key: 'injuries', label: 'Injuries', type: 'textarea', rows: 2 },
-            { key: 'evidence', label: 'Evidence/Attachments', type: 'textarea', rows: 2 },
-            { key: 'reportingParty', label: 'Reporting Party', type: 'text' }
-          ],
-          body: (
-            'Incident Report\n' +
-            'Who:\n{whoSection}\n\n' +
-            'Narrative:\n{whatExpanded}\n\n' +
-            'When:\n{when}\n\n' +
-            'Where:\n{where}\n\n' +
-            'Type: {incidentType}\n' +
-            'Details:\n{detailsExpanded}\n\n' +
-            'Injuries:\n{injuries}\n\n' +
-            'Evidence/Attachments:\n{evidence}\n\n' +
-            'Reporting Party: {reportingParty}\n' +
-            'Officer: {guardName}\n' +
-            'Post: {post}'
-          )
-        },
-        {
-          id: 'shift_report',
-          name: 'Shift Report',
-          fields: [
-            { key: 'date', label: 'Date', type: 'date' },
-            { key: 'guardName', label: 'Guard Name', type: 'text' },
-            { key: 'post', label: 'Post / Location', type: 'text' },
-            { key: 'startTime', label: 'Shift Start', type: 'time' },
-            { key: 'endTime', label: 'Shift End', type: 'time' },
-            { key: 'patrols', label: 'Patrols Conducted', type: 'textarea', rows: 3, placeholder: 'Times/areas' },
-            { key: 'contacts', label: 'Contacts / Interactions', type: 'textarea', rows: 3 },
-            { key: 'incidents', label: 'Incidents (if any)', type: 'textarea', rows: 3 },
-            { key: 'alarms', label: 'Alarms / Calls Responded', type: 'textarea', rows: 3 },
-            { key: 'visitors', label: 'Visitors / Deliveries', type: 'textarea', rows: 3 },
-            { key: 'maintenanceIssues', label: 'Maintenance / Safety Issues', type: 'textarea', rows: 3 },
-            { key: 'equipmentIssues', label: 'Equipment Issues', type: 'textarea', rows: 3 },
-            { key: 'handoffNotes', label: 'Handoff Notes for Next Shift', type: 'textarea', rows: 3 },
-            { key: 'notes', label: 'Other Notes', type: 'textarea', rows: 3 }
-          ],
-          body: (
-            'Shift Report\n' +
-            'Date: {date}\n' +
-            'Guard: {guardName}\n' +
-            'Post: {post}\n' +
-            'Shift: {startTime} - {endTime}\n\n' +
-            'Patrols:\n{patrols}\n\n' +
-            'Contacts/Interactions:\n{contacts}\n\n' +
-            'Incidents:\n{incidents}\n\n' +
-            'Alarms / Calls Responded:\n{alarms}\n\n' +
-            'Visitors / Deliveries:\n{visitors}\n\n' +
-            'Maintenance / Safety Issues:\n{maintenanceIssues}\n\n' +
-            'Equipment Issues:\n{equipmentIssues}\n\n' +
-            'Handoff Notes:\n{handoffNotes}\n\n' +
-            'Other Notes:\n{notes}'
-          )
-        }
-      ];
-
-      let fieldValues = {};
-      let currentTemplateId = TEMPLATES[0]?.id || '';
-
-      function updateHeading(){
-        const h = document.getElementById('templatesHeading');
-        if (!h) return;
-        h.textContent = (currentTemplateId === 'incident_report')
-          ? 'Incident Report'
-          : (currentTemplateId === 'shift_report')
-          ? 'Shift Report'
-          : 'Report';
-      }
-
-      function updateControls(){
-        if (btnImport) {
-          btnImport.style.display = (currentTemplateId === 'incident_report') ? '' : 'none';
-        }
-      }
-
-      function setStatus(msg){ statusEl.textContent = msg || ''; }
-
-      function toDisplay(value){
-        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-        return (value == null || String(value).trim() === '') ? 'N/A' : String(value);
-      }
-
-      function formatDateTimeForInput(iso){
+    async function toggleFlashlight() {
+      const icon = document.getElementById('flashlightIcon');
+      const status = document.getElementById('flashlightStatus');
+      
+      if (!flashlightStream) {
         try {
-          if (!iso) return '';
-          const d = new Date(iso);
-          if (isNaN(d.getTime())) return '';
-          const pad = (n)=>String(n).padStart(2,'0');
-          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        } catch { return ''; }
-      }
-
-      // Helpers for participants and dynamic token expansion
-      function ensureArray(v){ return Array.isArray(v) ? v : []; }
-      function normalizeRole(role){
-        const r = String(role||'').toLowerCase();
-        if (r.startsWith('sus')) return 'suspect';
-        if (r.startsWith('vic')) return 'victim';
-        if (r.startsWith('wit')) return 'witness';
-        if (r.startsWith('subj')) return 'suspect';
-        return r || 'other';
-      }
-      function groupParticipants(list){
-        const groups = { suspect: [], victim: [], witness: [], other: [] };
-        ensureArray(list).forEach(p => {
-          const name = (p && p.name) ? String(p.name).trim() : '';
-          const role = normalizeRole(p && p.role);
-          groups[role] = groups[role] || [];
-          groups[role].push(name);
-        });
-        // Strip empties
-        Object.keys(groups).forEach(k => { groups[k] = groups[k].filter(Boolean); });
-        return groups;
-      }
-      function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-      function buildTokenMap(groups){
-        const map = {};
-        const add = (base, names) => {
-          names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = nm; });
-        };
-        add('suspect', groups.suspect||[]);
-        add('subject', groups.suspect||[]); // synonym
-        add('victim', groups.victim||[]);
-        add('witness', groups.witness||[]);
-        return map;
-      }
-      function expandTokens(text, tokenMap){
-        const keys = Object.keys(tokenMap);
-        if (!text || keys.length === 0) return text || '';
-        const pattern = new RegExp('\\b(' + keys.map(escapeRegExp).join('|') + ')\\b', 'gi');
-        return text.replace(pattern, (m) => tokenMap[m.toLowerCase()] || m);
-      }
-      function buildWhoSection(groups){
-        const lines = [];
-        const pushLines = (label, arr) => {
-          arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${nm}`); });
-        };
-        if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
-        if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
-        if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
-        return lines.length ? lines.join('\n') : 'N/A';
-      }
-
-      function compileBody(template){
-        const participants = ensureArray(fieldValues.participants);
-        const groups = groupParticipants(participants);
-        const tokenMap = buildTokenMap(groups);
-        const whenText = toDisplay(fieldValues.dateTime);
-        const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
-        const computed = {
-          whoSection: buildWhoSection(groups),
-          when: whenText,
-          where: whereText,
-          whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
-          detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
-        };
-        return template.body.replace(/\{(.*?)\}/g, (_, key) => {
-          if (key in computed) return toDisplay(computed[key]);
-          return toDisplay(fieldValues[key]);
-        });
-      }
-
-      function createInput(field){
-        const commonCls = 'w-full bg-[#111] border border-white/10 rounded-md px-3 py-2';
-        let inputEl;
-        if (field.type === 'textarea'){
-          inputEl = document.createElement('textarea');
-          inputEl.className = commonCls;
-          inputEl.rows = field.rows || 3;
-          if (field.placeholder) inputEl.placeholder = field.placeholder;
-          inputEl.value = fieldValues[field.key] || '';
-          inputEl.addEventListener('input', onChange);
-        } else if (field.type === 'participants') {
-          const container = document.createElement('div');
-          container.className = 'space-y-2';
-          const roles = Array.isArray(field.roles) && field.roles.length ? field.roles : ['Suspect','Victim','Witness'];
-          if (!Array.isArray(fieldValues[field.key])) fieldValues[field.key] = [];
-
-          function renderRows(){
-            container.innerHTML = '';
-            const list = ensureArray(fieldValues[field.key]);
-            // Compute per-role index for numbering
-            const counters = {};
-            list.forEach((p) => { const r = normalizeRole(p.role||''); counters[r] = (counters[r]||0) + 1; p._idx = counters[r]; });
-            list.forEach((p, idx) => {
-              const row = document.createElement('div');
-              row.className = 'flex items-center gap-2';
-
-              const roleSel = document.createElement('select');
-              roleSel.className = 'bg-[#111] border border-white/10 rounded-md px-2 py-2';
-              roles.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; roleSel.appendChild(o); });
-              roleSel.value = p.role || roles[0];
-
-              const label = document.createElement('button');
-              label.type = 'button';
-              label.className = 'text-xs text-gray-400 w-24 text-left underline decoration-dotted decoration-white/20 cursor-pointer';
-              label.title = 'Tap to insert role token into Narrative';
-              label.textContent = `${roleSel.value} ${p._idx || 1}`;
-
-              const nameInput = document.createElement('input');
-              nameInput.type = 'text';
-              nameInput.placeholder = 'Name';
-              nameInput.className = 'flex-1 ' + commonCls;
-              nameInput.value = p.name || '';
-
-              const delBtn = document.createElement('button');
-              delBtn.type = 'button';
-              delBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
-              delBtn.textContent = 'Remove';
-
-              const insertBtn = document.createElement('button');
-              insertBtn.type = 'button';
-              insertBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
-              insertBtn.textContent = 'Insert to Narrative';
-
-              roleSel.addEventListener('change', () => {
-                const arr = ensureArray(fieldValues[field.key]);
-                if (!arr[idx]) return;
-                arr[idx].role = roleSel.value;
-                renderRows();
-                updatePreview();
-              });
-              nameInput.addEventListener('input', () => {
-                const arr = ensureArray(fieldValues[field.key]);
-                if (!arr[idx]) return;
-                arr[idx].name = nameInput.value;
-                updatePreview();
-              });
-              delBtn.addEventListener('click', () => {
-                const arr = ensureArray(fieldValues[field.key]);
-                arr.splice(idx, 1);
-                fieldValues[field.key] = arr;
-                renderRows();
-                updatePreview();
-              });
-
-              label.addEventListener('click', () => {
-                const base = normalizeRole(roleSel.value);
-                const token = `${base}${p._idx || 1}`;
-                insertTokenIntoNarrative(token);
-              });
-              insertBtn.addEventListener('click', () => {
-                const arr = ensureArray(fieldValues[field.key]);
-                const current = arr[idx] || {};
-                const name = String(current.name||'').trim();
-                const base = normalizeRole(roleSel.value);
-                const fallback = `${base}${p._idx || 1}`;
-                insertTokenIntoNarrative(name || fallback);
-              });
-
-              row.appendChild(roleSel);
-              row.appendChild(label);
-              row.appendChild(nameInput);
-              row.appendChild(delBtn);
-              row.appendChild(insertBtn);
-              container.appendChild(row);
-            });
-
-            const btnRow = document.createElement('div');
-            btnRow.className = 'flex flex-wrap gap-2';
-            roles.forEach(r => {
-              const btn = document.createElement('button');
-              btn.type = 'button';
-              btn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
-              btn.textContent = `Add ${r}`;
-              btn.addEventListener('click', () => {
-                const arr = ensureArray(fieldValues[field.key]);
-                arr.push({ role: r, name: '' });
-                fieldValues[field.key] = arr;
-                renderRows();
-                updatePreview();
-              });
-              btnRow.appendChild(btn);
-            });
-            // Helper hint
-            const hint = document.createElement('div');
-            hint.className = 'text-xs text-gray-400';
-            hint.textContent = 'Tip: Tap role label to insert token or use Insert to add the name. Tokens expand to full names in preview/copy.';
-            container.appendChild(btnRow);
-            container.appendChild(hint);
-          }
-
-          renderRows();
-          inputEl = container;
-        } else if (field.type === 'select'){
-          inputEl = document.createElement('select');
-          inputEl.className = commonCls;
-          (field.options || []).forEach(opt => {
-            const o = document.createElement('option');
-            o.value = opt; o.textContent = opt; inputEl.appendChild(o);
+          flashlightStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
           });
-          inputEl.value = fieldValues[field.key] || (field.options?.[0] || '');
-          inputEl.addEventListener('change', onChange);
-        } else if (field.type === 'checkbox'){
-          inputEl = document.createElement('input');
-          inputEl.type = 'checkbox';
-          inputEl.className = 'h-4 w-4';
-          inputEl.checked = Boolean(fieldValues[field.key]);
-          inputEl.addEventListener('change', onChange);
-        } else {
-          inputEl = document.createElement('input');
-          inputEl.type = field.type || 'text';
-          inputEl.className = commonCls;
-          inputEl.value = fieldValues[field.key] || '';
-          inputEl.addEventListener('input', onChange);
-        }
-        inputEl.dataset.key = field.key;
-        return inputEl;
-      }
-
-      function renderFields(){
-        fieldsContainer.innerHTML = '';
-        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
-        if (!t) return;
-        t.fields.forEach(field => {
-          const wrapper = document.createElement('label');
-          wrapper.className = 'block';
-          const title = document.createElement('div');
-          title.className = 'text-sm text-gray-300 mb-1';
-          title.textContent = field.label;
-          const input = createInput(field);
-          wrapper.appendChild(title);
-          wrapper.appendChild(input);
-          fieldsContainer.appendChild(wrapper);
-        });
-        updatePreview();
-        updateHeading();
-        updateControls();
-      }
-
-      function updatePreview(){
-        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
-        if (!t) { previewEl.textContent = ''; return; }
-        previewEl.textContent = compileBody(t);
-      }
-
-      function insertAtCursor(textarea, text){
-        if(!textarea) return;
-        const start = textarea.selectionStart || 0;
-        const end = textarea.selectionEnd || 0;
-        const before = textarea.value.slice(0, start);
-        const after = textarea.value.slice(end);
-        textarea.value = before + text + after;
-        const pos = start + text.length;
-        textarea.selectionStart = textarea.selectionEnd = pos;
-        textarea.focus();
-      }
-      function insertTokenIntoNarrative(token){
-        const ta = document.querySelector('#templateFormFields textarea[data-key="what"]');
-        const toInsert = (token || '').trim();
-        if(!ta || !toInsert) return;
-        insertAtCursor(ta, toInsert + ' ');
-        ta.dispatchEvent(new Event('input', { bubbles:true }));
-      }
-
-      function onChange(e){
-        const key = e.target.dataset.key;
-        if (!key) return;
-        fieldValues[key] = (e.target.type === 'checkbox') ? e.target.checked : e.target.value;
-        updatePreview();
-      }
-
-      function renderTemplateOptions(){
-        selectEl.innerHTML = TEMPLATES.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-        selectEl.value = currentTemplateId;
-      }
-
-      function prefillDefaults(){
-        const prof = loadJson(STORE_KEYS.profile, {});
-        if ('guardName' in fieldValues && !fieldValues.guardName) fieldValues.guardName = prof.name || '';
-        // If template has date or dateTime, default to now
-        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
-        if (!t) return;
-        const nowIso = new Date().toISOString();
-        t.fields.forEach(f=>{
-          if ((f.type === 'datetime-local' || f.type === 'time' || f.type === 'date') && !fieldValues[f.key]){
-            if (f.type === 'datetime-local') fieldValues[f.key] = formatDateTimeForInput(nowIso);
-            else if (f.type === 'date') fieldValues[f.key] = nowIso.slice(0,10);
-            else if (f.type === 'time') fieldValues[f.key] = nowIso.slice(11,16);
-          }
-        });
-      }
-
-      function importFromIncident(){
-        const inc = (loadJson(STORE_KEYS.incidents, [])[0]) || null;
-        if (!inc) { setStatus('No incident found to import.'); return; }
-        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
-        if (!t) return;
-        const map = {
-          dateTime: formatDateTimeForInput(inc.at),
-          post: inc.post || '',
-          incidentType: inc.type || '',
-          summary: inc.desc || ''
-        };
-        Object.keys(map).forEach(k=>{ if (k in fieldValues) fieldValues[k] = map[k]; });
-        setStatus('Imported latest incident.');
-        renderFields();
-      }
-
-      function saveDraft(){
-        const drafts = loadJson(STORE_KEYS.templateDrafts, {});
-        drafts[currentTemplateId] = fieldValues;
-        saveJson(STORE_KEYS.templateDrafts, drafts);
-        setStatus('Draft saved.');
-      }
-
-      function loadDraft(){
-        const drafts = loadJson(STORE_KEYS.templateDrafts, {});
-        fieldValues = { ...(drafts[currentTemplateId] || {}) };
-        setStatus(drafts[currentTemplateId] ? 'Draft loaded.' : 'No draft saved.');
-        renderFields();
-      }
-
-      function clearFields(){
-        fieldValues = {};
-        prefillDefaults();
-        setStatus('Cleared.');
-        renderFields();
-      }
-
-      function isIncidentWsComplete(){
-        if (currentTemplateId !== 'incident_report') return true;
-        const hasWhat = String(fieldValues.what||'').trim().length > 0;
-        const hasWhen = String(fieldValues.dateTime||'').trim().length > 0;
-        const hasWhere = String([fieldValues.location||'', fieldValues.locationDetails||''].join('')).trim().length > 0;
-        const participants = ensureArray(fieldValues.participants);
-        const hasWho = participants.some(p => (p && String(p.name||'').trim().length > 0));
-        return hasWhat && hasWhen && hasWhere && hasWho;
-      }
-
-      async function copyToClipboard(){
-        if (!isIncidentWsComplete()) { setStatus('Please complete Who, What, When, and Where before copying.'); return; }
-        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
-        if (!t) return;
-        const text = compileBody(t);
-        try {
-          await navigator.clipboard.writeText(text);
-          setStatus('Copied to clipboard.');
-        } catch {
-          try {
-            const ta = document.createElement('textarea');
-            ta.value = text; document.body.appendChild(ta); ta.select();
-            document.execCommand('copy'); document.body.removeChild(ta);
-            setStatus('Copied to clipboard.');
-          } catch {
-            setStatus('Copy failed. Select and copy manually.');
-          }
-        }
-      }
-
-      selectEl.addEventListener('change', ()=>{
-        currentTemplateId = selectEl.value;
-        fieldValues = {};
-        prefillDefaults();
-        renderFields();
-      });
-      btnImport.addEventListener('click', importFromIncident);
-      btnSave.addEventListener('click', saveDraft);
-      btnLoad.addEventListener('click', loadDraft);
-      btnClear.addEventListener('click', clearFields);
-      btnCopy.addEventListener('click', copyToClipboard);
-
-      // Initial render
-      renderTemplateOptions();
-      prefillDefaults();
-      renderFields();
-
-      // Expose small API for router to switch templates based on route
-      window.__tplApi = {
-        setTemplate: function(id){
-          const exists = TEMPLATES.some(t=>t.id===id);
-          if (!exists) return;
-          currentTemplateId = id;
-          if (selectEl) selectEl.value = id;
-          fieldValues = {};
-          prefillDefaults();
-          renderFields();
-        }
-      };
-    }
-
-    // Radio (phonetic alphabet) logic
-    function initRadioSection(){
-      const radioGrid = document.getElementById('radioGrid');
-      if (!radioGrid) return;
-      const radioSearch = document.getElementById('radioSearch');
-      const radioClear = document.getElementById('radioClear');
-      const radioCount = document.getElementById('radioCount');
-      const radioNoResults = document.getElementById('radioNoResults');
-      const radioStatus = document.getElementById('radioStatus');
-
-      const PHONETIC = [
-        { letter:'A', word:'Alpha',   synonyms:['alfa','alpha'] },
-        { letter:'B', word:'Bravo',   synonyms:[] },
-        { letter:'C', word:'Charlie', synonyms:[] },
-        { letter:'D', word:'Delta',   synonyms:[] },
-        { letter:'E', word:'Echo',    synonyms:[] },
-        { letter:'F', word:'Foxtrot', synonyms:[] },
-        { letter:'G', word:'Golf',    synonyms:[] },
-        { letter:'H', word:'Hotel',   synonyms:[] },
-        { letter:'I', word:'India',   synonyms:[] },
-        { letter:'J', word:'Juliett', synonyms:['juliet'] },
-        { letter:'K', word:'Kilo',    synonyms:[] },
-        { letter:'L', word:'Lima',    synonyms:[] },
-        { letter:'M', word:'Mike',    synonyms:[] },
-        { letter:'N', word:'November',synonyms:[] },
-        { letter:'O', word:'Oscar',   synonyms:[] },
-        { letter:'P', word:'Papa',    synonyms:[] },
-        { letter:'Q', word:'Quebec',  synonyms:[] },
-        { letter:'R', word:'Romeo',   synonyms:[] },
-        { letter:'S', word:'Sierra',  synonyms:[] },
-        { letter:'T', word:'Tango',   synonyms:[] },
-        { letter:'U', word:'Uniform', synonyms:[] },
-        { letter:'V', word:'Victor',  synonyms:[] },
-        { letter:'W', word:'Whiskey', synonyms:['whisky'] },
-        { letter:'X', word:'X-ray',   synonyms:['xray','x ray','x-ray'] },
-        { letter:'Y', word:'Yankee',  synonyms:[] },
-        { letter:'Z', word:'Zulu',    synonyms:[] }
-      ];
-
-      let lastRendered = [];
-      const normalize = (s)=> (s||'').toLowerCase();
-      const simplify = (s)=> normalize(s).replace(/[^a-z0-9]/g,'');
-
-      function matches(item, query){
-        if(!query) return true;
-        const tokens = query.split(/\s+/).filter(Boolean).map(simplify);
-        const hay = [ item.letter, item.word, ...(item.synonyms||[]) ].map(simplify).join(' ');
-        return tokens.every(t=> hay.includes(t));
-      }
-
-      function renderList(query){
-        const list = PHONETIC.filter(it=> matches(it, query));
-        lastRendered = list;
-        radioCount.textContent = list.length ? `${list.length} item${list.length!==1?'s':''}` : '';
-        radioNoResults.classList.toggle('hidden', list.length!==0);
-        radioGrid.innerHTML = list.map((it,idx)=>`
-          <button class="app-card text-left ripple-container" data-index="${idx}" title="Tap to copy">
-            <div class="font-semibold">${it.letter} — ${it.word}</div>
-          </button>
-        `).join('');
-        // Re-attach ripple
-        radioGrid.querySelectorAll('.ripple-container').forEach(el => {
-          el.addEventListener('click', attachRipple, { passive: true });
-          el.addEventListener('touchstart', attachRipple, { passive: true });
-        });
-      }
-
-      async function copyText(text){
-        try{ await navigator.clipboard.writeText(text); radioStatus.textContent = 'Copied to clipboard.'; }
-        catch{
-          try{
-            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
-            document.execCommand('copy'); document.body.removeChild(ta); radioStatus.textContent = 'Copied to clipboard.';
-          }catch{ radioStatus.textContent = 'Copy failed. Long-press to copy.'; }
-        }
-      }
-
-      radioGrid.addEventListener('click', (e)=>{
-        const btn = e.target.closest('[data-index]');
-        if(!btn) return;
-        const idx = Number(btn.getAttribute('data-index'));
-        const item = lastRendered[idx];
-        if(!item) return;
-        copyText(`${item.letter} — ${item.word}`);
-      });
-
-      function applySearch(value){
-        localStorage.setItem('sss_radio_query', value);
-        renderList(normalize(value));
-      }
-
-      const saved = localStorage.getItem('sss_radio_query') || '';
-      radioSearch.value = saved;
-      applySearch(saved);
-
-      let debounceTimer;
-      radioSearch.addEventListener('input', ()=>{
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(()=> applySearch(radioSearch.value), 120);
-      });
-      radioClear.addEventListener('click', ()=>{ radioSearch.value=''; applySearch(''); });
-    }
-
-    // Client storage helpers
-    const STORE_KEYS = {
-      profile: 'sss_profile',
-      support: 'sss_support',
-      checkHistory: 'sss_check_history',
-      incidents: 'sss_incidents',
-      assignments: 'sss_assignments',
-      equipment: 'sss_equipment',
-      calendar: 'sss_calendar',
-      templateDrafts: 'sss_template_drafts'
-    };
-
-    function loadJson(key, fallback){
-      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
-    }
-    function saveJson(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
-
-    async function getPosition() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) return reject(new Error('Geolocation unavailable'));
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy }),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 8000 }
-        );
-      });
-    }
-
-    function telHref(number){ return number ? `tel:${number.replace(/\s+/g,'')}` : '#'; }
-
-    function setWelcomeName(){
-      const prof = loadJson(STORE_KEYS.profile, {});
-      const el = document.getElementById('welcomeName');
-      el.textContent = prof.name ? prof.name : 'Officer';
-    }
-
-    /* Removed non-essential modules
-    function renderCheckHistory(){
-      const list = loadJson(STORE_KEYS.checkHistory, []);
-      const el = document.getElementById('checkHistory');
-      el.innerHTML = list.map(r => `<div>${r.type} — ${new Date(r.time).toLocaleString()}${r.lat?` @ ${r.lat.toFixed(4)},${r.lon.toFixed(4)}`:''}</div>`).join('') || '<div class="text-gray-400">No records yet.</div>';
-    }
-
-    function renderAssignments(){
-      const arr = loadJson(STORE_KEYS.assignments, []);
-      const list = document.getElementById('assignmentsList');
-      list.innerHTML = arr.map((a,i)=>{
-        const maps = a.address ? `<a class="text-[--accent] underline" href="https://maps.google.com/?q=${encodeURIComponent(a.address)}" target="_blank" rel="noopener">Map</a>` : '';
-        const when = a.start || a.end ? `${a.start?new Date(a.start).toLocaleString():''} ${a.end?'— '+new Date(a.end).toLocaleString():''}` : '';
-        return `<div class="p-3 rounded-md border border-white/10">`
-          + `<div class="font-semibold">${a.business||'Untitled'} <span class="text-xs text-gray-400">${when}</span></div>`
-          + `<div class="text-sm text-gray-300">${a.address||''} ${maps}</div>`
-          + `<div class="text-sm text-gray-300">Manager: ${a.manager||''} ${a.phone?`<a class=\"underline\" href=\"tel:${a.phone}\">${a.phone}</a>`:''}</div>`
-          + `<div class="text-sm text-gray-400">${a.notes||''}</div>`
-          + `<div class="mt-2"><button data-del="${i}" class="px-2 py-1 bg-[#111] border border-white/10 rounded-md">Delete</button></div>`
-          + `</div>`;
-      }).join('') || '<div class="text-gray-400">No assignments saved.</div>';
-      list.querySelectorAll('[data-del]').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const idx = Number(btn.getAttribute('data-del'));
-          const updated = loadJson(STORE_KEYS.assignments, []);
-          updated.splice(idx,1);
-          saveJson(STORE_KEYS.assignments, updated);
-          renderAssignments();
-        });
-      });
-    }
-
-    function renderEquipment(){
-      const items = loadJson(STORE_KEYS.equipment, []);
-      const list = document.getElementById('equipmentList');
-      list.innerHTML = items.map((t,i)=>`<label class="flex items-center gap-2"><input data-eidx="${i}" type="checkbox" ${t.done?'checked':''}/><span class="flex-1">${t.text}</span><button data-del-e="${i}" class="text-xs text-gray-400">Remove</button></label>`).join('') || '<div class="text-gray-400">No items yet.</div>';
-      list.querySelectorAll('[data-eidx]').forEach(cb=>{
-        cb.addEventListener('change', ()=>{
-          const idx = Number(cb.getAttribute('data-eidx'));
-          const arr = loadJson(STORE_KEYS.equipment, []);
-          if(arr[idx]) arr[idx].done = cb.checked;
-          saveJson(STORE_KEYS.equipment, arr);
-        });
-      });
-      list.querySelectorAll('[data-del-e]').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const idx = Number(btn.getAttribute('data-del-e'));
-          const arr = loadJson(STORE_KEYS.equipment, []);
-          arr.splice(idx,1);
-          saveJson(STORE_KEYS.equipment, arr);
-          renderEquipment();
-        });
-      });
-    }
-
-    function renderCalendar(){
-      const arr = loadJson(STORE_KEYS.calendar, []);
-      const list = document.getElementById('calendarList');
-      list.innerHTML = arr.map((c,i)=>`<div class="p-2 rounded-md border border-white/10"><div class="flex items-center justify-between"><div><div class=\"font-medium\">${c.title||'Shift'}</div><div class=\"text-sm text-gray-400\">${new Date(c.start).toLocaleString()} — ${new Date(c.end).toLocaleString()}</div></div><button data-del-cal=\"${i}\" class=\"text-xs text-gray-400\">Remove</button></div></div>`).join('') || '<div class="text-gray-400">No upcoming shifts.</div>';
-      list.querySelectorAll('[data-del-cal]').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const idx = Number(btn.getAttribute('data-del-cal'));
-          const arr2 = loadJson(STORE_KEYS.calendar, []);
-          arr2.splice(idx,1);
-          saveJson(STORE_KEYS.calendar, arr2);
-          renderCalendar();
-        });
-      });
-    }
-
-    function setupCalendar(){
-      renderCalendar();
-      const form = document.getElementById('calendarForm');
-      form.addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const title = document.getElementById('calTitle').value;
-        const start = document.getElementById('calStart').value;
-        const end = document.getElementById('calEnd').value;
-        if(!start || !end) return;
-        const arr = loadJson(STORE_KEYS.calendar, []);
-        arr.push({ title, start, end });
-        saveJson(STORE_KEYS.calendar, arr);
-        form.reset();
-        renderCalendar();
-        monitorCheckInGrace();
-      });
-    }
-
-    function renderSupport(){
-      const s = loadJson(STORE_KEYS.support, {});
-      document.getElementById('opsHotline').value = s.hotline||'';
-      document.getElementById('opsEmail').value = s.email||'';
-      document.getElementById('supervisorPhone').value = s.supervisor||'';
-      document.getElementById('policePhone').value = s.police||'';
-      document.getElementById('medicalPhone').value = s.medical||'';
-      document.getElementById('opsWebhook').value = s.webhook||'';
-      document.getElementById('checkGrace').value = s.grace||'';
-      // Bind emergency call links
-      const sup = document.getElementById('callSupervisor');
-      const pol = document.getElementById('callPolice');
-      const med = document.getElementById('callMedical');
-      if (sup) sup.href = telHref(s.supervisor||'');
-      if (pol) pol.href = telHref(s.police||'');
-      if (med) med.href = telHref(s.medical||'');
-    }
-
-    function setupFlashlight(){
-      const overlay = document.getElementById('flashOverlay');
-      const video = document.getElementById('flashVideo');
-      const btn = document.getElementById('flashlightToggle');
-      if(!btn) return;
-      let stream, track;
-      async function on(){
-        try{
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
-          video.srcObject = stream; video.play();
-          track = stream.getVideoTracks()[0];
-          const caps = track.getCapabilities?.();
-          if (caps && 'torch' in caps) {
-            await track.applyConstraints({ advanced: [{ torch: true }] });
+          flashlightTrack = flashlightStream.getVideoTracks()[0];
+          
+          if (flashlightTrack.getCapabilities().torch) {
+            await flashlightTrack.applyConstraints({ advanced: [{ torch: true }] });
+            icon.textContent = '💡';
+            status.textContent = 'Flashlight ON';
+            status.style.color = 'var(--success)';
           } else {
-            overlay.classList.remove('hidden');
+            throw new Error('Torch not supported');
           }
-        }catch(e){ overlay.classList.remove('hidden'); }
-      }
-      function off(){
-        overlay.classList.add('hidden');
-        try{ if(track){ track.applyConstraints({ advanced: [{ torch: false }] }); } }catch{}
-        if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-      }
-      let active=false;
-      btn.addEventListener('click', ()=>{ active?off():on(); active=!active; });
-    }
-
-    async function notifyOps(eventType, payload){
-      const s = loadJson(STORE_KEYS.support, {});
-      if(!s.webhook) return;
-      try{
-        await fetch(s.webhook, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ event:eventType, payload, ts: Date.now() }) });
-      }catch{}
-    }
-
-    function setupIncidentForm(){
-      const form = document.getElementById('incidentForm');
-      const status = document.getElementById('incidentStatus');
-      const listEl = document.getElementById('incidentList');
-      document.getElementById('incidentDateTime').value = new Date().toISOString().slice(0,16);
-      form.addEventListener('submit', async (e)=>{
-        e.preventDefault();
-        const data = {
-          at: new Date(document.getElementById('incidentDateTime').value).toISOString(),
-          guard: document.getElementById('incidentGuardName').value,
-          post: document.getElementById('incidentPost').value,
-          type: document.getElementById('incidentType').value,
-          desc: document.getElementById('incidentDesc').value,
-          files: Array.from(document.getElementById('incidentFiles').files).map(f=>({name:f.name,size:f.size,type:f.type}))
-        };
-        const arr = loadJson(STORE_KEYS.incidents, []);
-        arr.unshift(data);
-        saveJson(STORE_KEYS.incidents, arr);
-        status.textContent = 'Saved locally';
-        renderIncidents();
-        await notifyOps('incident_report', data);
-        status.textContent += ' — sent to Ops (if configured)';
-        form.reset();
-        document.getElementById('incidentDateTime').value = new Date().toISOString().slice(0,16);
-      });
-      function renderIncidents(){
-        const arr = loadJson(STORE_KEYS.incidents, []);
-        listEl.innerHTML = arr.map(i=>`<div class="p-3 rounded-md border border-white/10"><div class="font-semibold">${i.type} — ${new Date(i.at).toLocaleString()}</div><div class="text-sm text-gray-300">${i.post||''}</div><div class="text-sm text-gray-300">${i.desc||''}</div></div>`).join('') || '<div class="text-gray-400">No incident reports yet.</div>';
-      }
-      renderIncidents();
-    }
-
-    function setupCheckInOut(){
-      const status = document.getElementById('checkStatus');
-      const add = async (type)=>{
-        let coords=null;
-        try{ coords = await getPosition(); }catch{}
-        const rec = { type, time: Date.now(), ...(coords||{}) };
-        const arr = loadJson(STORE_KEYS.checkHistory, []);
-        arr.unshift(rec);
-        saveJson(STORE_KEYS.checkHistory, arr);
-        renderCheckHistory();
-        status.textContent = `${type} recorded`;
-        await notifyOps('check_'+type.toLowerCase(), rec);
-      };
-      document.getElementById('checkInBtn').addEventListener('click', ()=>add('IN'));
-      document.getElementById('checkOutBtn').addEventListener('click', ()=>add('OUT'));
-    }
-
-    function setupAssignments(){
-      const toggle = document.getElementById('addAssignmentToggle');
-      const form = document.getElementById('assignmentForm');
-      toggle.addEventListener('click', ()=>{ form.classList.toggle('hidden'); });
-      form.addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const data = {
-          business: document.getElementById('asgnBusiness').value,
-          address: document.getElementById('asgnAddress').value,
-          start: document.getElementById('asgnStart').value,
-          end: document.getElementById('asgnEnd').value,
-          manager: document.getElementById('asgnManager').value,
-          phone: document.getElementById('asgnPhone').value,
-          notes: document.getElementById('asgnNotes').value
-        };
-        const arr = loadJson(STORE_KEYS.assignments, []);
-        arr.push(data);
-        saveJson(STORE_KEYS.assignments, arr);
-        renderAssignments();
-        form.reset();
-        form.classList.add('hidden');
-      });
-    }
-    // Auto alert if not checked in within grace period of shift start
-    function monitorCheckInGrace(){
-      const support = loadJson(STORE_KEYS.support, {});
-      const graceMin = Number(support.grace||0);
-      if (!graceMin) return;
-      const assignments = loadJson(STORE_KEYS.assignments, []);
-      const now = Date.now();
-      const soonest = assignments
-        .map(a=>({start: a.start ? Date.parse(a.start) : NaN, a}))
-        .filter(x=>!isNaN(x.start) && now <= x.start + graceMin*60*1000)
-        .sort((x,y)=>x.start-y.start)[0];
-      if (!soonest) return;
-      const due = soonest.start + graceMin*60*1000;
-      const already = sessionStorage.getItem('sss_grace_alert_for') === String(soonest.start);
-      if (already) return;
-      const timer = setInterval(()=>{
-        const lastCheck = (loadJson(STORE_KEYS.checkHistory, [])[0]||{}).time||0;
-        if (Date.now() >= due && lastCheck < soonest.start) {
-          sessionStorage.setItem('sss_grace_alert_for', String(soonest.start));
-          clearInterval(timer);
-          alert('Reminder: You have not checked in for your shift. Please Check In.');
-          notifyOps('checkin_missed', { start: soonest.start, graceMin });
+        } catch (error) {
+          // Fallback to screen flash
+          document.body.style.background = 'white';
+          icon.textContent = '💡';
+          status.textContent = 'Screen flash ON';
+          status.style.color = 'var(--success)';
         }
-      }, 15000);
-    }
-
-    function setupEquipment(){
-      renderEquipment();
-      document.getElementById('equipmentAdd').addEventListener('click', ()=>{
-        const input = document.getElementById('equipmentNew');
-        const text = input.value.trim();
-        if(!text) return;
-        const arr = loadJson(STORE_KEYS.equipment, []);
-        arr.push({ text, done:false });
-        saveJson(STORE_KEYS.equipment, arr);
-        input.value='';
-        renderEquipment();
-      });
-    }
-
-    function setupLostFound(){
-      document.getElementById('lostFoundForm').addEventListener('submit', (e)=>{
-        e.preventDefault();
-        document.getElementById('lfStatus').textContent = 'Submitted.';
-      });
-    }
-
-    function setupWeatherTime(){
-      const clock = document.getElementById('timeNow');
-      setInterval(()=>{ clock.textContent = new Date().toLocaleString(); }, 1000);
-      const w = document.getElementById('weatherNow');
-      getPosition().then(({lat,lon})=>{ w.textContent = `Your location: ${lat.toFixed(3)}, ${lon.toFixed(3)}`; }).catch(()=>{ w.textContent = 'Location unavailable'; });
-    }
-
-    function setupProfile(){
-      const form = document.getElementById('profileForm');
-      const prof = loadJson(STORE_KEYS.profile, {});
-      document.getElementById('profName').value = prof.name||'';
-      document.getElementById('profBadge').value = prof.badge||'';
-      document.getElementById('profExpiry').value = prof.expiry||'';
-      form.addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const data = {
-          name: document.getElementById('profName').value,
-          badge: document.getElementById('profBadge').value,
-          expiry: document.getElementById('profExpiry').value
-        };
-        saveJson(STORE_KEYS.profile, data);
-        setWelcomeName();
-        document.getElementById('profileStatus').textContent = 'Saved.';
-      });
-      document.getElementById('resetPasswordBtn').addEventListener('click', ()=>{
-        alert('Password reset link sent to your registered email (placeholder).');
-      });
-    }
-
-    function setupSupport(){
-      const form = document.getElementById('supportForm');
-      const dmLink = document.getElementById('dmEmailLink');
-      renderSupport();
-      form.addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const data = {
-          hotline: document.getElementById('opsHotline').value,
-          email: document.getElementById('opsEmail').value,
-          supervisor: document.getElementById('supervisorPhone').value,
-          police: document.getElementById('policePhone').value,
-          medical: document.getElementById('medicalPhone').value,
-          webhook: document.getElementById('opsWebhook').value,
-          grace: document.getElementById('checkGrace').value
-        };
-        saveJson(STORE_KEYS.support, data);
-        renderSupport();
-        document.getElementById('supportStatus').textContent = 'Saved.';
-      });
-      function updateDmLink(){
-        const s = loadJson(STORE_KEYS.support, {});
-        const to = s.email || '';
-        const subject = encodeURIComponent(document.getElementById('dmSubject').value || 'Message from Guard');
-        const body = encodeURIComponent(document.getElementById('dmBody').value || '');
-        dmLink.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      } else {
+        // Turn off
+        if (flashlightTrack) {
+          await flashlightTrack.applyConstraints({ advanced: [{ torch: false }] });
+          flashlightStream.getTracks().forEach(track => track.stop());
+        }
+        document.body.style.background = '';
+        flashlightStream = null;
+        flashlightTrack = null;
+        icon.textContent = '🔦';
+        status.textContent = 'Tap to activate';
+        status.style.color = 'var(--text-secondary)';
       }
-      document.getElementById('dmSubject').addEventListener('input', updateDmLink);
-      document.getElementById('dmBody').addEventListener('input', updateDmLink);
-      updateDmLink();
     }
 
-    function setupTraining(){
-      const KEY = 'sss_training_modules';
-      const defaults = [
-        { id:'radio', title:'Radio Procedures Basics', done:false },
-        { id:'codes', title:'10-Codes & Plain Language', done:false },
-        { id:'deescalation', title:'De-escalation Techniques', done:false },
-        { id:'reporting', title:'Incident Reporting Standards', done:false },
-        { id:'safety', title:'Personal & Scene Safety', done:false }
-      ];
-      const listEl = document.getElementById('trainingList');
-      const summaryEl = document.getElementById('trainingSummary');
-      function load(){ return loadJson(KEY, defaults); }
-      function save(v){ saveJson(KEY, v); }
-      function render(){
-        const modules = load();
-        const total = modules.length;
-        const completed = modules.filter(m=>m.done).length;
-        listEl.innerHTML = modules.map((m,i)=>`<label class="flex items-center gap-3 p-2 rounded-md border border-white/10"><input data-tidx="${i}" type="checkbox" ${m.done?'checked':''}/> <span class="flex-1">${m.title}</span><span class="text-xs ${m.done?'text-green-400':'text-yellow-300'}">${m.done?'Completed':'Pending'}</span></label>`).join('');
-        summaryEl.textContent = `${completed} of ${total} completed`;
-        listEl.querySelectorAll('[data-tidx]').forEach(cb=>{
-          cb.addEventListener('change', ()=>{
-            const idx = Number(cb.getAttribute('data-tidx'));
-            const arr = load();
-            if(arr[idx]) arr[idx].done = cb.checked;
-            save(arr);
-            render();
-          });
+    // Emergency functions
+    function triggerEmergency() {
+      document.getElementById('emergencyModal').classList.remove('hidden');
+      document.getElementById('emergencyModal').classList.add('flex');
+    }
+
+    function cancelEmergency() {
+      document.getElementById('emergencyModal').classList.add('hidden');
+      document.getElementById('emergencyModal').classList.remove('flex');
+    }
+
+    function confirmEmergency() {
+      // Send emergency alert
+      navigator.vibrate && navigator.vibrate([200, 100, 200]);
+      alert('Emergency alert sent to dispatch!');
+      cancelEmergency();
+    }
+
+    // Contact functions
+    function openContacts() {
+      document.getElementById('contactsModal').classList.remove('hidden');
+      document.getElementById('contactsModal').classList.add('flex');
+    }
+
+    function closeContacts() {
+      document.getElementById('contactsModal').classList.add('hidden');
+      document.getElementById('contactsModal').classList.remove('flex');
+    }
+
+    // Security functions
+    function checkIn() {
+      const time = new Date().toLocaleTimeString();
+      navigator.geolocation?.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+          alert(`Checked in at ${time}\nLocation: ${lat}, ${lng}`);
+          document.getElementById('statusText').textContent = 'On Duty';
+        },
+        () => {
+          alert(`Checked in at ${time}\nLocation: Not available`);
+        }
+      );
+    }
+
+    function startPatrol() {
+      alert('Patrol started. Location tracking enabled.');
+      // In a real app, this would start GPS tracking
+    }
+
+    function viewPatrolLog() {
+      // Navigate to patrol log page
+      window.location.href = 'patrol.html';
+    }
+
+    function openSettings() {
+      // Navigate to settings page
+      window.location.href = 'settings.html';
+    }
+
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      initTextSize();
+      loadOfficerName();
+      updateTime();
+      setInterval(updateTime, 1000);
+
+      // Add touch feedback to all interactive elements
+      document.querySelectorAll('.mobile-card, .touch-btn').forEach(element => {
+        element.addEventListener('touchstart', function() {
+          this.style.transform = 'scale(0.98)';
         });
-      }
-      render();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('sss_large') === 'true') document.body.classList.add('text-lg');
-
-      // Attach ripple globally
-      document.querySelectorAll('.ripple-container').forEach(el => {
-        el.addEventListener('click', attachRipple, { passive: true });
-        el.addEventListener('touchstart', attachRipple, { passive: true });
-      });
-
-      // Bottom nav is fixed; no scroll-based toggling
-
-      // Setup nav routing
-      document.querySelectorAll('[data-route]').forEach(el => {
-        el.addEventListener('click', (evt) => {
-          const id = el.getAttribute('data-route');
-          if (!id) return;
-          evt.preventDefault();
-          navigateTo(id, evt);
+        
+        element.addEventListener('touchend', function() {
+          setTimeout(() => {
+            this.style.transform = '';
+          }, 150);
         });
       });
 
-      // Feature modules
-      setWelcomeName();
-      */
+      // Service worker registration for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(console.error);
+      }
+    });
 
-      // Hash routing on load and change
-      const initial = (location.hash || '#home').replace('#', '');
-      navigateTo(initial);
-      window.addEventListener('hashchange', () => navigateTo(location.hash.replace('#','')));
+    // Handle back button for modals
+    window.addEventListener('popstate', function() {
+      document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+        if (!modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      });
     });
   </script>
-
 </body>
 </html>

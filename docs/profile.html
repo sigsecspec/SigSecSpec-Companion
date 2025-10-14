@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — Security Companion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f0f">
+  <style>
+    :root {
+      /* Dark theme (default) */
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #121212;
+      --bg-tertiary: #1a1a1a;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666666;
+      --accent-primary: #a7b99e;
+      --accent-secondary: #43534a;
+      --border-primary: rgba(255, 255, 255, 0.1);
+      --border-secondary: rgba(255, 255, 255, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --shadow: rgba(0, 0, 0, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    [data-theme="light"] {
+      /* Light theme */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-primary: #059669;
+      --accent-secondary: #065f46;
+      --border-primary: rgba(0, 0, 0, 0.1);
+      --border-secondary: rgba(0, 0, 0, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --shadow: rgba(0, 0, 0, 0.1);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100%;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bg-pattern {
+      background-image: 
+        radial-gradient(circle at 25% 25%, var(--accent-primary)10 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, var(--accent-secondary)10 0%, transparent 50%);
+      background-size: 100px 100px;
+      background-position: 0 0, 50px 50px;
+    }
+
+    .mobile-card {
+      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-primary);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mobile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+      opacity: 0.5;
+    }
+
+    .touch-btn {
+      min-height: 48px;
+      min-width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .touch-btn:active {
+      transform: scale(0.95);
+      background: var(--bg-tertiary);
+    }
+
+    .touch-btn.primary {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+
+    .touch-btn.danger {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(167, 185, 158, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-primary);
+      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.25rem;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 0.25rem;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 60px;
+      justify-content: center;
+    }
+
+    .nav-item.active {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .nav-item:not(.active):hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      padding-bottom: calc(80px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .theme-toggle {
+      position: relative;
+      width: 60px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border-radius: 16px;
+      border: 1px solid var(--border-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle::before {
+      content: '🌙';
+      position: absolute;
+      top: 50%;
+      left: 4px;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] .theme-toggle::before {
+      content: '☀️';
+      left: 32px;
+    }
+
+    .theme-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 26px;
+      height: 26px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    [data-theme="light"] .theme-toggle::after {
+      left: 30px;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border-secondary);
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      margin: 0 auto 1rem;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 12px;
+      margin-bottom: 0.75rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+    }
+
+    .contact-item:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    .contact-item:active {
+      transform: scale(0.98);
+    }
+
+    @media (max-width: 640px) {
+      .mobile-card {
+        padding: 1rem;
+      }
+    }
+
+    @media print {
+      .bottom-nav, .theme-toggle { display: none !important; }
+      .main-content { padding-bottom: 0 !important; }
+    }
+  </style>
+</head>
+<body class="bg-pattern">
+  <!-- Header -->
+  <header class="p-4 pb-6 flex justify-between items-center relative z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
+        👤
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold">Profile & Settings</h1>
+        <p class="text-sm" style="color: var(--text-secondary)">Manage your account and preferences</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Profile Section -->
+    <section class="mobile-card mb-6">
+      <div class="text-center">
+        <div class="avatar" id="profileAvatar">👤</div>
+        <h2 class="text-xl font-bold mb-2" id="profileName">Officer Name</h2>
+        <p style="color: var(--text-secondary)" id="profileBadge">Badge #12345</p>
+      </div>
+      
+      <div class="mt-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Full Name</label>
+          <input type="text" id="officerName" class="form-input" placeholder="Enter your full name">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Badge Number</label>
+          <input type="text" id="badgeNumber" class="form-input" placeholder="Enter badge number">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Department</label>
+          <input type="text" id="department" class="form-input" placeholder="Enter department">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Shift</label>
+          <select id="shiftType" class="form-input">
+            <option value="">Select shift</option>
+            <option value="day">Day Shift (6 AM - 6 PM)</option>
+            <option value="night">Night Shift (6 PM - 6 AM)</option>
+            <option value="swing">Swing Shift (2 PM - 10 PM)</option>
+            <option value="rotating">Rotating</option>
+          </select>
+        </div>
+        
+        <button class="touch-btn primary w-full" onclick="saveProfile()">
+          <span class="mr-2">💾</span> Save Profile
+        </button>
+      </div>
+    </section>
+
+    <!-- Emergency Contacts -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-4">📞 Emergency Contacts</h3>
+      
+      <a href="tel:911" class="contact-item">
+        <div class="text-2xl mr-4">🚨</div>
+        <div class="flex-1">
+          <div class="font-semibold">Emergency Services</div>
+          <div class="text-sm" style="color: var(--text-secondary)">911</div>
+        </div>
+        <div style="color: var(--text-muted)">→</div>
+      </a>
+      
+      <a href="tel:555-0123" class="contact-item">
+        <div class="text-2xl mr-4">👮</div>
+        <div class="flex-1">
+          <div class="font-semibold">Supervisor</div>
+          <div class="text-sm" style="color: var(--text-secondary)" id="supervisorPhone">555-0123</div>
+        </div>
+        <div style="color: var(--text-muted)">→</div>
+      </a>
+      
+      <a href="tel:555-0124" class="contact-item">
+        <div class="text-2xl mr-4">🏢</div>
+        <div class="flex-1">
+          <div class="font-semibold">Dispatch Center</div>
+          <div class="text-sm" style="color: var(--text-secondary)" id="dispatchPhone">555-0124</div>
+        </div>
+        <div style="color: var(--text-muted)">→</div>
+      </a>
+      
+      <a href="tel:555-0125" class="contact-item">
+        <div class="text-2xl mr-4">🚑</div>
+        <div class="flex-1">
+          <div class="font-semibold">Medical Emergency</div>
+          <div class="text-sm" style="color: var(--text-secondary)" id="medicalPhone">555-0125</div>
+        </div>
+        <div style="color: var(--text-muted)">→</div>
+      </a>
+      
+      <button class="touch-btn w-full mt-4" onclick="editContacts()">
+        <span class="mr-2">✏️</span> Edit Contacts
+      </button>
+    </section>
+
+    <!-- App Settings -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-4">⚙️ App Settings</h3>
+      
+      <div class="setting-item">
+        <div>
+          <div class="font-medium">Dark Mode</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Switch between light and dark themes</div>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()"></button>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <div class="font-medium">Large Text</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Increase text size for better readability</div>
+        </div>
+        <button class="touch-btn" onclick="toggleTextSize()" id="textSizeBtn">A+</button>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <div class="font-medium">Location Services</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Allow app to access your location</div>
+        </div>
+        <button class="touch-btn" onclick="requestLocation()" id="locationBtn">Enable</button>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <div class="font-medium">Notifications</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Receive alerts and reminders</div>
+        </div>
+        <button class="touch-btn" onclick="requestNotifications()" id="notificationBtn">Enable</button>
+      </div>
+    </section>
+
+    <!-- Data Management -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-4">💾 Data Management</h3>
+      
+      <div class="space-y-3">
+        <button class="touch-btn w-full" onclick="exportData()">
+          <span class="mr-2">📤</span> Export Data
+        </button>
+        
+        <button class="touch-btn w-full" onclick="importData()">
+          <span class="mr-2">📥</span> Import Data
+        </button>
+        
+        <button class="touch-btn w-full" onclick="clearCache()">
+          <span class="mr-2">🗑️</span> Clear Cache
+        </button>
+        
+        <button class="touch-btn danger w-full" onclick="resetApp()">
+          <span class="mr-2">⚠️</span> Reset All Data
+        </button>
+      </div>
+    </section>
+
+    <!-- App Information -->
+    <section class="mobile-card">
+      <h3 class="text-lg font-semibold mb-4">ℹ️ App Information</h3>
+      
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between">
+          <span>Version</span>
+          <span style="color: var(--text-secondary)">1.0.0</span>
+        </div>
+        
+        <div class="flex justify-between">
+          <span>Last Updated</span>
+          <span style="color: var(--text-secondary)" id="lastUpdated">Today</span>
+        </div>
+        
+        <div class="flex justify-between">
+          <span>Storage Used</span>
+          <span style="color: var(--text-secondary)" id="storageUsed">--</span>
+        </div>
+        
+        <div class="flex justify-between">
+          <span>Device</span>
+          <span style="color: var(--text-secondary)" id="deviceInfo">--</span>
+        </div>
+      </div>
+      
+      <div class="mt-6 pt-4 border-t" style="border-color: var(--border-secondary)">
+        <div class="text-center text-sm" style="color: var(--text-muted)">
+          Security Companion v1.0<br>
+          Built for security professionals
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-grid">
+      <a href="index.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="codes.html" class="nav-item">
+        <div class="nav-icon">📟</div>
+        <span>Codes</span>
+      </a>
+      <a href="incident.html" class="nav-item">
+        <div class="nav-icon">📝</div>
+        <span>Report</span>
+      </a>
+      <a href="patrol.html" class="nav-item">
+        <div class="nav-icon">🚶</div>
+        <span>Patrol</span>
+      </a>
+      <a href="profile.html" class="nav-item active">
+        <div class="nav-icon">👤</div>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Contact Edit Modal -->
+  <div id="contactModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold mb-4">✏️ Edit Emergency Contacts</h3>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Supervisor Phone</label>
+          <input type="tel" id="editSupervisor" class="form-input" placeholder="555-0123">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Dispatch Phone</label>
+          <input type="tel" id="editDispatch" class="form-input" placeholder="555-0124">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Medical Phone</label>
+          <input type="tel" id="editMedical" class="form-input" placeholder="555-0125">
+        </div>
+      </div>
+      
+      <div class="flex gap-3 mt-6">
+        <button class="touch-btn flex-1" onclick="cancelEditContacts()">Cancel</button>
+        <button class="touch-btn primary flex-1" onclick="saveContacts()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme management
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    // Text size toggle
+    function toggleTextSize() {
+      document.body.classList.toggle('text-lg');
+      const isLarge = document.body.classList.contains('text-lg');
+      localStorage.setItem('largeText', isLarge);
+      document.getElementById('textSizeBtn').textContent = isLarge ? 'A-' : 'A+';
+    }
+
+    function initTextSize() {
+      if (localStorage.getItem('largeText') === 'true') {
+        document.body.classList.add('text-lg');
+        document.getElementById('textSizeBtn').textContent = 'A-';
+      }
+    }
+
+    // Profile management
+    function loadProfile() {
+      const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+      
+      document.getElementById('officerName').value = profile.name || '';
+      document.getElementById('badgeNumber').value = profile.badge || '';
+      document.getElementById('department').value = profile.department || '';
+      document.getElementById('shiftType').value = profile.shift || '';
+      
+      // Update display
+      document.getElementById('profileName').textContent = profile.name || 'Officer Name';
+      document.getElementById('profileBadge').textContent = profile.badge ? `Badge #${profile.badge}` : 'Badge #12345';
+      
+      // Update avatar
+      const avatar = document.getElementById('profileAvatar');
+      if (profile.name) {
+        avatar.textContent = profile.name.charAt(0).toUpperCase();
+      }
+    }
+
+    function saveProfile() {
+      const profile = {
+        name: document.getElementById('officerName').value.trim(),
+        badge: document.getElementById('badgeNumber').value.trim(),
+        department: document.getElementById('department').value.trim(),
+        shift: document.getElementById('shiftType').value
+      };
+      
+      localStorage.setItem('userProfile', JSON.stringify(profile));
+      localStorage.setItem('officerName', profile.name); // For other pages
+      
+      // Update display
+      document.getElementById('profileName').textContent = profile.name || 'Officer Name';
+      document.getElementById('profileBadge').textContent = profile.badge ? `Badge #${profile.badge}` : 'Badge #12345';
+      
+      // Update avatar
+      const avatar = document.getElementById('profileAvatar');
+      if (profile.name) {
+        avatar.textContent = profile.name.charAt(0).toUpperCase();
+      }
+      
+      alert('Profile saved successfully!');
+    }
+
+    // Contact management
+    function loadContacts() {
+      const contacts = JSON.parse(localStorage.getItem('emergencyContacts') || '{}');
+      
+      document.getElementById('supervisorPhone').textContent = contacts.supervisor || '555-0123';
+      document.getElementById('dispatchPhone').textContent = contacts.dispatch || '555-0124';
+      document.getElementById('medicalPhone').textContent = contacts.medical || '555-0125';
+      
+      // Update links
+      document.querySelector('a[href^="tel:555-0123"]').href = `tel:${contacts.supervisor || '555-0123'}`;
+      document.querySelector('a[href^="tel:555-0124"]').href = `tel:${contacts.dispatch || '555-0124'}`;
+      document.querySelector('a[href^="tel:555-0125"]').href = `tel:${contacts.medical || '555-0125'}`;
+    }
+
+    function editContacts() {
+      const contacts = JSON.parse(localStorage.getItem('emergencyContacts') || '{}');
+      
+      document.getElementById('editSupervisor').value = contacts.supervisor || '';
+      document.getElementById('editDispatch').value = contacts.dispatch || '';
+      document.getElementById('editMedical').value = contacts.medical || '';
+      
+      document.getElementById('contactModal').classList.remove('hidden');
+      document.getElementById('contactModal').classList.add('flex');
+    }
+
+    function cancelEditContacts() {
+      document.getElementById('contactModal').classList.add('hidden');
+      document.getElementById('contactModal').classList.remove('flex');
+    }
+
+    function saveContacts() {
+      const contacts = {
+        supervisor: document.getElementById('editSupervisor').value.trim(),
+        dispatch: document.getElementById('editDispatch').value.trim(),
+        medical: document.getElementById('editMedical').value.trim()
+      };
+      
+      localStorage.setItem('emergencyContacts', JSON.stringify(contacts));
+      loadContacts();
+      cancelEditContacts();
+      alert('Emergency contacts saved!');
+    }
+
+    // Permission requests
+    async function requestLocation() {
+      try {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        if (permission.state === 'granted') {
+          document.getElementById('locationBtn').textContent = 'Enabled';
+          document.getElementById('locationBtn').classList.add('primary');
+        } else {
+          navigator.geolocation.getCurrentPosition(
+            () => {
+              document.getElementById('locationBtn').textContent = 'Enabled';
+              document.getElementById('locationBtn').classList.add('primary');
+            },
+            () => {
+              alert('Location access denied. Please enable in browser settings.');
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Location permission error:', error);
+      }
+    }
+
+    async function requestNotifications() {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          document.getElementById('notificationBtn').textContent = 'Enabled';
+          document.getElementById('notificationBtn').classList.add('primary');
+          new Notification('Security Companion', {
+            body: 'Notifications enabled successfully!',
+            icon: '/icon-192.png'
+          });
+        } else {
+          alert('Notification permission denied.');
+        }
+      } catch (error) {
+        console.error('Notification permission error:', error);
+      }
+    }
+
+    // Data management
+    function exportData() {
+      const data = {
+        profile: JSON.parse(localStorage.getItem('userProfile') || '{}'),
+        contacts: JSON.parse(localStorage.getItem('emergencyContacts') || '{}'),
+        patrols: JSON.parse(localStorage.getItem('completedPatrols') || '[]'),
+        incidents: JSON.parse(localStorage.getItem('savedIncidentReports') || '[]'),
+        shifts: JSON.parse(localStorage.getItem('savedShiftReports') || '[]'),
+        settings: {
+          theme: localStorage.getItem('theme'),
+          largeText: localStorage.getItem('largeText')
+        },
+        exportDate: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `security-companion-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            
+            if (confirm('This will overwrite your current data. Continue?')) {
+              if (data.profile) localStorage.setItem('userProfile', JSON.stringify(data.profile));
+              if (data.contacts) localStorage.setItem('emergencyContacts', JSON.stringify(data.contacts));
+              if (data.patrols) localStorage.setItem('completedPatrols', JSON.stringify(data.patrols));
+              if (data.incidents) localStorage.setItem('savedIncidentReports', JSON.stringify(data.incidents));
+              if (data.shifts) localStorage.setItem('savedShiftReports', JSON.stringify(data.shifts));
+              if (data.settings) {
+                if (data.settings.theme) localStorage.setItem('theme', data.settings.theme);
+                if (data.settings.largeText) localStorage.setItem('largeText', data.settings.largeText);
+              }
+              
+              alert('Data imported successfully! Please refresh the page.');
+            }
+          } catch (error) {
+            alert('Invalid backup file format.');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function clearCache() {
+      if (confirm('Clear app cache? This will not delete your saved data.')) {
+        // Clear service worker cache if available
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+          });
+        }
+        alert('Cache cleared successfully!');
+      }
+    }
+
+    function resetApp() {
+      if (confirm('This will delete ALL your data and reset the app. This cannot be undone. Continue?')) {
+        if (confirm('Are you absolutely sure? This will permanently delete all your reports, patrols, and settings.')) {
+          localStorage.clear();
+          sessionStorage.clear();
+          alert('App reset successfully! The page will now reload.');
+          window.location.reload();
+        }
+      }
+    }
+
+    // Device info
+    function loadDeviceInfo() {
+      document.getElementById('deviceInfo').textContent = navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop';
+      
+      // Calculate storage usage
+      let totalSize = 0;
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          totalSize += localStorage[key].length;
+        }
+      }
+      document.getElementById('storageUsed').textContent = `${(totalSize / 1024).toFixed(1)} KB`;
+      
+      document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      initTextSize();
+      loadProfile();
+      loadContacts();
+      loadDeviceInfo();
+      
+      // Check permissions
+      if (navigator.permissions) {
+        navigator.permissions.query({ name: 'geolocation' }).then(permission => {
+          if (permission.state === 'granted') {
+            document.getElementById('locationBtn').textContent = 'Enabled';
+            document.getElementById('locationBtn').classList.add('primary');
+          }
+        });
+      }
+      
+      if (Notification.permission === 'granted') {
+        document.getElementById('notificationBtn').textContent = 'Enabled';
+        document.getElementById('notificationBtn').classList.add('primary');
+      }
+    });
+  </script>
+</body>
+</html>

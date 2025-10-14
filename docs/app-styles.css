@@ -705,25 +705,87 @@ html, body {
 @media (max-width: 640px) {
   .mobile-card {
     padding: 1rem;
+    max-width: 100%;
+    overflow-x: hidden;
   }
   
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
   
   .app-header {
     padding: 0.75rem;
     padding-bottom: 1rem;
+    flex-wrap: wrap;
   }
   
   .header-content h1 {
     font-size: 1.25rem;
   }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .grid-cols-1, .grid-cols-2, .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .report-actions {
+    width: 100%;
+  }
+  
+  .touch-btn {
+    min-width: auto;
+    flex: 1;
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+  
+  .nav-grid {
+    padding: 0 0.5rem;
+  }
+  
+  .nav-item {
+    padding: 0.25rem;
+    min-height: 56px;
+    font-size: 0.7rem;
+  }
+  
+  .nav-icon {
+    font-size: 1.25rem;
+    margin-bottom: 0.125rem;
+  }
 }
 
 @media (min-width: 768px) {
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .grid-md-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-md-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Additional mobile responsiveness improvements */
+@media (max-width: 768px) {
+  .report-section {
+    position: relative;
+    top: auto;
+    max-height: none;
+  }
+  
+  .modal-card {
+    max-width: 95vw;
+    max-height: 90vh;
+  }
+  
+  .emergency-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 1.25rem;
+    right: 0.5rem;
+  }
 }
 
 /* Print styles */

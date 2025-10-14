@@ -7,6 +7,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f0f0f">
+<link rel="icon" href="patch-bg.png" sizes="any">
 <style>
   :root {
     /* Dark theme (default) */
@@ -275,9 +276,7 @@
 <!-- Header -->
 <header class="p-4 pb-6 flex justify-between items-center relative z-10">
   <div class="flex items-center gap-3">
-    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
-      📻
-    </div>
+    <img src="patch-bg.png" alt="Logo" width="48" height="48" class="w-12 h-12 rounded-xl object-cover border border-white/10" />
     <div>
       <h1 class="text-2xl font-bold">Phonetic Alphabet</h1>
       <p class="text-sm" style="color: var(--text-secondary)">NATO standard</p>

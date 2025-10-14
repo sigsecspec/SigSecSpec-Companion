@@ -137,7 +137,8 @@
       <div class="app-grid">
         <a href="codes.html" class="app-card ripple-container">🔢<div class="font-semibold mt-2">10-Codes</div></a>
         <a href="#radio" data-route="radio" class="app-card ripple-container">🅰️<div class="font-semibold mt-2">Phonetic Alphabet</div></a>
-        <a href="#templates" data-route="templates" class="app-card ripple-container">📄<div class="font-semibold mt-2">Shift & Incident Reports</div></a>
+        <a href="#incident" data-route="incident" class="app-card ripple-container">📝<div class="font-semibold mt-2">Incident Report</div></a>
+        <a href="#shift" data-route="shift" class="app-card ripple-container">📄<div class="font-semibold mt-2">Shift Report</div></a>
       </div>
     </section>
 
@@ -196,7 +197,7 @@
 
     <!-- REPORT TEMPLATES -->
     <section id="templates" class="view" aria-labelledby="templatesHeading">
-      <h2 id="templatesHeading" class="text-xl font-bold accent mb-4">Shift & Incident Reports</h2>
+      <h2 id="templatesHeading" class="text-xl font-bold accent mb-4">Incident Report</h2>
       <div class="space-y-4 max-w-4xl">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
           <label class="block">
@@ -247,7 +248,8 @@
     <a href="#home" data-route="home" class="nav-link ripple-container">Home</a>
     <a href="codes.html" class="nav-link ripple-container">Codes</a>
     <a href="#radio" data-route="radio" class="nav-link ripple-container">Phonetics</a>
-    <a href="#templates" data-route="templates" class="nav-link ripple-container">Reports</a>
+    <a href="#incident" data-route="incident" class="nav-link ripple-container">Incident</a>
+    <a href="#shift" data-route="shift" class="nav-link ripple-container">Shift</a>
   </nav>
 
   <!-- Page transition curtain -->
@@ -290,10 +292,13 @@
       home: 'Resource Companion — quick references & field tools',
       codes: '10-Codes — quick references',
       radio: 'Radio & Phonetic — quick references',
-      templates: 'Shift & Incident Reports — fill and copy'
+      templates: 'Report Templates — fill and copy',
+      incident: 'Incident Report — fill and copy',
+      shift: 'Shift Report — fill and copy'
     };
 
     let currentViewId = 'home';
+    let currentRouteId = 'home';
     let codesInitialized = false;
     let templatesInitialized = false;
 
@@ -316,15 +321,18 @@
     }
 
     function showView(targetId, opts = {}) {
-      const target = document.getElementById(targetId) || document.getElementById('home');
+      const routeId = opts.routeId || targetId;
+      const viewId = (routeId === 'incident' || routeId === 'shift') ? 'templates' : targetId;
+      const target = document.getElementById(viewId) || document.getElementById('home');
       const current = document.getElementById(currentViewId);
-      if (target === current) return;
+      // Only early-return if both the view and route are unchanged
+      if (target === current && routeId === currentRouteId) return;
 
       setCurtainFromEvent(opts.event);
 
       // Update subtitle
       const subtitle = document.getElementById('subtitle');
-      subtitle.textContent = ROUTE_TITLES[targetId] || ROUTE_TITLES['home'];
+      subtitle.textContent = ROUTE_TITLES[routeId] || ROUTE_TITLES['home'];
 
       // Leave current
       if (current) {
@@ -336,26 +344,37 @@
         if (prefersReducedMotion()) onLeaveEnd(); else current.addEventListener('animationend', onLeaveEnd);
       }
 
-      // Enter target
-      target.classList.add('is-active', 'fade-enter');
-      const onEnterEnd = () => {
-        target.classList.remove('fade-enter');
-        target.removeEventListener('animationend', onEnterEnd);
-      };
-      if (prefersReducedMotion()) onEnterEnd(); else target.addEventListener('animationend', onEnterEnd);
+      // Enter target if the view actually changed
+      if (target !== current) {
+        target.classList.add('is-active', 'fade-enter');
+        const onEnterEnd = () => {
+          target.classList.remove('fade-enter');
+          target.removeEventListener('animationend', onEnterEnd);
+        };
+        if (prefersReducedMotion()) onEnterEnd(); else target.addEventListener('animationend', onEnterEnd);
+      }
 
-      currentViewId = targetId;
-      updateNavActive(targetId);
+      currentViewId = viewId;
+      currentRouteId = routeId;
+      updateNavActive(routeId);
 
-      if (targetId === 'codes' && !codesInitialized) {
+      if (viewId === 'codes' && !codesInitialized) {
         initCodesSection();
         codesInitialized = true;
       }
-      if (targetId === 'templates' && !templatesInitialized) {
+      if (viewId === 'templates' && !templatesInitialized) {
         initTemplatesSection();
         templatesInitialized = true;
       }
-      if (targetId === 'radio') {
+      if (viewId === 'templates') {
+        // When routing to Incident/Shift aliases, ensure correct template is selected
+        if (routeId === 'incident' && window.__tplApi && typeof window.__tplApi.setTemplate === 'function') {
+          window.__tplApi.setTemplate('incident_report');
+        } else if (routeId === 'shift' && window.__tplApi && typeof window.__tplApi.setTemplate === 'function') {
+          window.__tplApi.setTemplate('shift_report');
+        }
+      }
+      if (viewId === 'radio') {
         initRadioSection();
       }
     }
@@ -365,7 +384,7 @@
       if (location.hash.replace('#','') !== targetId) {
         history.pushState({}, '', '#' + targetId);
       }
-      showView(targetId, { event: evt });
+      showView(targetId, { event: evt, routeId: targetId });
     }
 
     // Codes Section logic (moved from codes.html)
@@ -629,6 +648,18 @@
       let fieldValues = {};
       let currentTemplateId = TEMPLATES[0]?.id || '';
 
+      function updateHeading(){
+        const h = document.getElementById('templatesHeading');
+        if (!h) return;
+        h.textContent = (currentTemplateId === 'incident_report') ? 'Incident Report' : 'Shift Report';
+      }
+
+      function updateControls(){
+        if (btnImport) {
+          btnImport.style.display = (currentTemplateId === 'incident_report') ? '' : 'none';
+        }
+      }
+
       function setStatus(msg){ statusEl.textContent = msg || ''; }
 
       function toDisplay(value){
@@ -859,6 +890,8 @@
           fieldsContainer.appendChild(wrapper);
         });
         updatePreview();
+        updateHeading();
+        updateControls();
       }
 
       function updatePreview(){
@@ -967,6 +1000,19 @@
       renderTemplateOptions();
       prefillDefaults();
       renderFields();
+
+      // Expose small API for router to switch templates based on route
+      window.__tplApi = {
+        setTemplate: function(id){
+          const exists = TEMPLATES.some(t=>t.id===id);
+          if (!exists) return;
+          currentTemplateId = id;
+          if (selectEl) selectEl.value = id;
+          fieldValues = {};
+          prefillDefaults();
+          renderFields();
+        }
+      };
     }
 
     // Radio (phonetic alphabet) logic

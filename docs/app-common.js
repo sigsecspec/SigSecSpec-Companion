@@ -75,30 +75,45 @@ function loadOfficerName() {
   });
 }
 
-// Enhanced touch feedback
+// Enhanced touch feedback with modern interactions
 function addTouchFeedback() {
   document.querySelectorAll('.mobile-card, .touch-btn').forEach(element => {
-    // Touch start
+    // Enhanced touch start with haptic feedback
     element.addEventListener('touchstart', function(e) {
-      this.style.transform = 'scale(0.98)';
-      this.style.transition = 'transform 0.1s ease';
+      this.style.transform = 'scale(0.97)';
+      this.style.transition = 'transform 0.1s cubic-bezier(0.4, 0, 0.2, 1)';
+      
+      // Add haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
     });
     
-    // Touch end
+    // Enhanced touch end with spring animation
     element.addEventListener('touchend', function(e) {
       setTimeout(() => {
         this.style.transform = '';
-        this.style.transition = '';
-      }, 150);
+        this.style.transition = 'transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+      }, 50);
     });
 
-    // Add ripple effect
+    // Enhanced ripple effect with multiple colors
     element.addEventListener('click', function(e) {
       const ripple = document.createElement('span');
       const rect = this.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
+      const size = Math.max(rect.width, rect.height) * 2;
       const x = e.clientX - rect.left - size / 2;
       const y = e.clientY - rect.top - size / 2;
+      
+      // Determine ripple color based on element type
+      let rippleColor = 'rgba(255, 255, 255, 0.3)';
+      if (this.classList.contains('primary')) {
+        rippleColor = 'rgba(255, 255, 255, 0.4)';
+      } else if (this.classList.contains('success')) {
+        rippleColor = 'rgba(255, 255, 255, 0.35)';
+      } else if (this.classList.contains('danger')) {
+        rippleColor = 'rgba(255, 255, 255, 0.4)';
+      }
       
       ripple.style.cssText = `
         position: absolute;
@@ -106,23 +121,47 @@ function addTouchFeedback() {
         height: ${size}px;
         left: ${x}px;
         top: ${y}px;
-        background: rgba(255, 255, 255, 0.3);
+        background: radial-gradient(circle, ${rippleColor} 0%, transparent 70%);
         border-radius: 50%;
         transform: scale(0);
-        animation: ripple 0.6s linear;
+        animation: enhancedRipple 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
         z-index: 1000;
       `;
       
       this.style.position = 'relative';
+      this.style.overflow = 'hidden';
       this.appendChild(ripple);
       
-      setTimeout(() => ripple.remove(), 600);
+      setTimeout(() => ripple.remove(), 800);
     });
+
+    // Add magnetic hover effect for buttons
+    if (element.classList.contains('touch-btn')) {
+      element.addEventListener('mousemove', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const distance = Math.sqrt(x * x + y * y);
+        const maxDistance = 50;
+        
+        if (distance < maxDistance) {
+          const strength = (maxDistance - distance) / maxDistance;
+          const moveX = (x / distance) * strength * 3;
+          const moveY = (y / distance) * strength * 3;
+          
+          this.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.02)`;
+        }
+      });
+      
+      element.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+      });
+    }
   });
 }
 
-// Add ripple animation CSS
+// Add enhanced ripple animation CSS
 function addRippleStyles() {
   if (!document.querySelector('#ripple-styles')) {
     const style = document.createElement('style');
@@ -134,6 +173,22 @@ function addRippleStyles() {
           opacity: 0;
         }
       }
+      
+      @keyframes enhancedRipple {
+        0% {
+          transform: scale(0);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(2);
+          opacity: 0.5;
+        }
+        100% {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+      
       .loading-spinner {
         display: inline-block;
         width: 16px;
@@ -144,8 +199,14 @@ function addRippleStyles() {
         animation: spin 1s ease-in-out infinite;
         margin-left: 8px;
       }
+      
       @keyframes spin {
         to { transform: rotate(360deg); }
+      }
+      
+      .parallax-element {
+        transform-style: preserve-3d;
+        transition: transform 0.1s ease-out;
       }
     `;
     document.head.appendChild(style);
@@ -308,6 +369,66 @@ function handleCheckInParameter() {
   }
 }
 
+// Staggered animation for elements
+function addStaggeredAnimations() {
+  const elements = document.querySelectorAll('.mobile-card, .feature-grid > *, .nav-item');
+  elements.forEach((element, index) => {
+    element.style.opacity = '0';
+    element.style.transform = 'translateY(30px)';
+    element.style.transition = 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+    
+    setTimeout(() => {
+      element.style.opacity = '1';
+      element.style.transform = 'translateY(0)';
+    }, index * 100 + 200);
+  });
+}
+
+// Parallax effect for background elements
+function addParallaxEffect() {
+  let ticking = false;
+  
+  function updateParallax() {
+    const scrolled = window.pageYOffset;
+    const parallaxElements = document.querySelectorAll('.parallax-element');
+    
+    parallaxElements.forEach((element, index) => {
+      const speed = 0.5 + (index * 0.1);
+      const yPos = -(scrolled * speed);
+      element.style.transform = `translate3d(0, ${yPos}px, 0)`;
+    });
+    
+    ticking = false;
+  }
+  
+  function requestTick() {
+    if (!ticking) {
+      requestAnimationFrame(updateParallax);
+      ticking = true;
+    }
+  }
+  
+  window.addEventListener('scroll', requestTick);
+}
+
+// Intersection Observer for animations on scroll
+function addScrollAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-in');
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  });
+  
+  document.querySelectorAll('.mobile-card, .touch-btn').forEach(el => {
+    observer.observe(el);
+  });
+}
+
 // Initialize common functionality
 function initializeCommonFeatures() {
   // Initialize theme and text size
@@ -321,9 +442,12 @@ function initializeCommonFeatures() {
   updateTime();
   setInterval(updateTime, 1000);
   
-  // Add touch feedback
+  // Add enhanced interactions
   addTouchFeedback();
   addRippleStyles();
+  addStaggeredAnimations();
+  addParallaxEffect();
+  addScrollAnimations();
   
   // Handle URL parameters
   handleEmergencyParameter();
@@ -337,16 +461,111 @@ function initializeCommonFeatures() {
   window.addEventListener('online', () => {
     console.log('App is online');
     document.body.classList.remove('offline');
+    showNotification('Connection restored', 'success');
   });
   
   window.addEventListener('offline', () => {
     console.log('App is offline');
     document.body.classList.add('offline');
+    showNotification('Connection lost - working offline', 'warning');
   });
 }
 
 // Auto-initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeCommonFeatures);
+
+// Enhanced notification system
+function showNotification(message, type = 'info', duration = 3000) {
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type} slide-up`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <span class="notification-icon">${getNotificationIcon(type)}</span>
+      <span class="notification-message">${message}</span>
+    </div>
+  `;
+  
+  // Add notification styles if not already present
+  if (!document.querySelector('#notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--gradient-glass);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 1rem;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: 0 8px 32px var(--shadow);
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .notification.show {
+        transform: translateX(0);
+      }
+      
+      .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .notification-icon {
+        font-size: 1.2rem;
+      }
+      
+      .notification-message {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+      
+      .notification-success {
+        border-left: 4px solid var(--success);
+      }
+      
+      .notification-warning {
+        border-left: 4px solid var(--warning);
+      }
+      
+      .notification-error {
+        border-left: 4px solid var(--error);
+      }
+      
+      .notification-info {
+        border-left: 4px solid var(--info);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  document.body.appendChild(notification);
+  
+  // Trigger animation
+  setTimeout(() => notification.classList.add('show'), 100);
+  
+  // Auto remove
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, duration);
+}
+
+function getNotificationIcon(type) {
+  const icons = {
+    success: '✅',
+    warning: '⚠️',
+    error: '❌',
+    info: 'ℹ️'
+  };
+  return icons[type] || icons.info;
+}
 
 // Export functions for global use
 window.SecurityApp = {
@@ -361,5 +580,9 @@ window.SecurityApp = {
   getUrlParameter,
   setUrlParameter,
   getDeviceInfo,
-  initializeCommonFeatures
+  initializeCommonFeatures,
+  showNotification,
+  addStaggeredAnimations,
+  addParallaxEffect,
+  addScrollAnimations
 };

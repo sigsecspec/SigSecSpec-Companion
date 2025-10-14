@@ -1,11 +1,12 @@
 {
   "name": "Security Companion",
   "short_name": "SecCompanion",
-  "description": "Mobile companion app for security professionals",
+  "description": "Professional security management app for security guards",
+  "version": "3.0.0",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#a7b99e",
+  "background_color": "#0a0a0a",
+  "theme_color": "#22c55e",
   "orientation": "portrait-primary",
   "categories": ["productivity", "utilities"],
   "icons": [

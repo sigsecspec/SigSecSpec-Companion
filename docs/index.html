@@ -1,652 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Signature Security Specialist — Mobile Companion</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Security Companion — Professional Security Management</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f0f0f">
+  <meta name="theme-color" content="#0a0a0a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <style>
-    :root {
-      /* Dark theme (default) */
-      --bg-primary: #0f0f0f;
-      --bg-secondary: #121212;
-      --bg-tertiary: #1a1a1a;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0a0;
-      --text-muted: #666666;
-      --accent-primary: #a7b99e;
-      --accent-secondary: #43534a;
-      --border-primary: rgba(255, 255, 255, 0.1);
-      --border-secondary: rgba(255, 255, 255, 0.05);
-      --glass-bg: rgba(255, 255, 255, 0.04);
-      --shadow: rgba(0, 0, 0, 0.3);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --error: #ef4444;
-      --info: #3b82f6;
-    }
-
-    [data-theme="light"] {
-      /* Light theme */
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8fafc;
-      --bg-tertiary: #f1f5f9;
-      --text-primary: #1e293b;
-      --text-secondary: #475569;
-      --text-muted: #94a3b8;
-      --accent-primary: #059669;
-      --accent-secondary: #065f46;
-      --border-primary: rgba(0, 0, 0, 0.1);
-      --border-secondary: rgba(0, 0, 0, 0.05);
-      --glass-bg: rgba(255, 255, 255, 0.8);
-      --shadow: rgba(0, 0, 0, 0.1);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --error: #ef4444;
-      --info: #3b82f6;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      height: 100%;
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    .bg-pattern {
-      background: 
-        linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%),
-        radial-gradient(circle at 25% 25%, var(--accent-primary) 8%, transparent 40%),
-        radial-gradient(circle at 75% 75%, var(--accent-secondary) 8%, transparent 40%),
-        radial-gradient(circle at 50% 50%, rgba(167, 185, 158, 0.05) 20%, transparent 60%);
-      background-size: 100% 100%, 120px 120px, 80px 80px, 200px 200px;
-      background-position: 0 0, 0 0, 60px 60px, 100px 100px;
-      animation: backgroundShift 20s ease-in-out infinite;
-    }
-
-    @keyframes backgroundShift {
-      0%, 100% { background-position: 0 0, 0 0, 60px 60px, 100px 100px; }
-      50% { background-position: 0 0, 20px 20px, 80px 80px, 120px 120px; }
-    }
-
-    /* Mobile-first card design */
-    .mobile-card {
-      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02));
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-primary);
-      border-radius: 16px;
-      padding: 1.5rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 
-        0 4px 20px rgba(0, 0, 0, 0.1),
-        0 1px 3px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    }
-
-    .mobile-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
-      opacity: 0.5;
-    }
-
-    .mobile-card:active {
-      transform: scale(0.98);
-      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.04));
-    }
-
-    .mobile-card:hover {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.15),
-        0 10px 20px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      border-color: var(--accent-primary);
-    }
-
-    .mobile-card:hover::before {
-      opacity: 1;
-      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
-    }
-
-    /* Touch-friendly buttons */
-    .touch-btn {
-      min-height: 48px;
-      min-width: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      background: linear-gradient(145deg, var(--bg-secondary), var(--bg-tertiary));
-      border: 1px solid var(--border-primary);
-      color: var(--text-primary);
-      font-weight: 500;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    }
-
-    .touch-btn:active {
-      transform: scale(0.95);
-      background: var(--bg-tertiary);
-    }
-
-    .touch-btn.primary {
-      background: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary));
-      color: white;
-      border-color: var(--accent-primary);
-      box-shadow: 
-        0 6px 20px rgba(167, 185, 158, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    }
-
-    .touch-btn.primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 
-        0 8px 25px rgba(167, 185, 158, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    }
-
-    .touch-btn.danger {
-      background: linear-gradient(145deg, var(--error), #dc2626);
-      color: white;
-      border-color: var(--error);
-      box-shadow: 
-        0 6px 20px rgba(239, 68, 68, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    }
-
-    .touch-btn.danger:hover {
-      transform: translateY(-2px);
-      box-shadow: 
-        0 8px 25px rgba(239, 68, 68, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    }
-
-    /* Grid layouts */
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
-      padding: 1rem 0;
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-      margin: 1rem 0;
-    }
-
-    /* Status indicators */
-    .status-indicator {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 0.5rem;
-    }
-
-    .status-online { background: var(--success); }
-    .status-offline { background: var(--text-muted); }
-    .status-alert { background: var(--error); animation: pulse 2s infinite; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    /* Bottom navigation */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--bg-secondary);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-primary);
-      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
-      z-index: 100;
-    }
-
-    .nav-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.25rem;
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0.5rem 0.25rem;
-      border-radius: 12px;
-      text-decoration: none;
-      color: var(--text-secondary);
-      font-size: 0.75rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      min-height: 60px;
-      justify-content: center;
-    }
-
-    .nav-item.active {
-      background: var(--accent-primary);
-      color: white;
-    }
-
-    .nav-item:not(.active):hover {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-    }
-
-    .nav-icon {
-      font-size: 1.5rem;
-      margin-bottom: 0.25rem;
-    }
-
-    /* Theme toggle */
-    .theme-toggle {
-      position: relative;
-      width: 60px;
-      height: 32px;
-      background: var(--bg-tertiary);
-      border-radius: 16px;
-      border: 1px solid var(--border-primary);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .theme-toggle::before {
-      content: '🌙';
-      position: absolute;
-      top: 50%;
-      left: 4px;
-      transform: translateY(-50%);
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    [data-theme="light"] .theme-toggle::before {
-      content: '☀️';
-      left: 32px;
-    }
-
-    .theme-toggle::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 26px;
-      height: 26px;
-      background: var(--accent-primary);
-      border-radius: 50%;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px var(--shadow);
-    }
-
-    [data-theme="light"] .theme-toggle::after {
-      left: 30px;
-    }
-
-    /* Emergency button */
-    .emergency-btn {
-      position: fixed;
-      top: 50%;
-      right: 1rem;
-      transform: translateY(-50%);
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(145deg, var(--error), #dc2626);
-      border: 3px solid white;
-      border-radius: 50%;
-      color: white;
-      font-size: 1.5rem;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 90;
-      box-shadow: 
-        0 8px 25px rgba(239, 68, 68, 0.4),
-        0 4px 10px rgba(239, 68, 68, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: emergencyPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes emergencyPulse {
-      0%, 100% { 
-        box-shadow: 
-          0 8px 25px rgba(239, 68, 68, 0.4),
-          0 4px 10px rgba(239, 68, 68, 0.3),
-          inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      }
-      50% { 
-        box-shadow: 
-          0 12px 35px rgba(239, 68, 68, 0.6),
-          0 6px 15px rgba(239, 68, 68, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        transform: translateY(-50%) scale(1.05);
-      }
-    }
-
-    .emergency-btn:active {
-      transform: translateY(-50%) scale(0.9);
-    }
-
-    .emergency-btn.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* Main content spacing */
-    .main-content {
-      flex: 1;
-      padding: 1rem;
-      padding-bottom: calc(80px + env(safe-area-inset-bottom));
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* Animations */
-    .fade-in {
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 640px) {
-      .feature-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .mobile-card {
-        padding: 1rem;
-      }
-    }
-
-    /* Print styles */
-    @media print {
-      .bottom-nav, .emergency-btn, .theme-toggle { display: none !important; }
-      .main-content { padding-bottom: 0 !important; }
-    }
-
-    /* Accessibility */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-
-    /* Focus styles */
-    .touch-btn:focus,
-    .nav-item:focus,
-    .theme-toggle:focus {
-      outline: 2px solid var(--accent-primary);
-      outline-offset: 2px;
-    }
-    /* Professional Loading Screen */
-    .loading-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-
-    .loading-screen.hidden {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    .loading-logo {
-      width: 80px;
-      height: 80px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, var(--bg-secondary), var(--bg-tertiary));
-      padding: 16px;
-      margin-bottom: 24px;
-      box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      animation: logoFloat 3s ease-in-out infinite;
-    }
-
-    .loading-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: brightness(1.1);
-    }
-
-    @keyframes logoFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-
-    .loading-text {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-      background: linear-gradient(45deg, var(--text-primary), var(--accent-primary));
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .loading-subtitle {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-      margin-bottom: 32px;
-    }
-
-    .loading-progress {
-      width: 200px;
-      height: 4px;
-      background: var(--bg-tertiary);
-      border-radius: 2px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .loading-progress::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-      animation: progressBar 2s ease-in-out infinite;
-    }
-
-    @keyframes progressBar {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-  </style>
+  <meta name="description" content="Professional security management app for security guards">
+  <link rel="apple-touch-icon" href="patch-bg.png">
+  <link rel="icon" type="image/png" href="patch-bg.png">
 </head>
-<body class="bg-pattern">
-  <!-- Professional Loading Screen -->
-  <div id="loadingScreen" class="loading-screen">
-    <div class="loading-logo">
-      <img src="patch-bg.png" alt="Security Logo">
+<body>
+  <!-- Background -->
+  <div class="app-background"></div>
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="fixed inset-0 bg-primary z-100 flex items-center justify-center transition-opacity duration-500">
+    <div class="text-center">
+      <div class="w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-600 to-green-800 p-4 animate-pulse">
+        <img src="patch-bg.png" alt="Logo" class="w-full h-full object-contain">
+      </div>
+      <h2 class="text-xl font-bold text-primary mb-2">Security Companion</h2>
+      <div class="loading-spinner mx-auto"></div>
     </div>
-    <div class="loading-text">Security Companion</div>
-    <div class="loading-subtitle">Professional Security Management</div>
-    <div class="loading-progress"></div>
   </div>
+
   <!-- Header -->
-  <header class="p-4 pb-6 flex justify-between items-center relative z-10">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-2 shadow-lg border border-white/10">
-        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain filter brightness-110">
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo-wrapper">
+        <div class="logo-icon">
+          <img src="patch-bg.png" alt="Security Companion">
+        </div>
+        <div class="logo-text">
+          <div class="logo-title">Security Companion</div>
+          <div class="logo-subtitle">
+            <span class="status-dot online"></span>
+            <span id="statusText">On Duty</span> • <span data-current-time>--:--</span>
+          </div>
+        </div>
       </div>
-      <div>
-        <h1 class="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Security Companion</h1>
-        <p class="text-sm" style="color: var(--text-secondary)">
-          <span class="status-indicator status-online"></span>
-          <span id="statusText">On Duty</span> • <span id="currentTime"></span>
-        </p>
+      <div class="flex items-center gap-2">
+        <button class="theme-toggle" onclick="app.theme.toggleTheme()" aria-label="Toggle theme">
+          <span class="theme-toggle-icon moon">🌙</span>
+          <span class="theme-toggle-icon sun">☀️</span>
+        </button>
+        <button class="btn" onclick="app.notifications.sendTestNotification()">
+          <span class="text-xl">🔔</span>
+        </button>
       </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
-      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
     </div>
   </header>
 
-  <!-- Emergency Button -->
-  <button class="emergency-btn" onclick="triggerEmergency()" aria-label="Emergency alert">
-    🚨
-  </button>
-
   <!-- Main Content -->
   <main class="main-content">
-    <!-- Welcome Section -->
-    <section class="mobile-card fade-in mb-6">
-      <h2 class="text-xl font-bold mb-2">Welcome, <span id="officerName">Officer</span></h2>
-      <p style="color: var(--text-secondary)" class="mb-4">Quick access to your essential security tools and resources.</p>
-      
-      <!-- Notification Status -->
-      <div class="flex items-center justify-between mb-4 p-3 rounded-lg" style="background: var(--bg-tertiary)">
+    <!-- Welcome Card -->
+    <div class="card mb-4 fade-in">
+      <div class="flex justify-between items-start mb-4">
         <div>
-          <div class="font-medium" id="notificationStatus">Notifications: Checking...</div>
-          <div class="text-sm" style="color: var(--text-secondary)">Real-time security alerts</div>
+          <h2 class="text-2xl font-bold mb-1">Welcome, <span data-officer-name>Officer</span></h2>
+          <p class="text-secondary">Your professional security management companion</p>
         </div>
-        <button class="touch-btn" onclick="sendTestNotification()" title="Test Notification">
-          🔔
-        </button>
+        <div class="badge badge-primary">
+          <span data-notification-status>Notifications: OFF</span>
+        </div>
       </div>
-      
-      <!-- Quick Status -->
-      <div class="quick-actions">
-        <button class="touch-btn primary" onclick="checkIn()">
-          <span class="mr-2">📍</span> Check In
-        </button>
-        <button class="touch-btn" onclick="startPatrol()">
-          <span class="mr-2">🚶</span> Start Patrol
-        </button>
-      </div>
-    </section>
 
-    <!-- Core Features -->
+      <!-- Quick Actions -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <button class="btn btn-primary" onclick="app.startPatrol()">
+          <span class="text-xl">🚶</span>
+          <span>Start Patrol</span>
+        </button>
+        <button class="btn btn-success" onclick="app.checkIn()">
+          <span class="text-xl">📍</span>
+          <span>Check In</span>
+        </button>
+      </div>
+
+      <!-- Status Cards -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="text-center p-3 bg-tertiary rounded-lg">
+          <div class="text-2xl mb-1">📋</div>
+          <div class="text-sm text-secondary">Shift Active</div>
+          <div class="font-bold" id="shiftTimer">00:00</div>
+        </div>
+        <div class="text-center p-3 bg-tertiary rounded-lg">
+          <div class="text-2xl mb-1">🚨</div>
+          <div class="text-sm text-secondary">Incidents</div>
+          <div class="font-bold" id="incidentCount">0</div>
+        </div>
+        <div class="text-center p-3 bg-tertiary rounded-lg">
+          <div class="text-2xl mb-1">✅</div>
+          <div class="text-sm text-secondary">Patrols</div>
+          <div class="font-bold" id="patrolCount">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core Features Grid -->
     <section class="mb-6">
-      <h3 class="text-lg font-semibold mb-3">Core Tools</h3>
-      <div class="feature-grid">
-        <a href="codes.html" class="mobile-card text-center">
-          <div class="text-3xl mb-2">📟</div>
-          <div class="font-semibold">10-Codes</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">Quick reference</div>
-        </a>
-        
-        <a href="radio.html" class="mobile-card text-center">
-          <div class="text-3xl mb-2">📻</div>
-          <div class="font-semibold">Phonetics</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">NATO alphabet</div>
-        </a>
-        
-        <a href="incident.html" class="mobile-card text-center">
+      <h3 class="text-lg font-semibold mb-3 text-accent">Core Features</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <a href="incident.html" class="card card-interactive text-center">
           <div class="text-3xl mb-2">📝</div>
           <div class="font-semibold">Incident Report</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">Document events</div>
+          <div class="text-sm text-secondary">Create detailed reports</div>
         </a>
-        
-        <a href="shift.html" class="mobile-card text-center">
+
+        <a href="shift.html" class="card card-interactive text-center">
           <div class="text-3xl mb-2">📋</div>
           <div class="font-semibold">Shift Report</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">End of shift</div>
+          <div class="text-sm text-secondary">End of shift summary</div>
         </a>
-      </div>
-    </section>
 
-    <!-- Security Features -->
-    <section class="mb-6">
-      <h3 class="text-lg font-semibold mb-3">Security Tools</h3>
-      <div class="feature-grid">
-        <button class="mobile-card text-center" onclick="toggleFlashlight()">
+        <a href="patrol.html" class="card card-interactive text-center">
+          <div class="text-3xl mb-2">🚶</div>
+          <div class="font-semibold">Patrol Log</div>
+          <div class="text-sm text-secondary">Track patrol routes</div>
+        </a>
+
+        <a href="codes.html" class="card card-interactive text-center">
+          <div class="text-3xl mb-2">📟</div>
+          <div class="font-semibold">10-Codes</div>
+          <div class="text-sm text-secondary">Quick reference</div>
+        </a>
+
+        <a href="radio.html" class="card card-interactive text-center">
+          <div class="text-3xl mb-2">📻</div>
+          <div class="font-semibold">Phonetics</div>
+          <div class="text-sm text-secondary">NATO alphabet</div>
+        </a>
+
+        <a href="reports.html" class="card card-interactive text-center">
+          <div class="text-3xl mb-2">📑</div>
+          <div class="font-semibold">View Reports</div>
+          <div class="text-sm text-secondary">Saved documents</div>
+        </a>
+
+        <button onclick="app.toggleFlashlight()" class="card card-interactive text-center">
           <div class="text-3xl mb-2" id="flashlightIcon">🔦</div>
           <div class="font-semibold">Flashlight</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)" id="flashlightStatus">Tap to activate</div>
+          <div class="text-sm text-secondary" id="flashlightStatus">Tap to activate</div>
         </button>
-        
-        <button class="mobile-card text-center" onclick="openContacts()">
+
+        <button onclick="app.openContacts()" class="card card-interactive text-center">
           <div class="text-3xl mb-2">📞</div>
-          <div class="font-semibold">Emergency Contacts</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">Quick dial</div>
-        </button>
-        
-        <button class="mobile-card text-center" onclick="viewPatrolLog()">
-          <div class="text-3xl mb-2">🗺️</div>
-          <div class="font-semibold">Patrol Log</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">Track routes</div>
-        </button>
-        
-        <button class="mobile-card text-center" onclick="openSettings()">
-          <div class="text-3xl mb-2">⚙️</div>
-          <div class="font-semibold">Settings</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">Preferences</div>
+          <div class="font-semibold">Emergency</div>
+          <div class="text-sm text-secondary">Quick dial</div>
         </button>
       </div>
     </section>
 
     <!-- Recent Activity -->
-    <section class="mobile-card">
+    <section class="card mb-6">
       <h3 class="text-lg font-semibold mb-3">Recent Activity</h3>
-      <div id="recentActivity" class="space-y-3">
-        <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-tertiary)">
+      <div id="recentActivity" class="space-y-2">
+        <!-- Activity items will be populated here -->
+        <div class="p-3 bg-tertiary rounded-lg flex justify-between items-center">
           <div>
             <div class="font-medium">Shift Started</div>
-            <div class="text-sm" style="color: var(--text-secondary)">Today at 8:00 AM</div>
+            <div class="text-sm text-secondary">Today at <span id="shiftStartTime">--:--</span></div>
           </div>
-          <div class="status-indicator status-online"></div>
+          <div class="status-dot online"></div>
         </div>
       </div>
     </section>
+
+    <!-- Quick Notes -->
+    <section class="card">
+      <h3 class="text-lg font-semibold mb-3">Quick Notes</h3>
+      <textarea class="textarea mb-3" id="quickNotes" rows="3" placeholder="Add quick notes for your shift..."></textarea>
+      <button class="btn btn-primary w-full" onclick="app.saveQuickNote()">
+        <span class="text-xl">💾</span>
+        <span>Save Note</span>
+      </button>
+    </section>
   </main>
+
+  <!-- Emergency Button -->
+  <button class="emergency-btn" onclick="app.triggerEmergency()" aria-label="Emergency Alert">
+    <span>🚨</span>
+  </button>
 
   <!-- Bottom Navigation -->
   <nav class="bottom-nav">
@@ -674,426 +212,300 @@
     </div>
   </nav>
 
-  <!-- Modals and Overlays -->
-  <div id="emergencyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="mobile-card max-w-sm mx-4">
-      <h3 class="text-xl font-bold text-red-500 mb-4">🚨 Emergency Alert</h3>
-      <p class="mb-6">This will send an emergency alert to dispatch and your supervisor. Continue?</p>
-      <div class="flex gap-3">
-        <button class="touch-btn flex-1" onclick="cancelEmergency()">Cancel</button>
-        <button class="touch-btn danger flex-1" onclick="confirmEmergency()">Send Alert</button>
+  <!-- Emergency Modal -->
+  <div id="emergencyModal" class="modal-overlay">
+    <div class="modal-content max-w-sm">
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-error mb-4">🚨 Emergency Alert</h3>
+        <p class="text-secondary mb-6">This will send an emergency alert to dispatch and your supervisor. Continue?</p>
+        <div class="grid grid-cols-2 gap-3">
+          <button class="btn" onclick="app.modalManager.close('emergencyModal')">Cancel</button>
+          <button class="btn btn-danger" onclick="app.confirmEmergency()">Send Alert</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="contactsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="mobile-card max-w-sm mx-4">
-      <h3 class="text-xl font-bold mb-4">📞 Emergency Contacts</h3>
-      <div class="space-y-3">
-        <a href="tel:911" class="touch-btn danger w-full">🚨 911 Emergency</a>
-        <a href="tel:555-0123" class="touch-btn w-full">👮 Supervisor</a>
-        <a href="tel:555-0124" class="touch-btn w-full">🏢 Dispatch</a>
-        <a href="tel:555-0125" class="touch-btn w-full">🚑 Medical</a>
+  <!-- Contacts Modal -->
+  <div id="contactsModal" class="modal-overlay">
+    <div class="modal-content max-w-sm">
+      <div class="p-6">
+        <h3 class="text-xl font-bold mb-4">📞 Emergency Contacts</h3>
+        <div class="space-y-3">
+          <a href="tel:911" class="btn btn-danger w-full">
+            <span class="text-xl">🚨</span>
+            <span>911 Emergency</span>
+          </a>
+          <a href="tel:555-0123" class="btn w-full" id="supervisorContact">
+            <span class="text-xl">👮</span>
+            <span>Supervisor</span>
+          </a>
+          <a href="tel:555-0124" class="btn w-full" id="dispatchContact">
+            <span class="text-xl">🏢</span>
+            <span>Dispatch</span>
+          </a>
+          <a href="tel:555-0125" class="btn w-full" id="medicalContact">
+            <span class="text-xl">🚑</span>
+            <span>Medical</span>
+          </a>
+        </div>
+        <button class="btn w-full mt-4" onclick="app.modalManager.close('contactsModal')">Close</button>
       </div>
-      <button class="touch-btn w-full mt-4" onclick="closeContacts()">Close</button>
     </div>
   </div>
 
+  <!-- Scripts -->
+  <script src="app.js"></script>
   <script>
-    // Theme management
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-    }
-
-    // Initialize theme
-    function initTheme() {
-      const savedTheme = localStorage.getItem('theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    }
-
-    // Text size toggle
-    function toggleTextSize() {
-      document.body.classList.toggle('text-lg');
-      localStorage.setItem('largeText', document.body.classList.contains('text-lg'));
-    }
-
-    // Initialize text size
-    function initTextSize() {
-      if (localStorage.getItem('largeText') === 'true') {
-        document.body.classList.add('text-lg');
+    // Page-specific functionality
+    class HomePage {
+      constructor() {
+        this.shiftStartTime = null;
+        this.shiftTimer = null;
+        this.flashlightStream = null;
+        this.init();
       }
-    }
 
-    // Time display
-    function updateTime() {
-      const now = new Date();
-      document.getElementById('currentTime').textContent = now.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    // Officer name
-    function loadOfficerName() {
-      const name = localStorage.getItem('officerName') || 'Officer';
-      document.getElementById('officerName').textContent = name;
-    }
-
-    // Flashlight functionality
-    let flashlightStream = null;
-    let flashlightTrack = null;
-
-    async function toggleFlashlight() {
-      const icon = document.getElementById('flashlightIcon');
-      const status = document.getElementById('flashlightStatus');
-      
-      if (!flashlightStream) {
-        try {
-          flashlightStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' }
-          });
-          flashlightTrack = flashlightStream.getVideoTracks()[0];
-          
-          if (flashlightTrack.getCapabilities().torch) {
-            await flashlightTrack.applyConstraints({ advanced: [{ torch: true }] });
-            icon.textContent = '💡';
-            status.textContent = 'Flashlight ON';
-            status.style.color = 'var(--success)';
-          } else {
-            throw new Error('Torch not supported');
+      init() {
+        this.loadDashboardData();
+        this.startShiftTimer();
+        this.loadRecentActivity();
+        this.loadQuickNotes();
+        
+        // Hide loading screen
+        setTimeout(() => {
+          const loadingScreen = document.getElementById('loadingScreen');
+          if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => loadingScreen.remove(), 500);
           }
-        } catch (error) {
-          // Fallback to screen flash
-          document.body.style.background = 'white';
-          icon.textContent = '💡';
-          status.textContent = 'Screen flash ON';
-          status.style.color = 'var(--success)';
-        }
-      } else {
-        // Turn off
-        if (flashlightTrack) {
-          await flashlightTrack.applyConstraints({ advanced: [{ torch: false }] });
-          flashlightStream.getTracks().forEach(track => track.stop());
-        }
-        document.body.style.background = '';
-        flashlightStream = null;
-        flashlightTrack = null;
-        icon.textContent = '🔦';
-        status.textContent = 'Tap to activate';
-        status.style.color = 'var(--text-secondary)';
-      }
-    }
-
-    // Emergency functions
-    function triggerEmergency() {
-      document.getElementById('emergencyModal').classList.remove('hidden');
-      document.getElementById('emergencyModal').classList.add('flex');
-    }
-
-    function cancelEmergency() {
-      document.getElementById('emergencyModal').classList.add('hidden');
-      document.getElementById('emergencyModal').classList.remove('flex');
-    }
-
-    function confirmEmergency() {
-      // Send emergency alert
-      navigator.vibrate && navigator.vibrate([200, 100, 200]);
-      alert('Emergency alert sent to dispatch!');
-      cancelEmergency();
-    }
-
-    // Contact functions
-    function openContacts() {
-      document.getElementById('contactsModal').classList.remove('hidden');
-      document.getElementById('contactsModal').classList.add('flex');
-    }
-
-    function closeContacts() {
-      document.getElementById('contactsModal').classList.add('hidden');
-      document.getElementById('contactsModal').classList.remove('flex');
-    }
-
-    // Security functions
-    function checkIn() {
-      const time = new Date().toLocaleTimeString();
-      navigator.geolocation?.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude.toFixed(6);
-          const lng = position.coords.longitude.toFixed(6);
-          alert(`Checked in at ${time}\nLocation: ${lat}, ${lng}`);
-          document.getElementById('statusText').textContent = 'On Duty';
-        },
-        () => {
-          alert(`Checked in at ${time}\nLocation: Not available`);
-        }
-      );
-    }
-
-    function startPatrol() {
-      alert('Patrol started. Location tracking enabled.');
-      // In a real app, this would start GPS tracking
-    }
-
-    function viewPatrolLog() {
-      // Navigate to patrol log page
-      window.location.href = 'patrol.html';
-    }
-
-    function openSettings() {
-      // Navigate to profile & settings page
-      window.location.href = 'profile.html';
-    }
-
-    // Push Notification System
-    let pushSubscription = null;
-    
-    async function initializePushNotifications() {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        console.log('Push messaging is not supported');
-        return;
+        }, 1000);
       }
 
-      try {
-        const registration = await navigator.serviceWorker.register('sw.js');
-        console.log('ServiceWorker registered successfully');
+      loadDashboardData() {
+        // Load counts from storage
+        const incidents = StorageManager.load(APP_CONFIG.storageKeys.incidents, []);
+        const patrols = StorageManager.load(APP_CONFIG.storageKeys.patrols, []);
         
-        // Check if already subscribed
-        pushSubscription = await registration.pushManager.getSubscription();
+        document.getElementById('incidentCount').textContent = incidents.length;
+        document.getElementById('patrolCount').textContent = patrols.length;
         
-        if (!pushSubscription) {
-          // Request notification permission
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            await subscribeToPush(registration);
+        // Load shift start time
+        const currentShift = StorageManager.load('currentShift', null);
+        if (currentShift && currentShift.startTime) {
+          this.shiftStartTime = new Date(currentShift.startTime);
+          const timeStr = this.shiftStartTime.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          document.getElementById('shiftStartTime').textContent = timeStr;
+        } else {
+          // Start new shift
+          this.startNewShift();
+        }
+      }
+
+      startNewShift() {
+        this.shiftStartTime = new Date();
+        const shift = {
+          id: Utils.generateId(),
+          startTime: this.shiftStartTime.toISOString(),
+          officer: app.profile.getProfile().name
+        };
+        StorageManager.save('currentShift', shift);
+        
+        const timeStr = this.shiftStartTime.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        document.getElementById('shiftStartTime').textContent = timeStr;
+      }
+
+      startShiftTimer() {
+        const updateTimer = () => {
+          if (!this.shiftStartTime) return;
+          
+          const now = new Date();
+          const diff = now - this.shiftStartTime;
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          
+          const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          document.getElementById('shiftTimer').textContent = display;
+        };
+        
+        updateTimer();
+        this.shiftTimer = setInterval(updateTimer, 60000); // Update every minute
+      }
+
+      loadRecentActivity() {
+        const activities = StorageManager.load('recentActivity', []);
+        const container = document.getElementById('recentActivity');
+        
+        if (activities.length > 0) {
+          const html = activities.slice(0, 5).map(activity => `
+            <div class="p-3 bg-tertiary rounded-lg flex justify-between items-center">
+              <div>
+                <div class="font-medium">${activity.title}</div>
+                <div class="text-sm text-secondary">${Utils.formatDateTime(activity.timestamp)}</div>
+              </div>
+              <div class="status-dot ${activity.status || 'online'}"></div>
+            </div>
+          `).join('');
+          
+          container.innerHTML += html;
+        }
+      }
+
+      loadQuickNotes() {
+        const notes = StorageManager.load('quickNotes', '');
+        document.getElementById('quickNotes').value = notes;
+      }
+
+      async toggleFlashlight() {
+        const icon = document.getElementById('flashlightIcon');
+        const status = document.getElementById('flashlightStatus');
+        
+        if (!this.flashlightStream) {
+          try {
+            this.flashlightStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: 'environment' }
+            });
+            
+            const track = this.flashlightStream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities();
+            
+            if (capabilities.torch) {
+              await track.applyConstraints({
+                advanced: [{ torch: true }]
+              });
+              icon.textContent = '💡';
+              status.textContent = 'Flashlight ON';
+              status.classList.add('text-success');
+            } else {
+              throw new Error('Torch not supported');
+            }
+          } catch (error) {
+            // Fallback to screen flash
+            document.body.style.background = 'white';
+            icon.textContent = '💡';
+            status.textContent = 'Screen flash ON';
+            status.classList.add('text-warning');
           }
         } else {
-          console.log('Already subscribed to push notifications');
-          updateNotificationUI(true);
+          // Turn off
+          if (this.flashlightStream) {
+            const track = this.flashlightStream.getVideoTracks()[0];
+            if (track) {
+              await track.applyConstraints({
+                advanced: [{ torch: false }]
+              });
+            }
+            this.flashlightStream.getTracks().forEach(track => track.stop());
+          }
+          
+          document.body.style.background = '';
+          this.flashlightStream = null;
+          icon.textContent = '🔦';
+          status.textContent = 'Tap to activate';
+          status.classList.remove('text-success', 'text-warning');
         }
-      } catch (error) {
-        console.error('ServiceWorker registration failed:', error);
       }
-    }
 
-    async function subscribeToPush(registration) {
-      try {
-        // Generate VAPID keys for your server (this is a demo key)
-        const vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI0DLLuxN-RgKBWw_dUabGrLpHyHUNBEQRilh7J7-fKKRJQQiOOk1gUzSA';
+      saveQuickNote() {
+        const notes = document.getElementById('quickNotes').value;
+        StorageManager.save('quickNotes', notes);
         
-        pushSubscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-        });
-
-        console.log('Push subscription successful:', pushSubscription);
-        
-        // Send subscription to your server
-        await sendSubscriptionToServer(pushSubscription);
-        updateNotificationUI(true);
-        
-        // Show welcome notification
-        showLocalNotification('Welcome!', 'Push notifications are now enabled for Security Companion');
-        
-      } catch (error) {
-        console.error('Failed to subscribe to push notifications:', error);
-        updateNotificationUI(false);
-      }
-    }
-
-    function urlBase64ToUint8Array(base64String) {
-      const padding = '='.repeat((4 - base64String.length % 4) % 4);
-      const base64 = (base64String + padding)
-        .replace(/-/g, '+')
-        .replace(/_/g, '/');
-
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-      }
-      return outputArray;
-    }
-
-    async function sendSubscriptionToServer(subscription) {
-      // In a real app, send this to your server
-      console.log('Subscription to send to server:', JSON.stringify(subscription));
-      
-      // Store locally for demo purposes
-      localStorage.setItem('pushSubscription', JSON.stringify(subscription));
-    }
-
-    function updateNotificationUI(enabled) {
-      // Update UI to show notification status
-      const statusElement = document.getElementById('notificationStatus');
-      if (statusElement) {
-        statusElement.textContent = enabled ? 'Notifications: ON' : 'Notifications: OFF';
-        statusElement.style.color = enabled ? 'var(--success)' : 'var(--text-muted)';
-      }
-    }
-
-    function showLocalNotification(title, body, options = {}) {
-      if (Notification.permission === 'granted') {
-        const notification = new Notification(title, {
-          body: body,
-          icon: 'patch-bg.png',
-          badge: 'patch-bg.png',
-          vibrate: [200, 100, 200],
-          ...options
-        });
-
-        notification.onclick = function() {
-          window.focus();
-          notification.close();
+        // Add to activity
+        const activity = {
+          id: Utils.generateId(),
+          title: 'Note Added',
+          timestamp: new Date().toISOString(),
+          status: 'online'
         };
-
-        setTimeout(() => notification.close(), 5000);
-      }
-    }
-
-    // Test notification function
-    function sendTestNotification() {
-      if (pushSubscription) {
-        showLocalNotification(
-          'Security Alert Test', 
-          'This is a test notification from Security Companion',
-          {
-            actions: [
-              { action: 'view', title: 'View Details' },
-              { action: 'dismiss', title: 'Dismiss' }
-            ]
-          }
-        );
-      } else {
-        alert('Push notifications are not enabled. Please enable them in settings.');
-      }
-    }
-
-    // Enhanced loading and animations
-    function showLoadingState(element) {
-      if (element) {
-        element.style.opacity = '0.6';
-        element.style.pointerEvents = 'none';
-        element.innerHTML += '<div class="loading-spinner"></div>';
-      }
-    }
-
-    function hideLoadingState(element, originalContent) {
-      if (element) {
-        element.style.opacity = '1';
-        element.style.pointerEvents = 'auto';
-        const spinner = element.querySelector('.loading-spinner');
-        if (spinner) spinner.remove();
-      }
-    }
-
-    // Loading screen management
-    function hideLoadingScreen() {
-      const loadingScreen = document.getElementById('loadingScreen');
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-        setTimeout(() => {
-          loadingScreen.remove();
-        }, 500);
-      }
-    }
-
-    // Initialize app
-    document.addEventListener('DOMContentLoaded', function() {
-      // Initialize core features
-      initTheme();
-      initTextSize();
-      loadOfficerName();
-      updateTime();
-      setInterval(updateTime, 1000);
-
-      // Initialize push notifications
-      initializePushNotifications();
-
-      // Hide loading screen after initialization
-      setTimeout(hideLoadingScreen, 1500);
-
-      // Add enhanced touch feedback to all interactive elements
-      document.querySelectorAll('.mobile-card, .touch-btn').forEach(element => {
-        element.addEventListener('touchstart', function(e) {
-          this.style.transform = 'scale(0.98)';
-          this.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
-        });
         
-        element.addEventListener('touchend', function(e) {
-          setTimeout(() => {
-            this.style.transform = '';
-            this.style.boxShadow = '';
-          }, 150);
-        });
+        const activities = StorageManager.load('recentActivity', []);
+        activities.unshift(activity);
+        StorageManager.save('recentActivity', activities.slice(0, 50));
+        
+        Utils.showToast('Note saved successfully!', 'success');
+        this.loadRecentActivity();
+      }
 
-        // Add ripple effect
-        element.addEventListener('click', function(e) {
-          const ripple = document.createElement('span');
-          const rect = this.getBoundingClientRect();
-          const size = Math.max(rect.width, rect.height);
-          const x = e.clientX - rect.left - size / 2;
-          const y = e.clientY - rect.top - size / 2;
-          
-          ripple.style.cssText = `
-            position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            left: ${x}px;
-            top: ${y}px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple 0.6s linear;
-            pointer-events: none;
-            z-index: 1000;
-          `;
-          
-          this.style.position = 'relative';
-          this.appendChild(ripple);
-          
-          setTimeout(() => ripple.remove(), 600);
-        });
+      async checkIn() {
+        const location = await app.getCurrentLocation();
+        const checkIn = {
+          id: Utils.generateId(),
+          timestamp: new Date().toISOString(),
+          location: location,
+          officer: app.profile.getProfile().name
+        };
+        
+        const checkIns = StorageManager.load('checkIns', []);
+        checkIns.push(checkIn);
+        StorageManager.save('checkIns', checkIns);
+        
+        Utils.showToast('Check-in successful!', 'success');
+        Utils.vibrate([200]);
+      }
+
+      startPatrol() {
+        window.location.href = 'patrol.html';
+      }
+
+      openContacts() {
+        app.modalManager.open('contactsModal');
+      }
+    }
+
+    // Extend the main app with page-specific functions
+    app.homePage = null;
+
+    // Override init for home page
+    const originalInit = app.initHomePage;
+    app.initHomePage = function() {
+      if (originalInit) originalInit.call(this);
+      app.homePage = new HomePage();
+      
+      // Bind functions to app
+      app.toggleFlashlight = app.homePage.toggleFlashlight.bind(app.homePage);
+      app.saveQuickNote = app.homePage.saveQuickNote.bind(app.homePage);
+      app.checkIn = app.homePage.checkIn.bind(app.homePage);
+      app.startPatrol = app.homePage.startPatrol.bind(app.homePage);
+      app.openContacts = app.homePage.openContacts.bind(app.homePage);
+    };
+
+    // Initialize emergency confirmation
+    app.confirmEmergency = function() {
+      app.modalManager.close('emergencyModal');
+      
+      // Trigger actual emergency
+      Utils.vibrate([200, 100, 200, 100, 200]);
+      
+      const emergency = {
+        id: Utils.generateId(),
+        timestamp: new Date().toISOString(),
+        officer: app.profile.getProfile().name,
+        location: 'Getting location...'
+      };
+      
+      // Get location async
+      app.getCurrentLocation().then(location => {
+        emergency.location = location;
+        const emergencies = StorageManager.load('emergencies', []);
+        emergencies.push(emergency);
+        StorageManager.save('emergencies', emergencies);
       });
-
-      // Add CSS for ripple animation
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes ripple {
-          to {
-            transform: scale(4);
-            opacity: 0;
-          }
-        }
-        .loading-spinner {
-          display: inline-block;
-          width: 16px;
-          height: 16px;
-          border: 2px solid var(--text-muted);
-          border-radius: 50%;
-          border-top-color: var(--accent-primary);
-          animation: spin 1s ease-in-out infinite;
-          margin-left: 8px;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `;
-      document.head.appendChild(style);
-    });
-
-    // Handle back button for modals
-    window.addEventListener('popstate', function() {
-      document.querySelectorAll('.fixed.inset-0').forEach(modal => {
-        if (!modal.classList.contains('hidden')) {
-          modal.classList.add('hidden');
-          modal.classList.remove('flex');
-        }
-      });
-    });
+      
+      // Send notification
+      app.notifications.showLocalNotification(
+        '🚨 EMERGENCY ALERT SENT',
+        'Dispatch has been notified. Help is on the way.',
+        { requireInteraction: true }
+      );
+      
+      Utils.showToast('Emergency alert sent to dispatch!', 'error', 5000);
+    };
   </script>
 </body>
 </html>

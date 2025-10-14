@@ -1,4 +1,4 @@
-const CACHE_NAME = 'security-companion-v2.0.0';
+const CACHE_NAME = 'security-companion-v3.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -11,7 +11,8 @@ const urlsToCache = [
   '/profile.html',
   '/manifest.json',
   '/patch-bg.png',
-  'https://cdn.tailwindcss.com'
+  '/styles.css',
+  '/app.js'
 ];
 
 // Install event - cache resources

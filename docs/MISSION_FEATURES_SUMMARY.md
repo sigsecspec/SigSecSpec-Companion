@@ -82,11 +82,11 @@
 
 ## 🧪 Testing
 
-A test page (`test-features.html`) has been created to verify all functionality:
-- Mission start/stop testing
-- Notification system testing
-- Data persistence verification
-- State management validation
+All functionality has been integrated directly into the main schedule page:
+- Mission start/stop testing available through schedule interface
+- Notification system testing via mission scheduling
+- Data persistence verification through mission history
+- State management validation via active mission tracking
 
 ## 📱 Usage Flow
 

@@ -6,6 +6,8 @@
   <title>Profile — Security Companion</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="manifest" href="manifest.json">
+  <meta property="og:title" content="Security Companion — Profile" />
+  <meta property="og:image" content="patch-bg.png" />
   <meta name="theme-color" content="#0f0f0f">
   <style>
     :root {
@@ -310,11 +312,15 @@
   <!-- Header -->
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
-        👤
+      <div class="w-12 h-12 rounded-xl relative">
+        <img src="patch-bg.png" alt="App logo" class="w-12 h-12 rounded-xl border border-white/10" onerror="this.style.display='none'; document.getElementById('logoFallbackProfile').style.display='flex';" />
+        <div id="logoFallbackProfile" class="hidden w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 items-center justify-center text-2xl">
+          👤
+        </div>
       </div>
       <div>
         <h1 class="text-2xl font-bold">Profile & Settings</h1>
+        <div class="text-xs mt-1" style="color: var(--text-secondary)">Personalization and device preferences</div>
         <p class="text-sm" style="color: var(--text-secondary)">Manage your account and preferences</p>
       </div>
     </div>
@@ -444,7 +450,11 @@
           <div class="font-medium">Notifications</div>
           <div class="text-sm" style="color: var(--text-secondary)">Receive alerts and reminders</div>
         </div>
-        <button class="touch-btn" onclick="requestNotifications()" id="notificationBtn">Enable</button>
+        <div class="flex gap-2">
+          <button class="touch-btn" onclick="enablePush()" id="notificationBtn">Enable</button>
+          <button class="touch-btn" onclick="disablePush()" id="notificationOffBtn">Disable</button>
+          <button class="touch-btn" onclick="sendTestPush()">Test</button>
+        </div>
       </div>
     </section>
 
@@ -700,21 +710,35 @@
       }
     }
 
-    async function requestNotifications() {
+    // Legacy requestNotifications retained for compatibility
+    async function requestNotifications() { return enablePush(); }
+
+    // Web Push integration
+    async function enablePush(){
       try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          document.getElementById('notificationBtn').textContent = 'Enabled';
-          document.getElementById('notificationBtn').classList.add('primary');
-          new Notification('Security Companion', {
-            body: 'Notifications enabled successfully!',
-            icon: '/icon-192.png'
-          });
-        } else {
-          alert('Notification permission denied.');
-        }
-      } catch (error) {
-        console.error('Notification permission error:', error);
+        await PushNotifications.enable();
+        document.getElementById('notificationBtn').textContent = 'Enabled';
+        document.getElementById('notificationBtn').classList.add('primary');
+        alert('Push notifications enabled.');
+      } catch (e) {
+        alert('Failed to enable push: ' + (e?.message || e));
+      }
+    }
+    async function disablePush(){
+      try {
+        await PushNotifications.disable();
+        document.getElementById('notificationBtn').textContent = 'Enable';
+        document.getElementById('notificationBtn').classList.remove('primary');
+        alert('Push notifications disabled.');
+      } catch (e) {
+        alert('Failed to disable push: ' + (e?.message || e));
+      }
+    }
+    async function sendTestPush(){
+      try {
+        await PushNotifications.sendTest('This is a test notification.');
+      } catch (e) {
+        alert('Failed to send test: ' + (e?.message || e));
       }
     }
 
@@ -838,7 +862,18 @@
         document.getElementById('notificationBtn').textContent = 'Enabled';
         document.getElementById('notificationBtn').classList.add('primary');
       }
+      // Auto-mark button state based on existing subscription
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        navigator.serviceWorker.ready.then(async (reg) => {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            document.getElementById('notificationBtn').textContent = 'Enabled';
+            document.getElementById('notificationBtn').classList.add('primary');
+          }
+        }).catch(()=>{});
+      }
     });
   </script>
+  <script src="app.js"></script>
 </body>
 </html>

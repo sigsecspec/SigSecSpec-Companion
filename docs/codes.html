@@ -6,6 +6,8 @@
 <title>10-Codes — Security Companion</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="manifest" href="manifest.json">
+<meta property="og:title" content="Security Companion — 10 Codes" />
+<meta property="og:image" content="patch-bg.png" />
 <meta name="theme-color" content="#0f0f0f">
 <style>
   :root {
@@ -313,10 +315,12 @@
     </div>
     <div>
       <h1 class="text-2xl font-bold">10-Codes</h1>
+      <div class="text-xs mt-1" style="color: var(--text-secondary)">Common signals and radio brevity codes</div>
       <p class="text-sm" style="color: var(--text-secondary)">Quick reference guide</p>
     </div>
   </div>
   <div class="flex items-center gap-3">
+    <img src="patch-bg.png" alt="Logo" style="width:36px;height:36px;border-radius:8px;border:1px solid var(--border-primary)" onerror="this.style.display='none'"/>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
     <button class="touch-btn" onclick="toggleLarge()" aria-label="Toggle text size">A+</button>
   </div>
@@ -606,3 +610,4 @@ clearSearchBtn.addEventListener('click', () => {
 
 </body>
 </html>
+<script src="app.js"></script>

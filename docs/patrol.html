@@ -287,11 +287,15 @@
   <!-- Header -->
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
-        🚶
+      <div class="w-12 h-12 rounded-xl relative">
+        <img src="patch-bg.png" alt="App logo" class="w-12 h-12 rounded-xl border border-white/10" onerror="this.style.display='none'; document.getElementById('logoFallbackPatrol').style.display='flex';" />
+        <div id="logoFallbackPatrol" class="hidden w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 items-center justify-center text-2xl">
+          🚶
+        </div>
       </div>
       <div>
         <h1 class="text-2xl font-bold">Patrol Log</h1>
+        <div class="text-xs mt-1" style="color: var(--text-secondary)">Field operations companion</div>
         <p class="text-sm" style="color: var(--text-secondary)">
           <span class="status-indicator" id="patrolStatus"></span>
           <span id="patrolStatusText">Ready to patrol</span>
@@ -766,4 +770,5 @@
     });
   </script>
 </body>
+<script src="app.js"></script>
 </html>

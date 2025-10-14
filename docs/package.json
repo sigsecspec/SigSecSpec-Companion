@@ -1,0 +1,20 @@
+{
+  "name": "security-companion-api",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Local demo API for Web Push (static docs hosting)",
+  "main": "api-server.js",
+  "scripts": {
+    "start": "node api-server.js",
+    "start:dev": "nodemon api-server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2",
+    "web-push": "^3.6.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

@@ -6,6 +6,11 @@
   <title>Signature Security Specialist — Mobile Companion</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="manifest" href="manifest.json">
+  <meta property="og:title" content="Security Companion" />
+  <meta property="og:description" content="Professional tools for security specialists" />
+  <meta property="og:image" content="patch-bg.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="patch-bg.png" />
   <meta name="theme-color" content="#0f0f0f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -355,17 +360,32 @@
       outline: 2px solid var(--accent-primary);
       outline-offset: 2px;
     }
+    /* App logo styling */
+    .app-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 2px 8px var(--shadow);
+      border: 1px solid var(--border-primary);
+      background: var(--bg-secondary);
+      display: block;
+    }
   </style>
 </head>
 <body class="bg-pattern">
   <!-- Header -->
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
-        🛡️
+      <div class="w-12 h-12 rounded-xl relative">
+        <img src="patch-bg.png" alt="App logo" class="app-logo" onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';" />
+        <div id="logoFallback" class="hidden w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 items-center justify-center text-2xl">
+          🛡️
+        </div>
       </div>
       <div>
         <h1 class="text-2xl font-bold">Security Companion</h1>
+        <div class="text-xs mt-1" style="color: var(--text-secondary)">Professional suite by Signature Security Specialist</div>
         <p class="text-sm" style="color: var(--text-secondary)">
           <span class="status-indicator status-online"></span>
           <span id="statusText">On Duty</span> • <span id="currentTime"></span>
@@ -696,7 +716,7 @@
         });
       });
 
-      // Service worker registration for PWA
+      // Service worker registration for PWA is handled by app.js as well
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(console.error);
       }
@@ -712,5 +732,6 @@
       });
     });
   </script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -149,9 +149,8 @@
       <div class="app-grid">
         <a href="codes.html" class="app-card ripple-container">🔢<div class="font-semibold mt-2">10-Codes</div></a>
         <a href="#radio" data-route="radio" class="app-card ripple-container">🅰️<div class="font-semibold mt-2">Phonetic Alphabet</div></a>
-        <a href="#incident" data-route="incident" class="app-card ripple-container">📝<div class="font-semibold mt-2">Incident Report</div></a>
-        <a href="#shift" data-route="shift" class="app-card ripple-container">📄<div class="font-semibold mt-2">Shift Report</div></a>
-        <a href="#fourws" data-route="fourws" class="app-card ripple-container">✅<div class="font-semibold mt-2">4Ws Report</div></a>
+        <a href="incident.html" class="app-card ripple-container">📝<div class="font-semibold mt-2">Incident Report</div></a>
+        <a href="shift.html" class="app-card ripple-container">📄<div class="font-semibold mt-2">Shift Report</div></a>
       </div>
     </section>
 
@@ -261,9 +260,8 @@
     <a href="#home" data-route="home" class="nav-link ripple-container">Home</a>
     <a href="codes.html" class="nav-link ripple-container">Codes</a>
     <a href="#radio" data-route="radio" class="nav-link ripple-container">Phonetics</a>
-    <a href="#incident" data-route="incident" class="nav-link ripple-container">Incident</a>
-    <a href="#shift" data-route="shift" class="nav-link ripple-container">Shift</a>
-    <a href="#fourws" data-route="fourws" class="nav-link ripple-container">4Ws</a>
+    <a href="incident.html" class="nav-link ripple-container">Incident</a>
+    <a href="shift.html" class="nav-link ripple-container">Shift</a>
   </nav>
 
   <!-- Page transition curtain -->
@@ -308,8 +306,7 @@
       radio: 'Radio & Phonetic — quick references',
       templates: 'Report Templates — fill and copy',
       incident: 'Incident Report — fill and copy',
-      shift: 'Shift Report — fill and copy',
-      fourws: '4Ws Report — fill and copy'
+      shift: 'Shift Report — fill and copy'
     };
 
     let currentViewId = 'home';
@@ -337,7 +334,7 @@
 
     function showView(targetId, opts = {}) {
       const routeId = opts.routeId || targetId;
-      const viewId = (routeId === 'incident' || routeId === 'shift' || routeId === 'fourws') ? 'templates' : targetId;
+      const viewId = (routeId === 'incident' || routeId === 'shift') ? 'templates' : targetId;
       const target = document.getElementById(viewId) || document.getElementById('home');
       const current = document.getElementById(currentViewId);
       // Only early-return if both the view and route are unchanged
@@ -387,8 +384,6 @@
           window.__tplApi.setTemplate('incident_report');
         } else if (routeId === 'shift' && window.__tplApi && typeof window.__tplApi.setTemplate === 'function') {
           window.__tplApi.setTemplate('shift_report');
-        } else if (routeId === 'fourws' && window.__tplApi && typeof window.__tplApi.setTemplate === 'function') {
-          window.__tplApi.setTemplate('four_ws');
         }
       }
       if (viewId === 'radio') {
@@ -606,29 +601,6 @@
 
       const TEMPLATES = [
         {
-          id: 'four_ws',
-          name: '4Ws Report',
-          fields: [
-            { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
-            { key: 'guardName', label: 'Guard Name', type: 'text' },
-            { key: 'post', label: 'Post / Location', type: 'text' },
-            { key: 'location', label: 'Where (Location)', type: 'text' },
-            { key: 'locationDetails', label: 'Where (Details)', type: 'text' },
-            { key: 'participants', label: 'Who (Participants)', type: 'participants', roles: ['Suspect','Victim','Witness'] },
-            { key: 'what', label: 'What Happened', type: 'textarea', rows: 4, placeholder: 'Objective summary. Supports tokens like suspect1, victim1.' },
-            { key: 'details', label: 'Additional Details', type: 'textarea', rows: 4, placeholder: 'Optional narrative; tokens supported.' }
-          ],
-          body: (
-            '4Ws Report\n' +
-            'Who:\n{whoSection}\n\n' +
-            'What:\n{whatExpanded}\n\n' +
-            'When:\n{when}\n\n' +
-            'Where:\n{where}\n\n' +
-            'Officer: {guardName}\n' +
-            'Post: {post}'
-          )
-        },
-        {
           id: 'incident_report',
           name: 'Incident Report',
           fields: [
@@ -695,8 +667,6 @@
           ? 'Incident Report'
           : (currentTemplateId === 'shift_report')
           ? 'Shift Report'
-          : (currentTemplateId === 'four_ws')
-          ? '4Ws Report'
           : 'Report';
       }
 

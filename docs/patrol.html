@@ -415,7 +415,7 @@
       };
 
       document.getElementById('patrolStartTime').textContent = 
-        currentPatrol.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        currentPatrol.startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
       
       document.getElementById('patrolStatus').className = 'status-indicator status-active';
       document.getElementById('patrolStatusText').textContent = 'Patrol in progress';
@@ -718,7 +718,7 @@
           
           // Resume patrol UI
           document.getElementById('patrolStartTime').textContent = 
-            currentPatrol.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            currentPatrol.startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
           
           document.getElementById('patrolStatus').className = 'status-indicator status-active';
           document.getElementById('patrolStatusText').textContent = 'Patrol in progress';
@@ -925,9 +925,11 @@
     // Update current time display
     function updateCurrentTime() {
       const now = new Date();
-      const timeString = now.toLocaleTimeString([], {
+      const timeString = now.toLocaleTimeString('en-US', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
       });
       const timeElement = document.getElementById('currentTimePatrol');
       if (timeElement) {
@@ -1104,7 +1106,7 @@
       updateLocation();
       updateCurrentTime();
       setInterval(updateLocation, 30000); // Update location every 30 seconds
-      setInterval(updateCurrentTime, 60000); // Update current time every minute
+      setInterval(updateCurrentTime, 1000); // Update current time every second
       setInterval(updatePatrolButtonStates, 5000); // Check button states every 5 seconds
       
       // Check for active mission and schedule patrol notifications

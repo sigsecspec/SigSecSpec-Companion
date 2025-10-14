@@ -70,6 +70,11 @@
     </div>
   </header>
 
+  <!-- Emergency Button - Bottom Right -->
+  <button class="emergency-btn-fixed" onclick="emergencyAlert()" aria-label="Emergency alert">
+    🚨
+  </button>
+
   <!-- Main Content -->
   <main class="main-content">
     <!-- Current Patrol Status -->
@@ -187,21 +192,21 @@
       </div>
     </section>
 
-    <!-- Today's Patrol Log -->
+    <!-- Today's Mission Log -->
     <section class="mobile-card mb-6">
-      <h3 class="text-lg font-semibold mb-3">Today's Patrol Log</h3>
-      <div id="patrolEntries">
+      <h3 class="text-lg font-semibold mb-3">Today's Mission Log</h3>
+      <div id="todayMissionLog">
         <div class="text-center py-8" style="color: var(--text-muted)">
-          No patrol entries yet. Start a patrol to begin logging.
+          No mission activities today. Start a mission to begin logging.
         </div>
       </div>
     </section>
 
-    <!-- Patrol History -->
+    <!-- Mission Patrols -->
     <section class="mobile-card">
-      <h3 class="text-lg font-semibold mb-3">Recent Patrols</h3>
-      <div id="patrolHistory">
-        <!-- Recent patrols will be populated here from localStorage -->
+      <h3 class="text-lg font-semibold mb-3">Mission Patrols</h3>
+      <div id="missionPatrols">
+        <!-- Mission patrols will be populated here from localStorage -->
       </div>
     </section>
   </main>
@@ -313,8 +318,73 @@
       }
     }
 
+    // Check if patrol buttons should be disabled
+    function shouldDisablePatrolButtons() {
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      const savedShiftReports = JSON.parse(localStorage.getItem('sss_saved_shift_reports') || '[]');
+      const today = new Date().toDateString();
+      
+      // Check if shift report was submitted today
+      const todayShiftReport = savedShiftReports.find(report => {
+        if (!report.at) return false;
+        const reportDate = new Date(report.at).toDateString();
+        return reportDate === today;
+      });
+      
+      // If shift report submitted but no active mission, disable patrol buttons
+      return todayShiftReport && (!activeMission || activeMission.status !== 'active');
+    }
+    
+    // Update patrol button states
+    function updatePatrolButtonStates() {
+      const shouldDisable = shouldDisablePatrolButtons();
+      const startPatrolBtn = document.getElementById('startPatrolBtn');
+      const addCheckpointBtn = document.querySelector('button[onclick="addCheckpoint()"]');
+      const takeNoteBtn = document.querySelector('button[onclick="takeNote()"]');
+      
+      if (shouldDisable) {
+        if (startPatrolBtn && !startPatrolBtn.classList.contains('hidden')) {
+          startPatrolBtn.disabled = true;
+          startPatrolBtn.style.opacity = '0.5';
+          startPatrolBtn.title = 'Patrol disabled - shift report submitted. Start a new mission to enable patrols.';
+        }
+        if (addCheckpointBtn) {
+          addCheckpointBtn.disabled = true;
+          addCheckpointBtn.style.opacity = '0.5';
+          addCheckpointBtn.title = 'Checkpoints disabled - shift report submitted. Start a new mission to enable.';
+        }
+        if (takeNoteBtn) {
+          takeNoteBtn.disabled = true;
+          takeNoteBtn.style.opacity = '0.5';
+          takeNoteBtn.title = 'Notes disabled - shift report submitted. Start a new mission to enable.';
+        }
+      } else {
+        if (startPatrolBtn) {
+          startPatrolBtn.disabled = false;
+          startPatrolBtn.style.opacity = '1';
+          startPatrolBtn.title = '';
+        }
+        if (addCheckpointBtn) {
+          addCheckpointBtn.disabled = false;
+          addCheckpointBtn.style.opacity = '1';
+          addCheckpointBtn.title = '';
+        }
+        if (takeNoteBtn) {
+          takeNoteBtn.disabled = false;
+          takeNoteBtn.style.opacity = '1';
+          takeNoteBtn.title = '';
+        }
+      }
+    }
+
     // Patrol management
     function startPatrol() {
+      // Check if patrol buttons are disabled
+      if (shouldDisablePatrolButtons()) {
+        alert('Patrol is disabled - shift report has been submitted and no active mission. Please start a new mission to enable patrols.');
+        return;
+      }
+      
       // Check if there's an active mission
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission || activeMission.status !== 'active') {
@@ -420,7 +490,8 @@
       currentPatrol = null;
       savePatrolState();
       loadPatrolEntries();
-      loadRecentPatrols(); // Refresh the recent patrols list
+      loadTodayMissionLog(); // Refresh today's mission log
+      loadMissionPatrols(); // Refresh the mission patrols list
 
       alert('Patrol completed and saved!');
     }
@@ -440,10 +511,27 @@
 
     // Checkpoint management
     function addCheckpoint() {
+      // Check if patrol buttons are disabled
+      if (shouldDisablePatrolButtons()) {
+        alert('Checkpoints are disabled - shift report has been submitted and no active mission. Please start a new mission to enable checkpoints.');
+        return;
+      }
+      
       if (!currentPatrol) {
         alert('Please start a patrol first');
         return;
       }
+      
+      // Check if mission is complete
+      if (currentPatrol.missionId) {
+        const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        const completedMission = missionHistory.find(m => m.id === currentPatrol.missionId && m.status === 'completed');
+        if (completedMission) {
+          alert('Cannot add checkpoints - mission is complete and no longer editable');
+          return;
+        }
+      }
+      
       document.getElementById('checkpointModal').classList.remove('hidden');
       document.getElementById('checkpointModal').classList.add('flex');
     }
@@ -478,10 +566,27 @@
 
     // Note management
     function takeNote() {
+      // Check if patrol buttons are disabled
+      if (shouldDisablePatrolButtons()) {
+        alert('Notes are disabled - shift report has been submitted and no active mission. Please start a new mission to enable notes.');
+        return;
+      }
+      
       if (!currentPatrol) {
         alert('Please start a patrol first');
         return;
       }
+      
+      // Check if mission is complete
+      if (currentPatrol.missionId) {
+        const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        const completedMission = missionHistory.find(m => m.id === currentPatrol.missionId && m.status === 'completed');
+        if (completedMission) {
+          alert('Cannot add notes - mission is complete and no longer editable');
+          return;
+        }
+      }
+      
       document.getElementById('noteModal').classList.remove('hidden');
       document.getElementById('noteModal').classList.add('flex');
     }
@@ -607,6 +712,210 @@
         `;
       }).join('');
     }
+    
+    // Load today's mission log
+    function loadTodayMissionLog() {
+      const container = document.getElementById('todayMissionLog');
+      const today = new Date().toDateString();
+      
+      // Get active mission
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      
+      // Get completed patrols from today
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      const todayPatrols = completedPatrols.filter(patrol => {
+        if (!patrol.startTime) return false;
+        const patrolDate = new Date(patrol.startTime).toDateString();
+        return patrolDate === today;
+      });
+      
+      // Get completed missions from today
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+      const todayMissions = missionHistory.filter(mission => {
+        if (!mission.startTime) return false;
+        const missionDate = new Date(mission.startTime).toDateString();
+        return missionDate === today;
+      });
+      
+      let content = '';
+      
+      // Show active mission
+      if (activeMission && activeMission.status === 'active') {
+        const startTime = new Date(activeMission.startTime);
+        const missionPatrols = todayPatrols.filter(patrol => patrol.missionId === activeMission.id);
+        const totalCheckpoints = missionPatrols.reduce((sum, patrol) => sum + (patrol.checkpoints?.length || 0), 0);
+        
+        content += `
+          <div class="patrol-entry cursor-pointer" onclick="showMissionDetails('${activeMission.id}', true)">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <div class="font-semibold">🟢 Active Mission</div>
+                <div class="text-sm" style="color: var(--text-secondary)">Started: ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
+              <div class="status-indicator status-active"></div>
+            </div>
+            <div class="text-sm" style="color: var(--text-secondary)">
+              ${missionPatrols.length} patrol${missionPatrols.length !== 1 ? 's' : ''} • ${totalCheckpoints} checkpoint${totalCheckpoints !== 1 ? 's' : ''}
+            </div>
+          </div>
+        `;
+      }
+      
+      // Show completed missions from today
+      todayMissions.forEach(mission => {
+        const startTime = new Date(mission.startTime);
+        const endTime = mission.endTime ? new Date(mission.endTime) : null;
+        const duration = endTime ? endTime - startTime : 0;
+        const hours = Math.floor(duration / (1000 * 60 * 60));
+        const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+        const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        
+        const missionPatrols = todayPatrols.filter(patrol => patrol.missionId === mission.id);
+        const totalCheckpoints = missionPatrols.reduce((sum, patrol) => sum + (patrol.checkpoints?.length || 0), 0);
+        
+        content += `
+          <div class="patrol-entry cursor-pointer" onclick="showMissionDetails('${mission.id}', false)">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <div class="font-semibold">✅ Completed Mission</div>
+                <div class="text-sm" style="color: var(--text-secondary)">
+                  ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endTime ? endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Ongoing'} (${durationText})
+                </div>
+              </div>
+              <div class="status-indicator status-complete"></div>
+            </div>
+            <div class="text-sm" style="color: var(--text-secondary)">
+              ${missionPatrols.length} patrol${missionPatrols.length !== 1 ? 's' : ''} • ${totalCheckpoints} checkpoint${totalCheckpoints !== 1 ? 's' : ''}
+            </div>
+          </div>
+        `;
+      });
+      
+      // Show standalone patrols from today (patrols without missions)
+      const standalonePatrols = todayPatrols.filter(patrol => !patrol.missionId);
+      if (standalonePatrols.length > 0) {
+        const totalCheckpoints = standalonePatrols.reduce((sum, patrol) => sum + (patrol.checkpoints?.length || 0), 0);
+        
+        content += `
+          <div class="patrol-entry cursor-pointer" onclick="showStandalonePatrols()">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <div class="font-semibold">🚶 Standalone Patrols</div>
+                <div class="text-sm" style="color: var(--text-secondary)">Patrols without mission</div>
+              </div>
+              <div class="status-indicator status-complete"></div>
+            </div>
+            <div class="text-sm" style="color: var(--text-secondary)">
+              ${standalonePatrols.length} patrol${standalonePatrols.length !== 1 ? 's' : ''} • ${totalCheckpoints} checkpoint${totalCheckpoints !== 1 ? 's' : ''}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (!content) {
+        content = `
+          <div class="text-center py-8" style="color: var(--text-muted)">
+            No mission activities today. Start a mission to begin logging.
+          </div>
+        `;
+      }
+      
+      container.innerHTML = content;
+    }
+    
+    // Show mission details
+    function showMissionDetails(missionId, isActive) {
+      const today = new Date().toDateString();
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      const todayPatrols = completedPatrols.filter(patrol => {
+        if (!patrol.startTime) return false;
+        const patrolDate = new Date(patrol.startTime).toDateString();
+        return patrolDate === today && patrol.missionId === missionId;
+      });
+      
+      let mission;
+      if (isActive) {
+        mission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      } else {
+        const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        mission = missionHistory.find(m => m.id === missionId);
+      }
+      
+      if (!mission) {
+        alert('Mission details not found');
+        return;
+      }
+      
+      const startTime = new Date(mission.startTime);
+      const endTime = mission.endTime ? new Date(mission.endTime) : null;
+      const duration = endTime ? endTime - startTime : Date.now() - startTime;
+      const hours = Math.floor(duration / (1000 * 60 * 60));
+      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+      const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+      
+      let detailsText = `Mission Details - ${startTime.toLocaleDateString()}\n\n`;
+      detailsText += `Status: ${isActive ? 'Active' : 'Completed'}\n`;
+      detailsText += `Start Time: ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}\n`;
+      if (endTime) detailsText += `End Time: ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}\n`;
+      detailsText += `Duration: ${durationText}\n`;
+      detailsText += `Patrols: ${todayPatrols.length}\n\n`;
+      
+      if (todayPatrols.length > 0) {
+        detailsText += `Patrols:\n`;
+        todayPatrols.forEach((patrol, index) => {
+          const patrolStart = patrol.startTime ? new Date(patrol.startTime) : null;
+          const patrolEnd = patrol.endTime ? new Date(patrol.endTime) : null;
+          const patrolDuration = (patrolStart && patrolEnd) ? patrolEnd - patrolStart : 0;
+          const patrolHours = Math.floor(patrolDuration / (1000 * 60 * 60));
+          const patrolMinutes = Math.floor((patrolDuration % (1000 * 60 * 60)) / (1000 * 60));
+          const patrolDurationText = patrolHours > 0 ? `${patrolHours}h ${patrolMinutes}m` : `${patrolMinutes}m`;
+          
+          const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
+          const noteCount = patrol.notes ? patrol.notes.length : 0;
+          
+          detailsText += `${index + 1}. ${patrolStart ? patrolStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}`;
+          if (patrolEnd) detailsText += ` - ${patrolEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          detailsText += ` (${patrolDurationText}) - ${checkpointCount} checkpoints, ${noteCount} notes\n`;
+        });
+      }
+      
+      alert(detailsText);
+    }
+    
+    // Show standalone patrols
+    function showStandalonePatrols() {
+      const today = new Date().toDateString();
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      const standalonePatrols = completedPatrols.filter(patrol => {
+        if (!patrol.startTime || patrol.missionId) return false;
+        const patrolDate = new Date(patrol.startTime).toDateString();
+        return patrolDate === today;
+      });
+      
+      let detailsText = `Standalone Patrols - ${new Date().toLocaleDateString()}\n\n`;
+      
+      if (standalonePatrols.length > 0) {
+        standalonePatrols.forEach((patrol, index) => {
+          const patrolStart = patrol.startTime ? new Date(patrol.startTime) : null;
+          const patrolEnd = patrol.endTime ? new Date(patrol.endTime) : null;
+          const patrolDuration = (patrolStart && patrolEnd) ? patrolEnd - patrolStart : 0;
+          const patrolHours = Math.floor(patrolDuration / (1000 * 60 * 60));
+          const patrolMinutes = Math.floor((patrolDuration % (1000 * 60 * 60)) / (1000 * 60));
+          const patrolDurationText = patrolHours > 0 ? `${patrolHours}h ${patrolMinutes}m` : `${patrolMinutes}m`;
+          
+          const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
+          const noteCount = patrol.notes ? patrol.notes.length : 0;
+          
+          detailsText += `${index + 1}. ${patrolStart ? patrolStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}`;
+          if (patrolEnd) detailsText += ` - ${patrolEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          detailsText += ` (${patrolDurationText}) - ${checkpointCount} checkpoints, ${noteCount} notes\n`;
+        });
+      } else {
+        detailsText += 'No standalone patrols found for today.';
+      }
+      
+      alert(detailsText);
+    }
 
     // Update current time display
     function updateCurrentTime() {
@@ -635,55 +944,179 @@
       }
     }
 
-    // Load recent patrols from localStorage
-    function loadRecentPatrols() {
-      const container = document.getElementById('patrolHistory');
+    // Load mission patrols from localStorage
+    function loadMissionPatrols() {
+      const container = document.getElementById('missionPatrols');
       const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
       
-      if (completedPatrols.length === 0) {
+      // Group patrols by mission
+      const missionPatrolMap = new Map();
+      
+      // Add completed missions
+      missionHistory.forEach(mission => {
+        const missionPatrols = completedPatrols.filter(patrol => patrol.missionId === mission.id);
+        if (missionPatrols.length > 0) {
+          missionPatrolMap.set(mission.id, {
+            mission: mission,
+            patrols: missionPatrols,
+            isExpanded: false
+          });
+        }
+      });
+      
+      // Add patrols without missions (standalone patrols)
+      const standAlonePatrols = completedPatrols.filter(patrol => !patrol.missionId);
+      if (standAlonePatrols.length > 0) {
+        missionPatrolMap.set('standalone', {
+          mission: { id: 'standalone', title: 'Standalone Patrols', startTime: null },
+          patrols: standAlonePatrols,
+          isExpanded: false
+        });
+      }
+      
+      if (missionPatrolMap.size === 0) {
         container.innerHTML = `
           <div class="text-center py-8" style="color: var(--text-muted)">
-            <div class="text-3xl mb-2">🚶</div>
-            <div>No completed patrols yet</div>
-            <div class="text-sm mt-1">Complete your first patrol to see it here</div>
+            <div class="text-3xl mb-2">🎯</div>
+            <div>No mission patrols yet</div>
+            <div class="text-sm mt-1">Complete patrols during missions to see them here</div>
           </div>
         `;
         return;
       }
       
-      // Show last 5 completed patrols
-      const recentPatrols = completedPatrols.slice(0, 5);
-      
-      container.innerHTML = recentPatrols.map(patrol => {
-        const startTime = patrol.startTime ? new Date(patrol.startTime) : null;
-        const endTime = patrol.endTime ? new Date(patrol.endTime) : null;
-        const duration = (startTime && endTime) ? endTime - startTime : 0;
+      container.innerHTML = Array.from(missionPatrolMap.values()).map(({ mission, patrols }) => {
+        const missionStartTime = mission.startTime ? new Date(mission.startTime) : null;
+        const missionDate = missionStartTime ? missionStartTime.toLocaleDateString() : 'Unknown date';
+        const patrolCount = patrols.length;
+        const totalCheckpoints = patrols.reduce((sum, patrol) => sum + (patrol.checkpoints?.length || 0), 0);
         
-        const hours = Math.floor(duration / (1000 * 60 * 60));
-        const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
-        const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-        
-        const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
-        const noteCount = patrol.notes ? patrol.notes.length : 0;
-        
-        const patrolDate = startTime ? startTime.toLocaleDateString() : 'Unknown date';
-        const patrolTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const patrolsList = patrols.map(patrol => {
+          const startTime = patrol.startTime ? new Date(patrol.startTime) : null;
+          const endTime = patrol.endTime ? new Date(patrol.endTime) : null;
+          const duration = (startTime && endTime) ? endTime - startTime : 0;
+          
+          const hours = Math.floor(duration / (1000 * 60 * 60));
+          const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+          const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+          
+          const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
+          const noteCount = patrol.notes ? patrol.notes.length : 0;
+          
+          const patrolTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+          
+          return `
+            <div class="patrol-entry ml-4 cursor-pointer" onclick="showPatrolDetails('${patrol.id}')">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <div class="font-medium">Patrol ${patrolTime}</div>
+                  <div class="text-sm" style="color: var(--text-secondary)">${durationText} duration</div>
+                </div>
+                <div class="status-indicator status-complete"></div>
+              </div>
+              <div class="text-sm" style="color: var(--text-secondary)">
+                ${checkpointCount} checkpoint${checkpointCount !== 1 ? 's' : ''} • ${noteCount} note${noteCount !== 1 ? 's' : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
         
         return `
-          <div class="patrol-entry">
-            <div class="flex justify-between items-start mb-2">
-              <div>
-                <div class="font-semibold">Patrol - ${patrolDate}</div>
-                <div class="text-sm" style="color: var(--text-secondary)">${durationText} duration • Started ${patrolTime}</div>
+          <div class="mission-patrol-group mb-4">
+            <div class="patrol-entry cursor-pointer" onclick="toggleMissionPatrols('${mission.id}')">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <div class="font-semibold">${mission.title || (mission.id === 'standalone' ? 'Standalone Patrols' : 'Mission')} - ${missionDate}</div>
+                  <div class="text-sm" style="color: var(--text-secondary)">${patrolCount} patrol${patrolCount !== 1 ? 's' : ''} • ${totalCheckpoints} total checkpoints</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="status-indicator status-complete"></div>
+                  <div class="text-lg" id="toggle-${mission.id}">▶️</div>
+                </div>
               </div>
-              <div class="status-indicator status-complete"></div>
             </div>
-            <div class="text-sm" style="color: var(--text-secondary)">
-              ${checkpointCount} checkpoint${checkpointCount !== 1 ? 's' : ''} • ${noteCount} note${noteCount !== 1 ? 's' : ''}
+            <div id="patrols-${mission.id}" class="hidden">
+              ${patrolsList}
             </div>
           </div>
         `;
       }).join('');
+    }
+    
+    // Toggle mission patrol visibility
+    function toggleMissionPatrols(missionId) {
+      const patrolsContainer = document.getElementById(`patrols-${missionId}`);
+      const toggleIcon = document.getElementById(`toggle-${missionId}`);
+      
+      if (patrolsContainer.classList.contains('hidden')) {
+        patrolsContainer.classList.remove('hidden');
+        toggleIcon.textContent = '▼';
+      } else {
+        patrolsContainer.classList.add('hidden');
+        toggleIcon.textContent = '▶️';
+      }
+    }
+    
+    // Show patrol details
+    function showPatrolDetails(patrolId) {
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      const patrol = completedPatrols.find(p => String(p.id) === String(patrolId));
+      
+      if (!patrol) {
+        alert('Patrol details not found');
+        return;
+      }
+      
+      const startTime = patrol.startTime ? new Date(patrol.startTime) : null;
+      const endTime = patrol.endTime ? new Date(patrol.endTime) : null;
+      const duration = (startTime && endTime) ? endTime - startTime : 0;
+      
+      const hours = Math.floor(duration / (1000 * 60 * 60));
+      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+      const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+      
+      const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
+      const noteCount = patrol.notes ? patrol.notes.length : 0;
+      
+      const patrolDate = startTime ? startTime.toLocaleDateString() : 'Unknown date';
+      const patrolStartTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const patrolEndTime = endTime ? endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      
+      let detailsText = `Patrol Details - ${patrolDate}\n\n`;
+      detailsText += `Start Time: ${patrolStartTime}\n`;
+      detailsText += `End Time: ${patrolEndTime}\n`;
+      detailsText += `Duration: ${durationText}\n`;
+      detailsText += `Checkpoints: ${checkpointCount}\n`;
+      detailsText += `Notes: ${noteCount}\n\n`;
+      
+      if (patrol.details) {
+        if (patrol.details.area) detailsText += `Area: ${patrol.details.area}\n`;
+        if (patrol.details.weather) detailsText += `Weather: ${patrol.details.weather}\n`;
+        if (patrol.details.purpose) detailsText += `Purpose: ${patrol.details.purpose}\n`;
+        if (patrol.details.observations) detailsText += `Observations: ${patrol.details.observations}\n`;
+        if (patrol.details.securityConcerns) detailsText += `Security Concerns: ${patrol.details.securityConcerns}\n`;
+      }
+      
+      if (patrol.checkpoints && patrol.checkpoints.length > 0) {
+        detailsText += `\nCheckpoints:\n`;
+        patrol.checkpoints.forEach((checkpoint, index) => {
+          const time = checkpoint.timestamp ? new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+          detailsText += `${index + 1}. ${time} - ${checkpoint.location}`;
+          if (checkpoint.notes) detailsText += ` (${checkpoint.notes})`;
+          detailsText += `\n`;
+        });
+      }
+      
+      if (patrol.notes && patrol.notes.length > 0) {
+        detailsText += `\nNotes:\n`;
+        patrol.notes.forEach((note, index) => {
+          const time = note.timestamp ? new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+          detailsText += `${index + 1}. ${time} - ${note.text}\n`;
+        });
+      }
+      
+      alert(detailsText);
     }
 
     // Initialize
@@ -691,11 +1124,14 @@
       initTheme();
       loadPatrolState();
       loadPatrolEntries();
-      loadRecentPatrols();
+      loadTodayMissionLog();
+      loadMissionPatrols();
+      updatePatrolButtonStates(); // Update button states based on shift report status
       updateLocation();
       updateCurrentTime();
       setInterval(updateLocation, 30000); // Update location every 30 seconds
       setInterval(updateCurrentTime, 1000); // Update current time every second
+      setInterval(updatePatrolButtonStates, 5000); // Check button states every 5 seconds
       
       // Check for active mission and schedule patrol notifications
       checkActiveMissionAndScheduleNotifications();

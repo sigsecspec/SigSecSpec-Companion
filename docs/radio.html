@@ -9,7 +9,8 @@
 <meta name="theme-color" content="#0f0f0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script src="push-notifications.js"></script>
+  <script src="push-notifications.js"></script>
+  <script src="emergency-common.js"></script>
 </head>
 <body class="bg-pattern">
 
@@ -29,6 +30,11 @@
     <button class="touch-btn" onclick="toggleLarge()" aria-label="Toggle text size">A+</button>
   </div>
 </header>
+
+<!-- Emergency Button - Bottom Right -->
+<button class="emergency-btn-fixed" onclick="triggerEmergency()" aria-label="Emergency alert">
+  🚨
+</button>
 
 <main class="main-content">
   <section>

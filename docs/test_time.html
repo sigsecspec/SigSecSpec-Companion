@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Time Test</title>
+</head>
+<body>
+    <h1>Time Display Test</h1>
+    <div>Current Time: <span id="currentTimePatrol">--:--</span></div>
+    
+    <script>
+        // Update current time display
+        function updateCurrentTime() {
+            try {
+                const now = new Date();
+                let timeString;
+                
+                // Try modern format first
+                try {
+                    timeString = now.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    });
+                } catch (e) {
+                    // Fallback for older browsers
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    const seconds = now.getSeconds().toString().padStart(2, '0');
+                    timeString = `${hours}:${minutes}:${seconds}`;
+                }
+                
+                const timeElement = document.getElementById('currentTimePatrol');
+                if (timeElement) {
+                    timeElement.textContent = timeString;
+                    console.log('Time updated to:', timeString);
+                }
+            } catch (error) {
+                console.error('Error updating current time:', error);
+                // Fallback display
+                const timeElement = document.getElementById('currentTimePatrol');
+                if (timeElement && timeElement.textContent === '--:--') {
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    timeElement.textContent = `${hours}:${minutes}`;
+                }
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing time...');
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            // Multiple fallbacks
+            setTimeout(updateCurrentTime, 100);
+            setTimeout(updateCurrentTime, 500);
+            setTimeout(() => {
+                const timeElement = document.getElementById('currentTimePatrol');
+                if (timeElement && timeElement.textContent === '--:--') {
+                    console.log('Force updating time...');
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    const seconds = now.getSeconds().toString().padStart(2, '0');
+                    timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

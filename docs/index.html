@@ -137,7 +137,7 @@
       <div class="app-grid">
         <a href="codes.html" class="app-card ripple-container">🔢<div class="font-semibold mt-2">10-Codes</div></a>
         <a href="#radio" data-route="radio" class="app-card ripple-container">🅰️<div class="font-semibold mt-2">Phonetic Alphabet</div></a>
-        <a href="#templates" data-route="templates" class="app-card ripple-container">📄<div class="font-semibold mt-2">Report Templates</div></a>
+        <a href="#templates" data-route="templates" class="app-card ripple-container">📄<div class="font-semibold mt-2">Shift & Incident Reports</div></a>
       </div>
     </section>
 
@@ -196,7 +196,7 @@
 
     <!-- REPORT TEMPLATES -->
     <section id="templates" class="view" aria-labelledby="templatesHeading">
-      <h2 id="templatesHeading" class="text-xl font-bold accent mb-4">Report Templates</h2>
+      <h2 id="templatesHeading" class="text-xl font-bold accent mb-4">Shift & Incident Reports</h2>
       <div class="space-y-4 max-w-4xl">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
           <label class="block">
@@ -247,7 +247,7 @@
     <a href="#home" data-route="home" class="nav-link ripple-container">Home</a>
     <a href="codes.html" class="nav-link ripple-container">Codes</a>
     <a href="#radio" data-route="radio" class="nav-link ripple-container">Phonetics</a>
-    <a href="#templates" data-route="templates" class="nav-link ripple-container">Templates</a>
+    <a href="#templates" data-route="templates" class="nav-link ripple-container">Reports</a>
   </nav>
 
   <!-- Page transition curtain -->
@@ -290,7 +290,7 @@
       home: 'Resource Companion — quick references & field tools',
       codes: '10-Codes — quick references',
       radio: 'Radio & Phonetic — quick references',
-      templates: 'Report Templates — fill and copy'
+      templates: 'Shift & Incident Reports — fill and copy'
     };
 
     let currentViewId = 'home';
@@ -570,27 +570,8 @@
 
       const TEMPLATES = [
         {
-          id: 'narrative_4w',
-          name: 'Narrative — Who/What/When/Where',
-          fields: [
-            { key: 'dateTime', label: 'When — Date / Time', type: 'datetime-local' },
-            { key: 'location', label: 'Where — Location', type: 'text' },
-            { key: 'locationDetails', label: 'Where — Specific details', type: 'textarea', rows: 2, placeholder: 'Building, floor, area, nearest landmark' },
-            { key: 'participants', label: 'Who — Suspects / Victims / Witnesses', type: 'participants', roles: ['Suspect','Victim','Witness'] },
-            { key: 'what', label: 'What — Brief summary', type: 'textarea', rows: 3, placeholder: 'Concise description of the event' },
-            { key: 'details', label: 'Details — Narrative (use tokens like suspect1, victim2)', type: 'textarea', rows: 6, placeholder: 'Example: I contacted suspect1 near the lobby. Victim1 stated ...' }
-          ],
-          body: (
-            'WHO:\n{whoSection}\n\n' +
-            'WHAT:\n{whatExpanded}\n\n' +
-            'WHEN:\n{when}\n\n' +
-            'WHERE:\n{where}\n\n' +
-            'DETAILS:\n{detailsExpanded}'
-          )
-        },
-        {
-          id: 'incident_basic',
-          name: 'Incident Report (Basic)',
+          id: 'incident_report',
+          name: 'Incident Report',
           fields: [
             { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
             { key: 'guardName', label: 'Guard Name', type: 'text' },
@@ -618,8 +599,8 @@
           )
         },
         {
-          id: 'dar_shift',
-          name: 'Daily Activity Report (Shift Summary)',
+          id: 'shift_report',
+          name: 'Shift Report',
           fields: [
             { key: 'date', label: 'Date', type: 'date' },
             { key: 'guardName', label: 'Guard Name', type: 'text' },
@@ -632,7 +613,7 @@
             { key: 'notes', label: 'Notes', type: 'textarea', rows: 3 }
           ],
           body: (
-            'Daily Activity Report\n' +
+            'Shift Report\n' +
             'Date: {date}\n' +
             'Guard: {guardName}\n' +
             'Post: {post}\n' +
@@ -641,73 +622,6 @@
             'Contacts/Interactions:\n{contacts}\n\n' +
             'Incidents:\n{incidents}\n\n' +
             'Notes:\n{notes}'
-          )
-        },
-        {
-          id: 'trespass_warning',
-          name: 'Trespass Warning Issued',
-          fields: [
-            { key: 'subjectName', label: 'Subject Name (if known)', type: 'text' },
-            { key: 'subjectDesc', label: 'Subject Description', type: 'textarea', rows: 3 },
-            { key: 'location', label: 'Location', type: 'text' },
-            { key: 'time', label: 'Time', type: 'datetime-local' },
-            { key: 'reason', label: 'Reason', type: 'textarea', rows: 2 },
-            { key: 'action', label: 'Action Taken', type: 'textarea', rows: 2 },
-            { key: 'policeCase', label: 'Police Case # (if any)', type: 'text' }
-          ],
-          body: (
-            'Trespass Warning\n' +
-            'Date/Time: {time}\n' +
-            'Location: {location}\n' +
-            'Subject: {subjectName}\n' +
-            'Description: {subjectDesc}\n\n' +
-            'Reason: {reason}\n' +
-            'Action Taken: {action}\n' +
-            'Police Case #: {policeCase}'
-          )
-        },
-        {
-          id: 'medical_incident',
-          name: 'Medical Incident',
-          fields: [
-            { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
-            { key: 'location', label: 'Location', type: 'text' },
-            { key: 'patientName', label: 'Patient Name (if known)', type: 'text' },
-            { key: 'condition', label: 'Condition/Complaint', type: 'textarea', rows: 3 },
-            { key: 'aidRendered', label: 'Aid Rendered', type: 'textarea', rows: 3 },
-            { key: 'emsUnit', label: 'EMS Unit', type: 'text' },
-            { key: 'transport', label: 'Transport Destination', type: 'text' }
-          ],
-          body: (
-            'Medical Incident\n' +
-            'Date/Time: {dateTime}\n' +
-            'Location: {location}\n' +
-            'Patient: {patientName}\n' +
-            'Condition: {condition}\n' +
-            'Aid Rendered: {aidRendered}\n' +
-            'EMS Unit: {emsUnit}\n' +
-            'Transport To: {transport}'
-          )
-        },
-        {
-          id: 'property_damage',
-          name: 'Property Damage',
-          fields: [
-            { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
-            { key: 'location', label: 'Location', type: 'text' },
-            { key: 'damageDesc', label: 'Damage Description', type: 'textarea', rows: 3 },
-            { key: 'cause', label: 'Apparent Cause', type: 'textarea', rows: 2 },
-            { key: 'photoTaken', label: 'Photos Taken', type: 'checkbox' },
-            { key: 'reportNumber', label: 'Report # (if any)', type: 'text' }
-          ],
-          body: (
-            'Property Damage Report\n' +
-            'Date/Time: {dateTime}\n' +
-            'Location: {location}\n' +
-            'Description: {damageDesc}\n' +
-            'Cause: {cause}\n' +
-            'Photos Taken: {photoTaken}\n' +
-            'Report #: {reportNumber}'
           )
         }
       ];

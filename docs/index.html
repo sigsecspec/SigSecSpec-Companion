@@ -350,6 +350,13 @@
                  placeholder="e.g., Building A, Parking Lot">
         </div>
         <div>
+          <label class="block text-sm font-medium mb-2">End Time</label>
+          <input type="time" id="unscheduledMissionEndTime" class="w-full px-3 py-2 rounded-lg" 
+                 style="background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary);"
+                 placeholder="Mission end time">
+          <div class="text-xs mt-1" style="color: var(--text-secondary);">Leave empty for 8-hour default duration</div>
+        </div>
+        <div>
           <label class="block text-sm font-medium mb-2">Description</label>
           <textarea id="unscheduledMissionDescription" rows="3" class="w-full px-3 py-2 rounded-lg" 
                     style="background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary);"
@@ -681,6 +688,12 @@
 
     // Mission Confirmation Functions
     function openMissionConfirmPopup() {
+      // Set default end time to 8 hours from now
+      const now = new Date();
+      const defaultEndTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+      const defaultEndTimeString = defaultEndTime.toTimeString().slice(0, 5);
+      document.getElementById('unscheduledMissionEndTime').value = defaultEndTimeString;
+      
       document.getElementById('missionConfirmPopup').classList.remove('hidden');
       document.getElementById('missionConfirmPopup').classList.add('flex');
     }
@@ -692,12 +705,14 @@
       document.getElementById('unscheduledMissionTitle').value = '';
       document.getElementById('unscheduledMissionLocation').value = '';
       document.getElementById('unscheduledMissionDescription').value = '';
+      document.getElementById('unscheduledMissionEndTime').value = '';
     }
 
     function confirmStartUnscheduledMission() {
       const title = document.getElementById('unscheduledMissionTitle').value.trim();
       const location = document.getElementById('unscheduledMissionLocation').value.trim();
       const description = document.getElementById('unscheduledMissionDescription').value.trim();
+      const endTime = document.getElementById('unscheduledMissionEndTime').value.trim();
       
       if (!title) {
         showCustomPopup('⚠️ Missing Information', 
@@ -708,12 +723,20 @@
       }
       
       // Create and save the unscheduled mission to schedule
+      // Calculate default end time (8 hours from start) if not provided
+      let missionEndTime = endTime;
+      if (!missionEndTime) {
+        const startDate = new Date();
+        const defaultEndDate = new Date(startDate.getTime() + 8 * 60 * 60 * 1000); // Add 8 hours
+        missionEndTime = defaultEndDate.toTimeString().slice(0, 5);
+      }
+      
       const mission = {
         id: Date.now(),
         title: title,
         date: new Date().toISOString().split('T')[0],
         startTime: new Date().toTimeString().slice(0, 5),
-        endTime: '',
+        endTime: missionEndTime,
         location: location,
         description: description,
         enableNotifications: false,

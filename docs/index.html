@@ -732,6 +732,57 @@
 
     // End Mission Confirmation Functions
     function openEndMissionConfirmPopup() {
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (!activeMission) return;
+      
+      // Check if mission has a scheduled end time and if it's too early to end
+      const now = new Date();
+      const missionStartTime = new Date(activeMission.startTime);
+      
+      // Check if this is a scheduled mission with an end time
+      let scheduledEndTime = null;
+      if (activeMission.originalMission && activeMission.originalMission.endTime) {
+        // Use the scheduled end time from the original mission
+        const missionDate = activeMission.originalMission.date;
+        scheduledEndTime = new Date(missionDate + 'T' + activeMission.originalMission.endTime);
+      } else {
+        // For manual missions, assume 8-hour default duration
+        scheduledEndTime = new Date(missionStartTime.getTime() + 8 * 60 * 60 * 1000);
+      }
+      
+      // Check if trying to end before scheduled end time
+      const timeUntilEnd = scheduledEndTime - now;
+      
+      if (timeUntilEnd > 0) {
+        // Too early to end - show warning popup
+        const hours = Math.floor(timeUntilEnd / (1000 * 60 * 60));
+        const minutes = Math.floor((timeUntilEnd % (1000 * 60 * 60)) / (1000 * 60));
+        
+        let timeMessage;
+        let popupTitle;
+        
+        if (timeUntilEnd > 2 * 60 * 60 * 1000) { // More than 2 hours
+          popupTitle = "🛑 Whoa, not so fast!";
+          timeMessage = `This mission time hasn't ended yet. You still have <strong>${hours} hours and ${minutes} minutes</strong> remaining until the scheduled end time.`;
+        } else if (timeUntilEnd > 30 * 60 * 1000) { // More than 30 minutes
+          popupTitle = "⏰ Hold on there!";
+          timeMessage = `Mission time hasn't ended yet. You have <strong>${hours > 0 ? hours + ' hours and ' : ''}${minutes} minutes</strong> left until completion.`;
+        } else { // Less than 30 minutes
+          popupTitle = "⏱️ Almost there!";
+          timeMessage = `Just <strong>${minutes} minutes</strong> left until your mission time ends. Hang in there!`;
+        }
+        
+        showCustomPopup(popupTitle, 
+          `<p style="color: var(--text-secondary)">${timeMessage}</p>
+           <p style="color: var(--text-muted); font-size: 0.9em; margin-top: 12px;">
+             Mission ends at: <strong>${scheduledEndTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+           </p>`,
+          [{ text: 'Got it', onclick: 'closeCustomPopup()', class: 'primary' }]
+        );
+        return;
+      }
+      
+      // Mission time has ended or is very close - proceed with normal end confirmation
       document.getElementById('endMissionConfirmPopup').classList.remove('hidden');
       document.getElementById('endMissionConfirmPopup').classList.add('flex');
     }
@@ -744,6 +795,20 @@
     function confirmEndMission() {
       closeEndMissionConfirmPopup();
       endMission();
+    }
+
+    // Helper function for confirmation dialogs
+    function showConfirm(message) {
+      return new Promise((resolve) => {
+        showCustomPopup('⚠️ Confirmation Required', 
+          `<p style="color: var(--text-secondary)">${message}</p>`,
+          [
+            { text: 'Cancel', onclick: 'closeCustomPopup(); window.currentConfirmResolve(false);', class: '' },
+            { text: 'Confirm', onclick: 'closeCustomPopup(); window.currentConfirmResolve(true);', class: 'primary' }
+          ]
+        );
+        window.currentConfirmResolve = resolve;
+      });
     }
 
     // Tardy Excuse Popup Functions
@@ -1112,17 +1177,15 @@
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission) return;
       
-      // Check if shift report has been submitted
+      // Check if shift report has been submitted for THIS specific mission
       const savedShiftReports = JSON.parse(localStorage.getItem('sss_saved_shift_reports') || '[]');
-      const today = new Date().toDateString();
-      const todayShiftReport = savedShiftReports.find(report => {
-        if (!report.at) return false;
-        const reportDate = new Date(report.at).toDateString();
-        return reportDate === today;
+      const missionShiftReport = savedShiftReports.find(report => {
+        return report.meta && report.meta.missionId === activeMission.id;
       });
       
-      if (!todayShiftReport) {
-        if (await showConfirm('No shift report has been submitted today. Missions cannot be ended without a shift report. Would you like to go to the shift report page?')) {
+      if (!missionShiftReport) {
+        const confirmMessage = 'A shift report must be submitted for this mission before it can be ended. Would you like to go to the shift report page to create one?';
+        if (await showConfirm(confirmMessage)) {
           window.location.href = 'shift.html';
         }
         return;
@@ -2062,6 +2125,33 @@
       });
     }
 
+    // Test function for development - can be removed in production
+    function testEndShiftValidation() {
+      // Create a test mission that started 2 hours ago and should end in 6 hours
+      const testMission = {
+        id: Date.now(),
+        startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        status: 'active',
+        type: 'scheduled',
+        originalMission: {
+          date: new Date().toISOString().split('T')[0],
+          startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toTimeString().slice(0, 5),
+          endTime: new Date(Date.now() + 6 * 60 * 60 * 1000).toTimeString().slice(0, 5), // 6 hours from now
+          title: 'Test Mission',
+          location: 'Test Location'
+        }
+      };
+      
+      localStorage.setItem('activeMission', JSON.stringify(testMission));
+      updateMissionUI();
+      
+      console.log('Test mission created. Try clicking "End Mission" to test the validation.');
+      showCustomPopup('🧪 Test Mission Created', 
+        '<p>A test mission has been created that should end in 6 hours. Try clicking "End Mission" to test the validation popup.</p>',
+        [{ text: 'OK', onclick: 'closeCustomPopup()' }]
+      );
+    }
+
     // Initialize app
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize core features
@@ -2218,6 +2308,9 @@
     
     // Check scheduled missions every minute
     setInterval(checkScheduledMissions, 60 * 1000);
+    
+    // Make test function available globally for testing
+    window.testEndShiftValidation = testEndShiftValidation;
   </script>
 </body>
 </html>

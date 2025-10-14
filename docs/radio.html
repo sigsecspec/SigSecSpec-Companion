@@ -15,6 +15,7 @@ html,body{background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat
 .app-card:hover{transform:scale(1.05);box-shadow:0 8px 20px rgba(0,0,0,0.4);}
 #bottomNav{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);backdrop-filter:blur(6px);border-radius:9999px;background:#111;display:flex;gap:.5rem;transition:all 0.3s ease;z-index:50;}
 #bottomNav.footer{position:static;transform:none;border-radius:0;width:100%;justify-content:space-around;padding:.75rem 0;margin-top:1rem;}
+.accent{color:var(--accent);}
 </style>
 </head>
 <body>
@@ -32,34 +33,16 @@ html,body{background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat
 <main class="flex-1 overflow-auto p-5" id="mainContent">
   <section class="fade-enter">
     <h2 class="text-xl font-bold accent mb-4">Phonetic Alphabet (NATO)</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-6">
-      <div class="app-card">A — Alpha</div>
-      <div class="app-card">B — Bravo</div>
-      <div class="app-card">C — Charlie</div>
-      <div class="app-card">D — Delta</div>
-      <div class="app-card">E — Echo</div>
-      <div class="app-card">F — Foxtrot</div>
-      <div class="app-card">G — Golf</div>
-      <div class="app-card">H — Hotel</div>
-      <div class="app-card">I — India</div>
-      <div class="app-card">J — Juliett</div>
-      <div class="app-card">K — Kilo</div>
-      <div class="app-card">L — Lima</div>
-      <div class="app-card">M — Mike</div>
-      <div class="app-card">N — November</div>
-      <div class="app-card">O — Oscar</div>
-      <div class="app-card">P — Papa</div>
-      <div class="app-card">Q — Quebec</div>
-      <div class="app-card">R — Romeo</div>
-      <div class="app-card">S — Sierra</div>
-      <div class="app-card">T — Tango</div>
-      <div class="app-card">U — Uniform</div>
-      <div class="app-card">V — Victor</div>
-      <div class="app-card">W — Whiskey</div>
-      <div class="app-card">X — X-ray</div>
-      <div class="app-card">Y — Yankee</div>
-      <div class="app-card">Z — Zulu</div>
+    <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+      <input id="radioSearch" class="w-full md:max-w-lg bg-[#111] border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[--accent]" placeholder="Search letter or word (e.g., 'Juliet', 'X-ray')" />
+      <div class="flex items-center gap-2 md:ml-auto">
+        <button id="radioClear" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">Clear</button>
+        <span id="radioCount" class="text-sm text-gray-400"></span>
+      </div>
     </div>
+    <div id="radioGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-2"></div>
+    <p id="radioNoResults" class="hidden text-gray-400 mt-6">No matching letters or words.</p>
+    <div id="radioStatus" class="text-sm text-gray-400 mt-2" aria-live="polite"></div>
 
     <div class="app-card">
       <div class="font-semibold mb-1">📻 Radio Best Practices</div>
@@ -81,8 +64,111 @@ html,body{background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat
 
 <script>
 function toggleLarge(){document.body.classList.toggle('text-lg');localStorage.setItem('sss_large',document.body.classList.contains('text-lg'));}
+document.addEventListener('DOMContentLoaded',()=>{if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg');});
 const mainContent=document.getElementById('mainContent');const bottomNav=document.getElementById('bottomNav');
 mainContent.addEventListener('scroll',()=>{if(mainContent.scrollTop+mainContent.clientHeight>=mainContent.scrollHeight-5){bottomNav.classList.add('footer');}else{bottomNav.classList.remove('footer');}});
+
+// Phonetic Alphabet data and search/copy logic
+const PHONETIC = [
+  { letter:'A', word:'Alpha',   synonyms:['alfa','alpha'] },
+  { letter:'B', word:'Bravo',   synonyms:[] },
+  { letter:'C', word:'Charlie', synonyms:[] },
+  { letter:'D', word:'Delta',   synonyms:[] },
+  { letter:'E', word:'Echo',    synonyms:[] },
+  { letter:'F', word:'Foxtrot', synonyms:[] },
+  { letter:'G', word:'Golf',    synonyms:[] },
+  { letter:'H', word:'Hotel',   synonyms:[] },
+  { letter:'I', word:'India',   synonyms:[] },
+  { letter:'J', word:'Juliett', synonyms:['juliet'] },
+  { letter:'K', word:'Kilo',    synonyms:[] },
+  { letter:'L', word:'Lima',    synonyms:[] },
+  { letter:'M', word:'Mike',    synonyms:[] },
+  { letter:'N', word:'November',synonyms:[] },
+  { letter:'O', word:'Oscar',   synonyms:[] },
+  { letter:'P', word:'Papa',    synonyms:[] },
+  { letter:'Q', word:'Quebec',  synonyms:[] },
+  { letter:'R', word:'Romeo',   synonyms:[] },
+  { letter:'S', word:'Sierra',  synonyms:[] },
+  { letter:'T', word:'Tango',   synonyms:[] },
+  { letter:'U', word:'Uniform', synonyms:[] },
+  { letter:'V', word:'Victor',  synonyms:[] },
+  { letter:'W', word:'Whiskey', synonyms:['whisky'] },
+  { letter:'X', word:'X-ray',   synonyms:['xray','x ray','x-ray'] },
+  { letter:'Y', word:'Yankee',  synonyms:[] },
+  { letter:'Z', word:'Zulu',    synonyms:[] }
+];
+
+let lastRendered = [];
+const radioGrid = document.getElementById('radioGrid');
+const radioSearch = document.getElementById('radioSearch');
+const radioClear = document.getElementById('radioClear');
+const radioCount = document.getElementById('radioCount');
+const radioNoResults = document.getElementById('radioNoResults');
+const radioStatus = document.getElementById('radioStatus');
+
+const normalize = (s)=> (s||'').toLowerCase();
+const simplify = (s)=> normalize(s).replace(/[^a-z0-9]/g,'');
+
+function matches(item, query){
+  if(!query) return true;
+  const tokens = query.split(/\s+/).filter(Boolean).map(simplify);
+  const hay = [ item.letter, item.word, ...(item.synonyms||[]) ]
+    .map(simplify).join(' ');
+  return tokens.every(t=> hay.includes(t));
+}
+
+function renderList(query){
+  const list = PHONETIC.filter(it=> matches(it, query));
+  lastRendered = list;
+  radioCount.textContent = list.length ? `${list.length} item${list.length!==1?'s':''}` : '';
+  radioNoResults.classList.toggle('hidden', list.length!==0);
+  radioGrid.innerHTML = list.map((it,idx)=>`
+    <button class="app-card text-left" data-index="${idx}" title="Tap to copy">
+      <div class="font-semibold">${it.letter} — ${it.word}</div>
+    </button>
+  `).join('');
+}
+
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    radioStatus.textContent = 'Copied to clipboard.';
+  }catch{
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      radioStatus.textContent = 'Copied to clipboard.';
+    }catch{
+      radioStatus.textContent = 'Copy failed. Long-press to copy.';
+    }
+  }
+}
+
+radioGrid.addEventListener('click',(e)=>{
+  const btn = e.target.closest('[data-index]');
+  if(!btn) return;
+  const idx = Number(btn.getAttribute('data-index'));
+  const item = lastRendered[idx];
+  if(!item) return;
+  copyText(`${item.letter} — ${item.word}`);
+});
+
+function applySearch(value){
+  localStorage.setItem('sss_radio_query', value);
+  renderList(normalize(value));
+}
+
+const saved = localStorage.getItem('sss_radio_query') || '';
+radioSearch.value = saved;
+applySearch(saved);
+
+let debounceTimer;
+radioSearch.addEventListener('input',()=>{
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(()=> applySearch(radioSearch.value), 120);
+});
+radioClear.addEventListener('click',()=>{ radioSearch.value=''; applySearch(''); });
 </script>
 </body>
 </html>

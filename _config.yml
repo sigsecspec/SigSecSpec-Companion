@@ -1,0 +1,13 @@
+title: SigSecSpec Companion
+# Build settings
+markdown: kramdown
+# Keep it simple; site at repo root
+permalink: pretty
+
+# Theme (optional, you can remove or change)
+# theme: jekyll-theme-primer
+
+# Sass config: ensure assets path works if you add SCSS later
+sass:
+  sass_dir: assets/css
+  style: compressed

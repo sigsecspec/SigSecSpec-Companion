@@ -21,6 +21,9 @@
       <div class="header-content">
         <h1>Shift Report</h1>
         <p>Fill, attach, preview, copy</p>
+        <div id="missionStatusIndicator" class="text-xs mt-1" style="color: var(--text-secondary)">
+          Checking mission status...
+        </div>
       </div>
     </div>
     <div class="header-actions">
@@ -379,6 +382,22 @@
     function clearFields(){ fieldValues={}; prefillDefaults(); statusEl.textContent='Cleared.'; renderFields(); }
 
     async function copyToClipboard(){
+      // Check if there's an active mission
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (!activeMission || activeMission.status !== 'active') {
+        statusEl.textContent='Cannot copy shift report - no active mission. Start a mission first to enable copying.';
+        statusEl.style.color = 'var(--error)';
+        setTimeout(() => {
+          statusEl.style.color = 'var(--text-secondary)';
+        }, 5000);
+        
+        // Show notification if available
+        if (window.showNotification) {
+          window.showNotification('Copy blocked - no active mission', 'warning');
+        }
+        return;
+      }
+
       const text = compileBody();
       try{ await navigator.clipboard.writeText(text); statusEl.textContent='Copied to clipboard.'; }
       catch{
@@ -388,6 +407,22 @@
     }
 
     function saveShiftReport(){
+      // Check if there's an active mission
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (!activeMission || activeMission.status !== 'active') {
+        statusEl.textContent='Cannot save shift report - no active mission. Start a mission first to enable saving.';
+        statusEl.style.color = 'var(--error)';
+        setTimeout(() => {
+          statusEl.style.color = 'var(--text-secondary)';
+        }, 5000);
+        
+        // Show notification if available
+        if (window.showNotification) {
+          window.showNotification('Save blocked - no active mission', 'warning');
+        }
+        return;
+      }
+
       const bodyText = compileBody();
       const arr = loadJson(STORE_KEYS.savedShiftReports, []);
       const record = {
@@ -401,13 +436,92 @@
           guard: fieldValues.guardName || '',
           post: fieldValues.post || '',
           attachedIncidentIds: Array.isArray(fieldValues._attachedIncidents) ? fieldValues._attachedIncidents.slice() : [],
-          attachedPatrolIds: Array.isArray(fieldValues._attachedPatrols) ? fieldValues._attachedPatrols.slice() : []
+          attachedPatrolIds: Array.isArray(fieldValues._attachedPatrols) ? fieldValues._attachedPatrols.slice() : [],
+          missionId: activeMission.id // Track which mission this shift report belongs to
         },
         body: bodyText
       };
       arr.unshift(record);
       saveJson(STORE_KEYS.savedShiftReports, arr);
       statusEl.textContent = 'Shift report saved.';
+      
+      // End the mission when shift report is saved
+      endCurrentMission();
+    }
+
+    // Function to end the current mission when shift report is saved
+    function endCurrentMission() {
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (!activeMission) return;
+
+      // Create completed mission record
+      const completedMission = {
+        ...activeMission,
+        status: 'completed',
+        endTime: new Date().toISOString(),
+        endReason: 'shift_report_submitted'
+      };
+
+      // Add to mission history
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+      missionHistory.unshift(completedMission);
+      localStorage.setItem('missionHistory', JSON.stringify(missionHistory.slice(0, 50)));
+
+      // Remove active mission
+      localStorage.removeItem('activeMission');
+
+      // Update button states
+      updateButtonStates();
+      
+      statusEl.textContent = 'Shift report saved and mission ended.';
+    }
+
+    // Function to update button states based on mission status
+    function updateButtonStates() {
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      const hasActiveMission = activeMission && activeMission.status === 'active';
+      const missionStatusIndicator = document.getElementById('missionStatusIndicator');
+      
+      // Update mission status indicator
+      if (hasActiveMission) {
+        const startTime = new Date(activeMission.startTime);
+        const duration = Date.now() - startTime;
+        const hours = Math.floor(duration / (1000 * 60 * 60));
+        const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+        const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        
+        missionStatusIndicator.innerHTML = `🟢 Active Mission (${durationText}) - Save/Copy enabled`;
+        missionStatusIndicator.style.color = 'var(--success)';
+      } else {
+        missionStatusIndicator.innerHTML = '🔴 No Active Mission - Save/Copy disabled. <a href="index.html" style="color: var(--accent-primary)">Start a mission</a>';
+        missionStatusIndicator.style.color = 'var(--error)';
+      }
+      
+      // Update save report button
+      if (!hasActiveMission) {
+        btnSaveReport.disabled = true;
+        btnSaveReport.style.opacity = '0.5';
+        btnSaveReport.title = 'Cannot save - no active mission. Start a mission first.';
+        btnSaveReport.innerHTML = '🚫 Save Report (Disabled)';
+      } else {
+        btnSaveReport.disabled = false;
+        btnSaveReport.style.opacity = '1';
+        btnSaveReport.title = '';
+        btnSaveReport.innerHTML = '✅ Save Report';
+      }
+      
+      // Update copy button
+      if (!hasActiveMission) {
+        btnCopy.disabled = true;
+        btnCopy.style.opacity = '0.5';
+        btnCopy.title = 'Cannot copy - no active mission. Start a mission first.';
+        btnCopy.innerHTML = '🚫 Copy (Disabled)';
+      } else {
+        btnCopy.disabled = false;
+        btnCopy.style.opacity = '1';
+        btnCopy.title = '';
+        btnCopy.innerHTML = '📋 Copy';
+      }
     }
 
     btnSave.addEventListener('click', saveDraft);
@@ -456,6 +570,10 @@
       fieldValues = {};
       prefillDefaults();
       renderFields();
+      updateButtonStates(); // Check mission status on page load
+      
+      // Periodically check mission status to update button states
+      setInterval(updateButtonStates, 5000); // Check every 5 seconds
     });
   </script>
 </body>

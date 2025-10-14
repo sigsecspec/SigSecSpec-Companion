@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Features Test - Security Companion</title>
+  <link rel="stylesheet" href="app-styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-content">
+      <h1>Mission Features Test</h1>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="mobile-card mb-6">
+      <h2 class="text-xl font-bold mb-4">🧪 Test Mission Schedule Features</h2>
+      
+      <div class="space-y-4">
+        <button class="touch-btn primary w-full" onclick="testEarlyStart()">
+          Test Early Start Popup (15+ min early)
+        </button>
+        
+        <button class="touch-btn primary w-full" onclick="testEarlyEnd()">
+          Test Early End Popup (before end time)
+        </button>
+        
+        <button class="touch-btn primary w-full" onclick="testOvertimeNotification()">
+          Test Overtime Notification (15+ min late)
+        </button>
+        
+        <button class="touch-btn primary w-full" onclick="createTestMissions()">
+          Create Test Missions & History
+        </button>
+        
+        <button class="touch-btn danger w-full" onclick="clearTestData()">
+          Clear Test Data
+        </button>
+      </div>
+      
+      <div class="mt-6">
+        <h3 class="font-semibold mb-2">Test Results:</h3>
+        <div id="testResults" class="p-3 rounded-lg text-sm" style="background: var(--bg-tertiary); min-height: 100px;">
+          Click buttons above to test features...
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app-common.js"></script>
+  <script src="push-notifications.js"></script>
+  <script>
+    function log(message) {
+      const results = document.getElementById('testResults');
+      results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+      results.scrollTop = results.scrollHeight;
+    }
+
+    function testEarlyStart() {
+      log('Testing early start popup...');
+      
+      // Create a mission 30 minutes in the future
+      const futureTime = new Date();
+      futureTime.setMinutes(futureTime.getMinutes() + 30);
+      
+      const testMission = {
+        id: 'test-early-start',
+        title: 'Test Early Start Mission',
+        date: futureTime.toISOString().split('T')[0],
+        startTime: futureTime.toTimeString().slice(0, 5),
+        endTime: new Date(futureTime.getTime() + 2*60*60*1000).toTimeString().slice(0, 5),
+        status: 'scheduled'
+      };
+      
+      // Save and try to start
+      const missions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      missions.push(testMission);
+      localStorage.setItem('scheduledMissions', JSON.stringify(missions));
+      
+      // Simulate the early start check
+      const now = new Date();
+      const missionStartTime = new Date(testMission.date + 'T' + testMission.startTime);
+      const timeUntilStart = missionStartTime - now;
+      const minutesUntilStart = Math.floor(timeUntilStart / (1000 * 60));
+      
+      if (timeUntilStart > 15 * 60 * 1000) {
+        log(`✅ Early start detected: ${minutesUntilStart} minutes early`);
+        log('Popup would show: "Woah! It\'s too early for this mission..."');
+      } else {
+        log('❌ Mission is within 15 minutes - no popup needed');
+      }
+    }
+
+    function testEarlyEnd() {
+      log('Testing early end popup...');
+      
+      // Create an active mission that ends in 30 minutes
+      const endTime = new Date();
+      endTime.setMinutes(endTime.getMinutes() + 30);
+      
+      const activeMission = {
+        id: 'test-early-end',
+        startTime: new Date().toISOString(),
+        status: 'active',
+        originalMission: {
+          title: 'Test Early End Mission',
+          date: new Date().toISOString().split('T')[0],
+          endTime: endTime.toTimeString().slice(0, 5)
+        }
+      };
+      
+      localStorage.setItem('activeMission', JSON.stringify(activeMission));
+      
+      // Simulate the early end check
+      const now = new Date();
+      const missionEndTime = new Date(activeMission.originalMission.date + 'T' + activeMission.originalMission.endTime);
+      const timeUntilEnd = missionEndTime - now;
+      const minutesUntilEnd = Math.floor(timeUntilEnd / (1000 * 60));
+      
+      if (timeUntilEnd > 0) {
+        log(`✅ Early end detected: ${minutesUntilEnd} minutes remaining`);
+        log('Popup would show: "Woah, not so fast! This mission time hasn\'t ended yet..."');
+      } else {
+        log('❌ Mission has reached end time - no popup needed');
+      }
+    }
+
+    function testOvertimeNotification() {
+      log('Testing overtime notification...');
+      
+      // Create a mission that ended 20 minutes ago
+      const pastEndTime = new Date();
+      pastEndTime.setMinutes(pastEndTime.getMinutes() - 20);
+      
+      const overtimeMission = {
+        id: 'test-overtime',
+        startTime: new Date(pastEndTime.getTime() - 2*60*60*1000).toISOString(),
+        status: 'active',
+        originalMission: {
+          title: 'Test Overtime Mission',
+          date: pastEndTime.toISOString().split('T')[0],
+          endTime: pastEndTime.toTimeString().slice(0, 5)
+        }
+      };
+      
+      localStorage.setItem('activeMission', JSON.stringify(overtimeMission));
+      
+      // Simulate overtime check
+      const now = new Date();
+      const missionEndTime = new Date(overtimeMission.originalMission.date + 'T' + overtimeMission.originalMission.endTime);
+      const overtimeMs = now - missionEndTime;
+      const overtimeMinutes = Math.floor(overtimeMs / (1000 * 60));
+      
+      if (overtimeMs > 0 && overtimeMinutes >= 15) {
+        log(`✅ Overtime detected: ${overtimeMinutes} minutes over`);
+        log('Notification would show: "Still On The Clock! You\'re X minutes past your scheduled end time..."');
+        
+        // Test notification if available
+        if (window.securityNotifications) {
+          window.securityNotifications.showLocalNotification(
+            '⏰ Test Overtime Alert!',
+            `You're ${overtimeMinutes} minutes past your scheduled end time. This is a test notification.`,
+            { tag: 'test-overtime' }
+          );
+          log('📱 Test notification sent!');
+        }
+      } else {
+        log('❌ No overtime detected');
+      }
+    }
+
+    function createTestMissions() {
+      log('Creating test missions and history...');
+      
+      const now = new Date();
+      
+      // Create upcoming missions
+      const upcomingMissions = [
+        {
+          id: 'upcoming-1',
+          title: 'Morning Patrol',
+          date: new Date(now.getTime() + 24*60*60*1000).toISOString().split('T')[0],
+          startTime: '08:00',
+          endTime: '12:00',
+          location: 'Building A',
+          priority: 'normal',
+          status: 'scheduled'
+        },
+        {
+          id: 'upcoming-2',
+          title: 'Evening Security Check',
+          date: new Date(now.getTime() + 24*60*60*1000).toISOString().split('T')[0],
+          startTime: '18:00',
+          endTime: '22:00',
+          location: 'Perimeter',
+          priority: 'high',
+          status: 'scheduled'
+        }
+      ];
+      
+      // Create mission history
+      const missionHistory = [
+        {
+          id: 'completed-1',
+          startTime: new Date(now.getTime() - 24*60*60*1000).toISOString(),
+          endTime: new Date(now.getTime() - 20*60*60*1000).toISOString(),
+          status: 'completed',
+          originalMission: {
+            title: 'Night Shift Security',
+            location: 'Main Building',
+            priority: 'normal'
+          }
+        },
+        {
+          id: 'completed-2',
+          startTime: new Date(now.getTime() - 48*60*60*1000).toISOString(),
+          endTime: new Date(now.getTime() - 44*60*60*1000).toISOString(),
+          status: 'completed',
+          originalMission: {
+            title: 'Weekend Patrol',
+            location: 'Parking Lot',
+            priority: 'high'
+          }
+        }
+      ];
+      
+      localStorage.setItem('scheduledMissions', JSON.stringify(upcomingMissions));
+      localStorage.setItem('missionHistory', JSON.stringify(missionHistory));
+      
+      log('✅ Created 2 upcoming missions and 2 completed missions');
+      log('Navigate to schedule.html to see them in action!');
+    }
+
+    function clearTestData() {
+      log('Clearing test data...');
+      localStorage.removeItem('activeMission');
+      localStorage.removeItem('scheduledMissions');
+      localStorage.removeItem('missionHistory');
+      localStorage.removeItem('overtimeMonitoring');
+      log('✅ All test data cleared');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      log('Mission Features Test initialized');
+      log('All features implemented:');
+      log('• Early start popup (15+ minutes before start)');
+      log('• Early end popup (before scheduled end time)');
+      log('• Overtime notifications (every 15 minutes after end)');
+      log('• Clickable past missions with details and reports');
+      log('Ready for testing!');
+    });
+  </script>
+</body>
+</html>

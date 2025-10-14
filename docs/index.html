@@ -366,6 +366,65 @@
     </div>
   </div>
 
+  <!-- Tardy Excuse Popup -->
+  <div id="tardyExcusePopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-md mx-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+      <h3 class="text-xl font-bold mb-4">⏰ Late Mission Start</h3>
+      <p class="mb-4" style="color: var(--text-secondary)">You are starting this mission after the scheduled start time. Please provide a reason for the delay:</p>
+      
+      <div class="space-y-3 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Mission</label>
+          <div id="tardyMissionName" class="p-3 rounded-lg" style="background: var(--bg-tertiary); color: var(--text-secondary);">
+            <!-- Mission name will be populated here -->
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Scheduled Start Time</label>
+          <div id="tardyScheduledTime" class="p-3 rounded-lg" style="background: var(--bg-tertiary); color: var(--text-secondary);">
+            <!-- Scheduled time will be populated here -->
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Current Time</label>
+          <div id="tardyCurrentTime" class="p-3 rounded-lg" style="background: var(--bg-tertiary); color: var(--text-secondary);">
+            <!-- Current time will be populated here -->
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-2">Reason for Delay <span style="color: var(--error);">*</span></label>
+          <select id="tardyReasonSelect" class="w-full px-3 py-2 rounded-lg" 
+                  style="background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary);"
+                  onchange="handleTardyReasonChange()">
+            <option value="">Select a reason...</option>
+            <option value="traffic">Traffic/Transportation delay</option>
+            <option value="previous">Previous duty ran over</option>
+            <option value="emergency">Emergency situation</option>
+            <option value="equipment">Equipment preparation delay</option>
+            <option value="briefing">Extended briefing/handover</option>
+            <option value="weather">Weather conditions</option>
+            <option value="other">Other (specify below)</option>
+          </select>
+        </div>
+        
+        <div id="tardyExplanationDiv">
+          <label class="block text-sm font-medium mb-2">Additional Explanation</label>
+          <textarea id="tardyExplanation" rows="3" class="w-full px-3 py-2 rounded-lg" 
+                    style="background: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary);"
+                    placeholder="Provide additional details about the delay..."></textarea>
+        </div>
+      </div>
+      
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="closeTardyExcusePopup()">Cancel</button>
+        <button class="touch-btn primary flex-1" onclick="confirmTardyMissionStart()">Start Mission</button>
+      </div>
+    </div>
+  </div>
+
   <div id="equipmentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
     <div class="mobile-card max-w-md mx-4 my-4" style="position: relative; top: 50%; transform: translateY(-50%);">
       <h3 class="text-xl font-bold mb-4">🎒 Equipment Check</h3>
@@ -676,6 +735,124 @@
       endMission();
     }
 
+    // Tardy Excuse Popup Functions
+    let currentTardyMission = null;
+
+    function showTardyExcusePopup(mission) {
+      currentTardyMission = mission;
+      
+      // Populate mission details
+      document.getElementById('tardyMissionName').textContent = mission.title || 'Scheduled Mission';
+      
+      const scheduledTime = new Date(mission.date + 'T' + mission.startTime);
+      document.getElementById('tardyScheduledTime').textContent = scheduledTime.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const currentTime = new Date();
+      document.getElementById('tardyCurrentTime').textContent = currentTime.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      // Calculate how late
+      const lateMinutes = Math.floor((currentTime - scheduledTime) / (1000 * 60));
+      const lateHours = Math.floor(lateMinutes / 60);
+      const remainingMinutes = lateMinutes % 60;
+      
+      let lateText = '';
+      if (lateHours > 0) {
+        lateText = `${lateHours} hour${lateHours > 1 ? 's' : ''} and ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''} late`;
+      } else {
+        lateText = `${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''} late`;
+      }
+      
+      // Update the description with how late they are
+      const descriptionElement = document.querySelector('#tardyExcusePopup p');
+      descriptionElement.innerHTML = `You are starting this mission <strong style="color: var(--error);">${lateText}</strong>. Please provide a reason for the delay:`;
+      
+      // Reset form
+      document.getElementById('tardyReasonSelect').value = '';
+      document.getElementById('tardyExplanation').value = '';
+      
+      // Show popup
+      document.getElementById('tardyExcusePopup').classList.remove('hidden');
+      document.getElementById('tardyExcusePopup').classList.add('flex');
+    }
+
+    function closeTardyExcusePopup() {
+      document.getElementById('tardyExcusePopup').classList.add('hidden');
+      document.getElementById('tardyExcusePopup').classList.remove('flex');
+      currentTardyMission = null;
+    }
+
+    function handleTardyReasonChange() {
+      const reasonSelect = document.getElementById('tardyReasonSelect');
+      const explanationDiv = document.getElementById('tardyExplanationDiv');
+      
+      // Make explanation required if "other" is selected
+      if (reasonSelect.value === 'other') {
+        explanationDiv.querySelector('label').innerHTML = 'Additional Explanation <span style="color: var(--error);">*</span>';
+        document.getElementById('tardyExplanation').setAttribute('required', 'true');
+      } else {
+        explanationDiv.querySelector('label').innerHTML = 'Additional Explanation';
+        document.getElementById('tardyExplanation').removeAttribute('required');
+      }
+    }
+
+    function confirmTardyMissionStart() {
+      const reason = document.getElementById('tardyReasonSelect').value;
+      const explanation = document.getElementById('tardyExplanation').value.trim();
+      
+      if (!reason) {
+        showWarning('Please select a reason for the delay');
+        return;
+      }
+      
+      if (reason === 'other' && !explanation) {
+        showWarning('Please provide an explanation for the delay');
+        return;
+      }
+      
+      // Store tardy information
+      const tardyInfo = {
+        missionId: currentTardyMission.id,
+        missionTitle: currentTardyMission.title,
+        scheduledTime: new Date(currentTardyMission.date + 'T' + currentTardyMission.startTime).toISOString(),
+        actualStartTime: new Date().toISOString(),
+        lateMinutes: Math.floor((new Date() - new Date(currentTardyMission.date + 'T' + currentTardyMission.startTime)) / (1000 * 60)),
+        reason: reason,
+        explanation: explanation,
+        recordedAt: new Date().toISOString()
+      };
+      
+      // Save tardy record
+      const tardyRecords = JSON.parse(localStorage.getItem('tardyMissionRecords') || '[]');
+      tardyRecords.push(tardyInfo);
+      localStorage.setItem('tardyMissionRecords', JSON.stringify(tardyRecords));
+      
+      // Add tardy info to the mission before starting it
+      currentTardyMission.tardyInfo = tardyInfo;
+      
+      // Close popup and start mission
+      closeTardyExcusePopup();
+      startMissionDirectly(currentTardyMission);
+      
+      // Show notification about tardy record
+      if (window.securityNotifications) {
+        window.securityNotifications.showLocalNotification(
+          '⏰ Late Start Recorded',
+          `Mission started ${tardyInfo.lateMinutes} minutes late. Reason: ${reason}`,
+          { tag: 'tardy-mission', requireInteraction: false }
+        );
+      }
+    }
+
     // Patrol Action Handler
     function handlePatrolAction() {
       const currentPatrol = JSON.parse(localStorage.getItem('currentPatrol') || 'null');
@@ -825,20 +1002,36 @@
           return;
         }
         
-        // Check if this is a scheduled mission
+        // Check for scheduled missions
         const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
         const now = new Date();
-        const currentScheduledMission = scheduledMissions.find(mission => {
+        
+        // Find missions scheduled within 15 minutes from now
+        const upcomingMission = scheduledMissions.find(mission => {
           if (mission.status !== 'scheduled') return false;
           const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
-          const timeDiff = Math.abs(now - missionDateTime);
-          return timeDiff <= 30 * 60 * 1000; // Within 30 minutes
+          const timeDiff = missionDateTime - now;
+          // Mission is scheduled within the next 15 minutes
+          return timeDiff > 0 && timeDiff <= 15 * 60 * 1000;
         });
         
-        if (currentScheduledMission) {
-          startMissionDirectly(currentScheduledMission);
+        // Find missions that are currently in their scheduled time (late/tardy)
+        const tardyMission = scheduledMissions.find(mission => {
+          if (mission.status !== 'scheduled') return false;
+          const missionStartTime = new Date(mission.date + 'T' + mission.startTime);
+          const missionEndTime = mission.endTime ? new Date(mission.date + 'T' + mission.endTime) : new Date(missionStartTime.getTime() + 8 * 60 * 60 * 1000); // Default 8 hours if no end time
+          // Mission has started and we're within the scheduled time window
+          return now >= missionStartTime && now <= missionEndTime;
+        });
+        
+        if (upcomingMission) {
+          // Mission is scheduled within 15 minutes - start it directly
+          startMissionDirectly(upcomingMission);
+        } else if (tardyMission) {
+          // Mission is late (within scheduled time) - show tardy excuse popup
+          showTardyExcusePopup(tardyMission);
         } else {
-          // Show confirmation for unscheduled mission
+          // No scheduled mission - show unscheduled mission popup
           openMissionConfirmPopup();
         }
       } else {

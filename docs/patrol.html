@@ -593,16 +593,28 @@
           cancelCheckpoint();
           modal.removeEventListener('keydown', handleKeyDown);
         } else if (e.key === 'Enter' && e.ctrlKey) {
-          saveCheckpoint();
-          modal.removeEventListener('keydown', handleKeyDown);
+          saveCheckpoint().then(() => {
+            // Event listener will be removed when modal closes via cancelCheckpoint()
+          });
         }
       };
       modal.addEventListener('keydown', handleKeyDown);
+      
+      // Store the handler so we can remove it when the modal closes
+      modal._keydownHandler = handleKeyDown;
     }
 
     function cancelCheckpoint() {
-      document.getElementById('checkpointModal').classList.add('hidden');
-      document.getElementById('checkpointModal').classList.remove('flex');
+      const modal = document.getElementById('checkpointModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      
+      // Clean up event listener
+      if (modal._keydownHandler) {
+        modal.removeEventListener('keydown', modal._keydownHandler);
+        modal._keydownHandler = null;
+      }
+      
       document.getElementById('checkpointLocation').value = '';
       document.getElementById('checkpointNotes').value = '';
     }
@@ -709,16 +721,28 @@
           cancelEditCheckpoint();
           modal.removeEventListener('keydown', handleKeyDown);
         } else if (e.key === 'Enter' && e.ctrlKey) {
-          saveEditCheckpoint();
-          modal.removeEventListener('keydown', handleKeyDown);
+          saveEditCheckpoint().then(() => {
+            // Event listener will be removed when modal closes via cancelEditCheckpoint()
+          });
         }
       };
       modal.addEventListener('keydown', handleKeyDown);
+      
+      // Store the handler so we can remove it when the modal closes
+      modal._keydownHandler = handleKeyDown;
     }
 
     function cancelEditCheckpoint() {
-      document.getElementById('editCheckpointModal').classList.add('hidden');
-      document.getElementById('editCheckpointModal').classList.remove('flex');
+      const modal = document.getElementById('editCheckpointModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      
+      // Clean up event listener
+      if (modal._keydownHandler) {
+        modal.removeEventListener('keydown', modal._keydownHandler);
+        modal._keydownHandler = null;
+      }
+      
       document.getElementById('editCheckpointLocation').value = '';
       document.getElementById('editCheckpointNotes').value = '';
       editingCheckpointId = null;

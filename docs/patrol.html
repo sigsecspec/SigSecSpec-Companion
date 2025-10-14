@@ -924,16 +924,40 @@
 
     // Update current time display
     function updateCurrentTime() {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      });
-      const timeElement = document.getElementById('currentTimePatrol');
-      if (timeElement) {
-        timeElement.textContent = timeString;
+      try {
+        const now = new Date();
+        let timeString;
+        
+        // Try modern format first
+        try {
+          timeString = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          });
+        } catch (e) {
+          // Fallback for older browsers
+          const hours = now.getHours().toString().padStart(2, '0');
+          const minutes = now.getMinutes().toString().padStart(2, '0');
+          const seconds = now.getSeconds().toString().padStart(2, '0');
+          timeString = `${hours}:${minutes}:${seconds}`;
+        }
+        
+        const timeElement = document.getElementById('currentTimePatrol');
+        if (timeElement) {
+          timeElement.textContent = timeString;
+        }
+      } catch (error) {
+        console.error('Error updating current time:', error);
+        // Fallback display
+        const timeElement = document.getElementById('currentTimePatrol');
+        if (timeElement && timeElement.textContent === '--:--') {
+          const now = new Date();
+          const hours = now.getHours().toString().padStart(2, '0');
+          const minutes = now.getMinutes().toString().padStart(2, '0');
+          timeElement.textContent = `${hours}:${minutes}`;
+        }
       }
     }
 
@@ -1104,9 +1128,28 @@
       loadMissionPatrols();
       updatePatrolButtonStates(); // Update button states based on shift report status
       updateLocation();
+      
+      // Initialize current time immediately and then update every second
       updateCurrentTime();
-      setInterval(updateLocation, 30000); // Update location every 30 seconds
       setInterval(updateCurrentTime, 1000); // Update current time every second
+      
+      // Ensure current time is set immediately (multiple fallbacks)
+      setTimeout(updateCurrentTime, 100);
+      setTimeout(updateCurrentTime, 500);
+      
+      // Force update current time if still showing --:--
+      setTimeout(() => {
+        const timeElement = document.getElementById('currentTimePatrol');
+        if (timeElement && timeElement.textContent === '--:--') {
+          const now = new Date();
+          const hours = now.getHours().toString().padStart(2, '0');
+          const minutes = now.getMinutes().toString().padStart(2, '0');
+          const seconds = now.getSeconds().toString().padStart(2, '0');
+          timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+      }, 1000);
+      
+      setInterval(updateLocation, 30000); // Update location every 30 seconds
       setInterval(updatePatrolButtonStates, 5000); // Check button states every 5 seconds
       
       // Check for active mission and schedule patrol notifications

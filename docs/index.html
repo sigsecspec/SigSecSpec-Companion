@@ -168,10 +168,10 @@
         <div class="nav-icon">📟</div>
         <span>Codes</span>
       </a>
-      <a href="incident.html" class="nav-item">
+      <div class="nav-item reports-dropdown" onclick="toggleReportsDropdown()">
         <div class="nav-icon">📝</div>
-        <span>Report</span>
-      </a>
+        <span>Reports</span>
+      </div>
       <a href="patrol.html" class="nav-item">
         <div class="nav-icon">🚶</div>
         <span>Patrol</span>
@@ -205,6 +205,18 @@
         <a href="tel:555-0125" class="touch-btn w-full">🚑 Medical</a>
       </div>
       <button class="touch-btn w-full mt-4" onclick="closeContacts()">Close</button>
+    </div>
+  </div>
+
+  <div id="reportsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold mb-4">📝 Reports</h3>
+      <div class="space-y-3">
+        <a href="incident.html" class="touch-btn primary w-full">📝 Create Incident Report</a>
+        <a href="shift.html" class="touch-btn primary w-full">📋 Create Shift Report</a>
+        <a href="reports.html" class="touch-btn w-full">📑 View Saved Reports</a>
+      </div>
+      <button class="touch-btn w-full mt-4" onclick="closeReports()">Close</button>
     </div>
   </div>
 
@@ -409,6 +421,17 @@
     function closeContacts() {
       document.getElementById('contactsModal').classList.add('hidden');
       document.getElementById('contactsModal').classList.remove('flex');
+    }
+
+    // Reports functions
+    function toggleReportsDropdown() {
+      document.getElementById('reportsModal').classList.remove('hidden');
+      document.getElementById('reportsModal').classList.add('flex');
+    }
+
+    function closeReports() {
+      document.getElementById('reportsModal').classList.add('hidden');
+      document.getElementById('reportsModal').classList.remove('flex');
     }
 
     // Security functions

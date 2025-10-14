@@ -254,6 +254,7 @@
     <a href="#radio" data-route="radio" class="nav-link ripple-container">Phonetics</a>
     <a href="incident.html" class="nav-link ripple-container">Incident</a>
     <a href="shift.html" class="nav-link ripple-container">Shift</a>
+    <a href="reports.html" class="nav-link ripple-container">Reports</a>
   </nav>
 
   <!-- Page transition curtain -->
@@ -603,7 +604,7 @@
             { key: 'locationDetails', label: 'Where (Details)', type: 'text' },
             { key: 'incidentType', label: 'Incident Type', type: 'select', options: ['Trespass','Disturbance','Theft','Medical','Property Damage','Other'] },
             { key: 'participants', label: 'Who (Participants)', type: 'participants', roles: ['Suspect','Victim','Witness'] },
-            { key: 'what', label: 'What Happened', type: 'textarea', rows: 4, placeholder: 'Objective narrative; tokens like suspect1, victim1 allowed' },
+            { key: 'what', label: 'Narrative', type: 'textarea', rows: 4, placeholder: 'Objective narrative. Tip: tap role labels below to insert tokens (e.g., suspect1); tokens expand to names in preview.' },
             { key: 'details', label: 'Actions Taken / Additional Details', type: 'textarea', rows: 4 },
             { key: 'injuries', label: 'Injuries', type: 'textarea', rows: 2 },
             { key: 'evidence', label: 'Evidence/Attachments', type: 'textarea', rows: 2 },
@@ -612,7 +613,7 @@
           body: (
             'Incident Report\n' +
             'Who:\n{whoSection}\n\n' +
-            'What:\n{whatExpanded}\n\n' +
+            'Narrative:\n{whatExpanded}\n\n' +
             'When:\n{when}\n\n' +
             'Where:\n{where}\n\n' +
             'Type: {incidentType}\n' +
@@ -799,9 +800,10 @@
               roles.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; roleSel.appendChild(o); });
               roleSel.value = p.role || roles[0];
 
-              const label = document.createElement('div');
-              label.className = 'text-xs text-gray-400 w-24';
-              const norm = normalizeRole(roleSel.value);
+              const label = document.createElement('button');
+              label.type = 'button';
+              label.className = 'text-xs text-gray-400 w-24 text-left underline decoration-dotted decoration-white/20 cursor-pointer';
+              label.title = 'Tap to insert role token into Narrative';
               label.textContent = `${roleSel.value} ${p._idx || 1}`;
 
               const nameInput = document.createElement('input');
@@ -814,6 +816,11 @@
               delBtn.type = 'button';
               delBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
               delBtn.textContent = 'Remove';
+
+              const insertBtn = document.createElement('button');
+              insertBtn.type = 'button';
+              insertBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
+              insertBtn.textContent = 'Insert to Narrative';
 
               roleSel.addEventListener('change', () => {
                 const arr = ensureArray(fieldValues[field.key]);
@@ -836,10 +843,25 @@
                 updatePreview();
               });
 
+              label.addEventListener('click', () => {
+                const base = normalizeRole(roleSel.value);
+                const token = `${base}${p._idx || 1}`;
+                insertTokenIntoNarrative(token);
+              });
+              insertBtn.addEventListener('click', () => {
+                const arr = ensureArray(fieldValues[field.key]);
+                const current = arr[idx] || {};
+                const name = String(current.name||'').trim();
+                const base = normalizeRole(roleSel.value);
+                const fallback = `${base}${p._idx || 1}`;
+                insertTokenIntoNarrative(name || fallback);
+              });
+
               row.appendChild(roleSel);
               row.appendChild(label);
               row.appendChild(nameInput);
               row.appendChild(delBtn);
+              row.appendChild(insertBtn);
               container.appendChild(row);
             });
 
@@ -862,7 +884,7 @@
             // Helper hint
             const hint = document.createElement('div');
             hint.className = 'text-xs text-gray-400';
-            hint.textContent = 'Tip: In your Details, use tokens like "suspect1", "victim2" to auto-fill names.';
+            hint.textContent = 'Tip: Tap role label to insert token or use Insert to add the name. Tokens expand to full names in preview/copy.';
             container.appendChild(btnRow);
             container.appendChild(hint);
           }
@@ -919,6 +941,25 @@
         const t = TEMPLATES.find(x=>x.id === currentTemplateId);
         if (!t) { previewEl.textContent = ''; return; }
         previewEl.textContent = compileBody(t);
+      }
+
+      function insertAtCursor(textarea, text){
+        if(!textarea) return;
+        const start = textarea.selectionStart || 0;
+        const end = textarea.selectionEnd || 0;
+        const before = textarea.value.slice(0, start);
+        const after = textarea.value.slice(end);
+        textarea.value = before + text + after;
+        const pos = start + text.length;
+        textarea.selectionStart = textarea.selectionEnd = pos;
+        textarea.focus();
+      }
+      function insertTokenIntoNarrative(token){
+        const ta = document.querySelector('#templateFormFields textarea[data-key="what"]');
+        const toInsert = (token || '').trim();
+        if(!ta || !toInsert) return;
+        insertAtCursor(ta, toInsert + ' ');
+        ta.dispatchEvent(new Event('input', { bubbles:true }));
       }
 
       function onChange(e){

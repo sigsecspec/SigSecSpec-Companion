@@ -11,6 +11,8 @@
     .app-card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:1rem; }
     #bottomNav{ position:fixed; left:0; right:0; bottom:0; width:100%; height:var(--bottom-nav-height,56px); display:flex; justify-content:space-around; align-items:center; gap:.25rem; background:rgba(17,17,17,0.9); backdrop-filter:saturate(180%) blur(10px); border-top:1px solid rgba(255,255,255,0.06); z-index:60; padding:0 .5rem calc(env(safe-area-inset-bottom,0px)); }
     #bottomNav a{ flex:1 1 0; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .nav-link{ border-radius:10px; padding:.5rem .75rem; transition:background 160ms ease; }
+    .nav-link[aria-current="page"]{ background:rgba(255,255,255,0.08); }
     #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
     .accent{ color:var(--accent); }
     @media print{
@@ -41,11 +43,17 @@
           <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Draft</button>
           <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Load Draft</button>
           <button id="btnClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Clear</button>
+          <button id="btnSaveReport" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Report</button>
           <button id="btnCopy" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Copy</button>
         </div>
       </div>
       <div id="statusLine" class="text-sm text-gray-400"></div>
       <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="app-card">
+        <div class="font-semibold mb-1">Attach Incidents</div>
+        <div id="incidentAttachList" class="space-y-2"></div>
+        <div class="text-xs text-gray-400 mt-2">Attach zero or more saved incidents to include in this shift report.</div>
+      </div>
       <div class="app-card">
         <div class="font-semibold mb-2">Preview</div>
         <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
@@ -54,11 +62,12 @@
   </main>
 
   <nav id="bottomNav">
-    <a href="index.html" class="px-3 py-1 rounded-md">Home</a>
-    <a href="codes.html" class="px-3 py-1 rounded-md">Codes</a>
-    <a href="radio.html" class="px-3 py-1 rounded-md">Phonetics</a>
-    <a href="incident.html" class="px-3 py-1 rounded-md">Incident</a>
-    <a href="shift.html" class="px-3 py-1 rounded-md">Shift</a>
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="codes.html" class="nav-link">Codes</a>
+    <a href="radio.html" class="nav-link">Phonetics</a>
+    <a href="incident.html" class="nav-link">Incident</a>
+    <a href="shift.html" class="nav-link" aria-current="page">Shift</a>
+    <a href="reports.html" class="nav-link">Reports</a>
   </nav>
 
   <script>
@@ -66,7 +75,7 @@
     document.addEventListener('DOMContentLoaded',()=>{ if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); });
     // Fixed bottom nav; no scroll toggling required
 
-    const STORE_KEYS = { profile:'sss_profile', templateDrafts:'sss_template_drafts' };
+    const STORE_KEYS = { profile:'sss_profile', templateDrafts:'sss_template_drafts', savedIncidentReports:'sss_saved_incident_reports', savedShiftReports:'sss_saved_shift_reports' };
     function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }
     function saveJson(key,value){ localStorage.setItem(key, JSON.stringify(value)); }
 
@@ -77,6 +86,8 @@
     const btnLoad = document.getElementById('btnLoadDraft');
     const btnClear = document.getElementById('btnClear');
     const btnCopy = document.getElementById('btnCopy');
+    const btnSaveReport = document.getElementById('btnSaveReport');
+    const incidentAttachList = document.getElementById('incidentAttachList');
 
     const TEMPLATE = {
       id: 'shift_report',
@@ -120,6 +131,27 @@
     function toDisplay(value){ return (value==null || String(value).trim()==='') ? 'N/A' : String(value); }
     function compileBody(){ return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> toDisplay(fieldValues[k])); }
 
+    function renderIncidentAttachments(){
+      const incs = loadJson(STORE_KEYS.savedIncidentReports, []);
+      if (!incidentAttachList) return;
+      if (!Array.isArray(fieldValues._attachedIncidents)) fieldValues._attachedIncidents = [];
+      incidentAttachList.innerHTML = incs.map(rec=>{
+        const checked = fieldValues._attachedIncidents.includes(rec.id) ? 'checked' : '';
+        const when = rec.meta?.dateTime || new Date(rec.at).toISOString().slice(0,16);
+        const label = `${rec.meta?.type||'Incident'} — ${rec.meta?.post||''} — ${when}`;
+        return `<label class="flex items-center gap-2 text-sm"><input type="checkbox" data-incid="${rec.id}" ${checked}/> <span class="flex-1 truncate">${label}</span></label>`;
+      }).join('') || '<div class="text-gray-400 text-sm">No saved incidents yet. Save some from Incident Report.</div>';
+      incidentAttachList.querySelectorAll('[data-incid]').forEach(cb=>{
+        cb.addEventListener('change', ()=>{
+          const id = cb.getAttribute('data-incid');
+          const arr = Array.isArray(fieldValues._attachedIncidents) ? fieldValues._attachedIncidents.slice() : [];
+          if (cb.checked && !arr.includes(id)) arr.push(id);
+          if (!cb.checked) fieldValues._attachedIncidents = arr.filter(x=>x!==id);
+          else fieldValues._attachedIncidents = arr;
+        });
+      });
+    }
+
     function createInput(field){
       const commonCls = 'w-full bg-[#111] border border-white/10 rounded-md px-3 py-2';
       let el;
@@ -142,6 +174,7 @@
         wrap.appendChild(title); wrap.appendChild(input); fieldsContainer.appendChild(wrap);
       });
       updatePreview();
+      renderIncidentAttachments();
     }
 
     function updatePreview(){ previewEl.textContent = compileBody(); }
@@ -170,10 +203,33 @@
       }
     }
 
+    function saveShiftReport(){
+      const bodyText = compileBody();
+      const arr = loadJson(STORE_KEYS.savedShiftReports, []);
+      const record = {
+        id: 'shift_'+Date.now(),
+        category: 'shift',
+        templateId: TEMPLATE.id,
+        at: Date.now(),
+        fields: { ...fieldValues },
+        meta: {
+          date: fieldValues.date || '',
+          guard: fieldValues.guardName || '',
+          post: fieldValues.post || '',
+          attachedIncidentIds: Array.isArray(fieldValues._attachedIncidents) ? fieldValues._attachedIncidents.slice() : []
+        },
+        body: bodyText
+      };
+      arr.unshift(record);
+      saveJson(STORE_KEYS.savedShiftReports, arr);
+      statusEl.textContent = 'Shift report saved.';
+    }
+
     btnSave.addEventListener('click', saveDraft);
     btnLoad.addEventListener('click', loadDraft);
     btnClear.addEventListener('click', clearFields);
     btnCopy.addEventListener('click', copyToClipboard);
+    btnSaveReport.addEventListener('click', saveShiftReport);
 
     // init
     fieldValues = {};

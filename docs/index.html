@@ -607,26 +607,29 @@
             { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
             { key: 'guardName', label: 'Guard Name', type: 'text' },
             { key: 'post', label: 'Post / Location', type: 'text' },
+            { key: 'location', label: 'Where (Location)', type: 'text' },
+            { key: 'locationDetails', label: 'Where (Details)', type: 'text' },
             { key: 'incidentType', label: 'Incident Type', type: 'select', options: ['Trespass','Disturbance','Theft','Medical','Property Damage','Other'] },
-            { key: 'summary', label: 'Summary', type: 'textarea', rows: 4, placeholder: 'Brief, objective description' },
-            { key: 'actionsTaken', label: 'Actions Taken', type: 'textarea', rows: 3 },
-            { key: 'personsInvolved', label: 'Persons Involved', type: 'textarea', rows: 3, placeholder: 'Names/roles/descriptions' },
+            { key: 'participants', label: 'Who (Participants)', type: 'participants', roles: ['Suspect','Victim','Witness'] },
+            { key: 'what', label: 'What Happened', type: 'textarea', rows: 4, placeholder: 'Objective narrative; tokens like suspect1, victim1 allowed' },
+            { key: 'details', label: 'Actions Taken / Additional Details', type: 'textarea', rows: 4 },
             { key: 'injuries', label: 'Injuries', type: 'textarea', rows: 2 },
             { key: 'evidence', label: 'Evidence/Attachments', type: 'textarea', rows: 2 },
             { key: 'reportingParty', label: 'Reporting Party', type: 'text' }
           ],
           body: (
             'Incident Report\n' +
-            'Date/Time: {dateTime}\n' +
-            'Guard: {guardName}\n' +
-            'Post/Location: {post}\n' +
-            'Type: {incidentType}\n\n' +
-            'Summary:\n{summary}\n\n' +
-            'Actions Taken:\n{actionsTaken}\n\n' +
-            'Persons Involved:\n{personsInvolved}\n\n' +
+            'Who:\n{whoSection}\n\n' +
+            'What:\n{whatExpanded}\n\n' +
+            'When:\n{when}\n\n' +
+            'Where:\n{where}\n\n' +
+            'Type: {incidentType}\n' +
+            'Details:\n{detailsExpanded}\n\n' +
             'Injuries:\n{injuries}\n\n' +
             'Evidence/Attachments:\n{evidence}\n\n' +
-            'Reporting Party: {reportingParty}'
+            'Reporting Party: {reportingParty}\n' +
+            'Officer: {guardName}\n' +
+            'Post: {post}'
           )
         },
         {
@@ -641,7 +644,12 @@
             { key: 'patrols', label: 'Patrols Conducted', type: 'textarea', rows: 3, placeholder: 'Times/areas' },
             { key: 'contacts', label: 'Contacts / Interactions', type: 'textarea', rows: 3 },
             { key: 'incidents', label: 'Incidents (if any)', type: 'textarea', rows: 3 },
-            { key: 'notes', label: 'Notes', type: 'textarea', rows: 3 }
+            { key: 'alarms', label: 'Alarms / Calls Responded', type: 'textarea', rows: 3 },
+            { key: 'visitors', label: 'Visitors / Deliveries', type: 'textarea', rows: 3 },
+            { key: 'maintenanceIssues', label: 'Maintenance / Safety Issues', type: 'textarea', rows: 3 },
+            { key: 'equipmentIssues', label: 'Equipment Issues', type: 'textarea', rows: 3 },
+            { key: 'handoffNotes', label: 'Handoff Notes for Next Shift', type: 'textarea', rows: 3 },
+            { key: 'notes', label: 'Other Notes', type: 'textarea', rows: 3 }
           ],
           body: (
             'Shift Report\n' +
@@ -652,7 +660,12 @@
             'Patrols:\n{patrols}\n\n' +
             'Contacts/Interactions:\n{contacts}\n\n' +
             'Incidents:\n{incidents}\n\n' +
-            'Notes:\n{notes}'
+            'Alarms / Calls Responded:\n{alarms}\n\n' +
+            'Visitors / Deliveries:\n{visitors}\n\n' +
+            'Maintenance / Safety Issues:\n{maintenanceIssues}\n\n' +
+            'Equipment Issues:\n{equipmentIssues}\n\n' +
+            'Handoff Notes:\n{handoffNotes}\n\n' +
+            'Other Notes:\n{notes}'
           )
         }
       ];
@@ -981,7 +994,18 @@
         renderFields();
       }
 
+      function isIncidentWsComplete(){
+        if (currentTemplateId !== 'incident_report') return true;
+        const hasWhat = String(fieldValues.what||'').trim().length > 0;
+        const hasWhen = String(fieldValues.dateTime||'').trim().length > 0;
+        const hasWhere = String([fieldValues.location||'', fieldValues.locationDetails||''].join('')).trim().length > 0;
+        const participants = ensureArray(fieldValues.participants);
+        const hasWho = participants.some(p => (p && String(p.name||'').trim().length > 0));
+        return hasWhat && hasWhen && hasWhere && hasWho;
+      }
+
       async function copyToClipboard(){
+        if (!isIncidentWsComplete()) { setStatus('Please complete Who, What, When, and Where before copying.'); return; }
         const t = TEMPLATES.find(x=>x.id === currentTemplateId);
         if (!t) return;
         const text = compileBody(t);

@@ -90,7 +90,12 @@
         { key:'patrols', label:'Patrols Conducted', type:'textarea', rows:3, placeholder:'Times/areas' },
         { key:'contacts', label:'Contacts / Interactions', type:'textarea', rows:3 },
         { key:'incidents', label:'Incidents (if any)', type:'textarea', rows:3 },
-        { key:'notes', label:'Notes', type:'textarea', rows:3 }
+        { key:'alarms', label:'Alarms / Calls Responded', type:'textarea', rows:3 },
+        { key:'visitors', label:'Visitors / Deliveries', type:'textarea', rows:3 },
+        { key:'maintenanceIssues', label:'Maintenance / Safety Issues', type:'textarea', rows:3 },
+        { key:'equipmentIssues', label:'Equipment Issues', type:'textarea', rows:3 },
+        { key:'handoffNotes', label:'Handoff Notes for Next Shift', type:'textarea', rows:3 },
+        { key:'notes', label:'Other Notes', type:'textarea', rows:3 }
       ],
       body: (
         'Shift Report\n' +
@@ -101,7 +106,12 @@
         'Patrols:\n{patrols}\n\n' +
         'Contacts/Interactions:\n{contacts}\n\n' +
         'Incidents:\n{incidents}\n\n' +
-        'Notes:\n{notes}'
+        'Alarms / Calls Responded:\n{alarms}\n\n' +
+        'Visitors / Deliveries:\n{visitors}\n\n' +
+        'Maintenance / Safety Issues:\n{maintenanceIssues}\n\n' +
+        'Equipment Issues:\n{equipmentIssues}\n\n' +
+        'Handoff Notes:\n{handoffNotes}\n\n' +
+        'Other Notes:\n{notes}'
       )
     };
 

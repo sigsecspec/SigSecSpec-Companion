@@ -122,14 +122,36 @@
         'Maintenance / Safety Issues:\n{maintenanceIssues}\n\n' +
         'Equipment Issues:\n{equipmentIssues}\n\n' +
         'Handoff Notes:\n{handoffNotes}\n\n' +
-        'Other Notes:\n{notes}'
+        'Other Notes:\n{notes}\n\n' +
+        'Attached Incidents:\n{attachedIncidentsSection}'
       )
     };
 
     let fieldValues = {};
 
     function toDisplay(value){ return (value==null || String(value).trim()==='') ? 'N/A' : String(value); }
-    function compileBody(){ return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> toDisplay(fieldValues[k])); }
+    function buildAttachedIncidentsSection(){
+      try{
+        const selected = Array.isArray(fieldValues._attachedIncidents) ? fieldValues._attachedIncidents : [];
+        if (!selected.length) return '';
+        const all = loadJson(STORE_KEYS.savedIncidentReports, []);
+        const recs = selected.map(id => all.find(r => r && r.id === id)).filter(Boolean);
+        if (!recs.length) return '';
+        const parts = recs.map((rec, idx) => {
+          const when = rec.meta?.dateTime || new Date(rec.at).toISOString().slice(0,16);
+          const post = rec.meta?.post || '';
+          const type = rec.meta?.type || 'Incident';
+          const header = `[${idx+1}] ${type} — ${post} — ${when}`;
+          const body = rec.body || '';
+          return `${header}\n${body}`;
+        });
+        return parts.join('\n\n');
+      }catch{ return ''; }
+    }
+    function compileBody(){
+      const computed = { attachedIncidentsSection: buildAttachedIncidentsSection() };
+      return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> toDisplay((k in computed) ? computed[k] : fieldValues[k]));
+    }
 
     function renderIncidentAttachments(){
       const incs = loadJson(STORE_KEYS.savedIncidentReports, []);
@@ -142,12 +164,13 @@
         return `<label class="flex items-center gap-2 text-sm"><input type="checkbox" data-incid="${rec.id}" ${checked}/> <span class="flex-1 truncate">${label}</span></label>`;
       }).join('') || '<div class="text-gray-400 text-sm">No saved incidents yet. Save some from Incident Report.</div>';
       incidentAttachList.querySelectorAll('[data-incid]').forEach(cb=>{
-        cb.addEventListener('change', ()=>{
+      cb.addEventListener('change', ()=>{
           const id = cb.getAttribute('data-incid');
           const arr = Array.isArray(fieldValues._attachedIncidents) ? fieldValues._attachedIncidents.slice() : [];
           if (cb.checked && !arr.includes(id)) arr.push(id);
           if (!cb.checked) fieldValues._attachedIncidents = arr.filter(x=>x!==id);
           else fieldValues._attachedIncidents = arr;
+          updatePreview();
         });
       });
     }

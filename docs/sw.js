@@ -1,4 +1,4 @@
-const CACHE_NAME = 'security-companion-v1.0.0';
+const CACHE_NAME = 'security-companion-v2.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -10,6 +10,7 @@ const urlsToCache = [
   '/patrol.html',
   '/profile.html',
   '/manifest.json',
+  '/patch-bg.png',
   'https://cdn.tailwindcss.com'
 ];
 
@@ -115,31 +116,50 @@ async function doBackgroundSync() {
 
 // Push notifications
 self.addEventListener('push', event => {
+  let notificationData = {
+    title: 'Security Companion',
+    body: 'New notification from Security Companion',
+    icon: 'patch-bg.png',
+    badge: 'patch-bg.png'
+  };
+
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      notificationData = { ...notificationData, ...data };
+    } catch (e) {
+      notificationData.body = event.data.text();
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'New notification from Security Companion',
-    icon: '/icon-192.png',
-    badge: '/icon-96.png',
-    vibrate: [200, 100, 200],
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    vibrate: [200, 100, 200, 100, 200],
+    tag: 'security-notification',
+    requireInteraction: true,
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      primaryKey: Date.now(),
+      url: notificationData.url || '/'
     },
     actions: [
       {
-        action: 'explore',
+        action: 'open',
         title: 'Open App',
-        icon: '/icon-96.png'
+        icon: 'patch-bg.png'
       },
       {
-        action: 'close',
-        title: 'Close',
-        icon: '/icon-96.png'
+        action: 'dismiss',
+        title: 'Dismiss',
+        icon: 'patch-bg.png'
       }
     ]
   };
 
   event.waitUntil(
-    self.registration.showNotification('Security Companion', options)
+    self.registration.showNotification(notificationData.title, options)
   );
 });
 
@@ -147,17 +167,38 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
 
-  if (event.action === 'explore') {
+  const urlToOpen = event.notification.data?.url || '/';
+
+  if (event.action === 'open') {
     event.waitUntil(
-      clients.openWindow('/')
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientList => {
+          // Check if app is already open
+          for (const client of clientList) {
+            if (client.url.includes(self.location.origin) && 'focus' in client) {
+              client.focus();
+              return client.navigate(urlToOpen);
+            }
+          }
+          // Open new window if app is not open
+          return clients.openWindow(urlToOpen);
+        })
     );
-  } else if (event.action === 'close') {
+  } else if (event.action === 'dismiss') {
     // Just close the notification
     return;
   } else {
     // Default action - open the app
     event.waitUntil(
-      clients.openWindow('/')
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(clientList => {
+          for (const client of clientList) {
+            if (client.url.includes(self.location.origin) && 'focus' in client) {
+              return client.focus();
+            }
+          }
+          return clients.openWindow(urlToOpen);
+        })
     );
   }
 });

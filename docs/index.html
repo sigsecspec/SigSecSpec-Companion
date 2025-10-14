@@ -540,7 +540,7 @@
   </header>
 
   <!-- Emergency Button -->
-  <button class="emergency-btn" onclick="triggerEmergency()" aria-label="Emergency alert">
+  <button class="emergency-btn" onclick="triggerEmergency()" aria-label="Emergency alert" title="Send Emergency Alert">
     🚨
   </button>
 
@@ -970,6 +970,11 @@
       } else {
         alert('Push notifications are not enabled. Please enable them in settings.');
       }
+    }
+
+    // Deep-link handling for PWA shortcuts
+    if (new URLSearchParams(location.search).get('emergency') === 'true') {
+      setTimeout(() => triggerEmergency(), 300);
     }
 
     // Enhanced loading and animations

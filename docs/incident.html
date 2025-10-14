@@ -65,7 +65,9 @@
 <body class="bg-pattern">
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">📝</div>
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-2 shadow-lg border border-white/10">
+        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain filter brightness-110">
+      </div>
       <div>
         <h1 class="text-2xl font-bold">Incident Report</h1>
         <p class="text-sm" style="color: var(--text-secondary)">Automated narrative generator</p>
@@ -111,6 +113,12 @@ The system will automatically:
 
 Start by filling in the basic incident information below...
           </pre>
+          <textarea id="narrativeEditor" rows="14" class="w-full mt-2 hidden rounded-lg px-3 py-2" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);"></textarea>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button id="btnEditNarrative" class="touch-btn">✏️ Edit Narrative</button>
+            <button id="btnRegenerate" class="touch-btn hidden">🔄 Re-generate</button>
+            <button id="btnAddPersonInline" class="touch-btn">➕ Add Person to Narrative</button>
+          </div>
         </div>
       </div>
 
@@ -276,6 +284,43 @@ Start by filling in the basic incident information below...
     </div>
   </nav>
 
+  <!-- Add Person Modal -->
+  <div id="addPersonModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-md mx-4 w-full">
+      <h3 class="text-xl font-bold mb-4">➕ Add Person</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <label class="block">
+          <span class="text-sm" style="color: var(--text-secondary)">Role</span>
+          <select id="ap_role" class="w-full px-3 py-2 mt-1 rounded-lg" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);">
+            <option>Victim</option>
+            <option>Suspect</option>
+            <option>Witness</option>
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-sm" style="color: var(--text-secondary)">Name (optional)</span>
+          <input id="ap_name" type="text" class="w-full px-3 py-2 mt-1 rounded-lg" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);" placeholder="Real name (will be anonymized)">
+        </label>
+        <label class="block md:col-span-2">
+          <span class="text-sm" style="color: var(--text-secondary)">Description</span>
+          <input id="ap_desc" type="text" class="w-full px-3 py-2 mt-1 rounded-lg" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);" placeholder="Age, gender, build, distinguishing features">
+        </label>
+        <label class="block md:col-span-2">
+          <span class="text-sm" style="color: var(--text-secondary)">Clothing</span>
+          <input id="ap_clothes" type="text" class="w-full px-3 py-2 mt-1 rounded-lg" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);" placeholder="Top, pants, shoes, accessories">
+        </label>
+        <label class="block md:col-span-2">
+          <span class="text-sm" style="color: var(--text-secondary)">ID/License (if obtained)</span>
+          <input id="ap_id" type="text" class="w-full px-3 py-2 mt-1 rounded-lg" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);" placeholder="e.g., DL #, state">
+        </label>
+      </div>
+      <div class="flex gap-3 mt-4">
+        <button class="touch-btn flex-1" onclick="closeAddPersonModal()">Cancel</button>
+        <button class="touch-btn primary flex-1" onclick="savePersonFromModal()">Add Person</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Theme and text size
     function toggleTheme(){ const cur = document.documentElement.getAttribute('data-theme'); const next = cur==='light'?'dark':'light'; document.documentElement.setAttribute('data-theme', next); localStorage.setItem('theme', next); }
@@ -308,6 +353,7 @@ Start by filling in the basic incident information below...
 
     // People Management
     let peopleList = [];
+    let narrativeMode = 'generated'; // 'generated' | 'manual'
     
     function addPerson(role) {
       const id = Date.now();
@@ -379,20 +425,28 @@ Start by filling in the basic incident information below...
 
     // Report Generation
     function generateReport() {
+      if (narrativeMode === 'manual') {
+        // Do not overwrite manual narrative while editing
+        const status = document.getElementById('reportStatus');
+        status.textContent = '✏️ Manual edit enabled — use Re-generate to refresh';
+        status.className = 'text-sm text-yellow-400 mt-1';
+        return;
+      }
+
       const data = collectFormData();
-      
+
       if (!isFormValid(data)) {
         document.getElementById('reportNarrative').textContent = generateEmptyReport();
         document.getElementById('reportStatus').textContent = 'Fill in required fields to generate report';
         document.getElementById('reportStatus').className = 'text-sm text-yellow-400 mt-1';
         return;
       }
-      
+
       const narrative = generateDetailedNarrative(data);
       document.getElementById('reportNarrative').textContent = narrative;
       document.getElementById('reportStatus').textContent = '✅ Report generated successfully';
       document.getElementById('reportStatus').className = 'text-sm text-green-400 mt-1';
-      
+
       // Show incident type badge
       if (data.incidentType) {
         const badge = document.getElementById('incidentTypeBadge');
@@ -699,6 +753,18 @@ DATE/TIME: ${formatDateTime(reportDate)}
       document.getElementById('btnCopy').addEventListener('click', copyToClipboard);
       document.getElementById('btnExport').addEventListener('click', exportPDF);
       document.getElementById('btnEmail').addEventListener('click', emailReport);
+
+      // Narrative editing controls
+      document.getElementById('btnEditNarrative').addEventListener('click', toggleNarrativeEdit);
+      document.getElementById('btnRegenerate').addEventListener('click', () => {
+        narrativeMode = 'generated';
+        document.getElementById('narrativeEditor').classList.add('hidden');
+        document.getElementById('reportNarrative').classList.remove('hidden');
+        document.getElementById('btnRegenerate').classList.add('hidden');
+        document.getElementById('btnEditNarrative').textContent = '✏️ Edit Narrative';
+        generateReport();
+      });
+      document.getElementById('btnAddPersonInline').addEventListener('click', openAddPersonModal);
     }
     
     function setDefaultDateTime() {
@@ -742,6 +808,14 @@ DATE/TIME: ${formatDateTime(reportDate)}
       showStatus('Draft loaded successfully!', 'success');
     }
     
+    function getCurrentNarrativeTextAnonymized() {
+      const data = collectFormData();
+      const text = (narrativeMode === 'manual'
+        ? (document.getElementById('narrativeEditor').value || '')
+        : (document.getElementById('reportNarrative').textContent || ''));
+      return anonymizeNarrative(text, data.people || []);
+    }
+
     function saveReport() {
       const data = collectFormData();
       if (!isFormValid(data)) {
@@ -761,7 +835,7 @@ DATE/TIME: ${formatDateTime(reportDate)}
           post: data.post,
           where: data.location + ' - ' + data.specificLocation
         },
-        body: document.getElementById('reportNarrative').textContent
+        body: getCurrentNarrativeTextAnonymized()
       };
       
       reports.unshift(report);
@@ -770,7 +844,7 @@ DATE/TIME: ${formatDateTime(reportDate)}
     }
     
     async function copyToClipboard() {
-      const text = document.getElementById('reportNarrative').textContent;
+      const text = getCurrentNarrativeTextAnonymized();
       try {
         await navigator.clipboard.writeText(text);
         showStatus('Report copied to clipboard!', 'success');
@@ -807,6 +881,57 @@ DATE/TIME: ${formatDateTime(reportDate)}
         status.textContent = '';
         generateReport();
       }, 3000);
+    }
+
+    // Narrative editing
+    function toggleNarrativeEdit() {
+      const pre = document.getElementById('reportNarrative');
+      const editor = document.getElementById('narrativeEditor');
+      const btn = document.getElementById('btnEditNarrative');
+      const regen = document.getElementById('btnRegenerate');
+      if (narrativeMode === 'generated') {
+        narrativeMode = 'manual';
+        editor.value = pre.textContent || '';
+        pre.classList.add('hidden');
+        editor.classList.remove('hidden');
+        btn.textContent = '✅ Use Edited Narrative';
+        regen.classList.remove('hidden');
+        showStatus('Manual narrative editing enabled', 'info');
+      } else {
+        // Save manual edits back to preview (but keep manual mode)
+        pre.textContent = editor.value;
+        showStatus('Edited narrative applied', 'success');
+      }
+    }
+
+    // Add Person modal
+    function openAddPersonModal() {
+      const modal = document.getElementById('addPersonModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAddPersonModal() {
+      const modal = document.getElementById('addPersonModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      ['ap_role','ap_name','ap_desc','ap_clothes','ap_id'].forEach(id=>{
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    }
+
+    function savePersonFromModal() {
+      const role = document.getElementById('ap_role').value || 'Witness';
+      const name = document.getElementById('ap_name').value.trim();
+      const description = document.getElementById('ap_desc').value.trim();
+      const clothing = document.getElementById('ap_clothes').value.trim();
+      const identification = document.getElementById('ap_id').value.trim();
+      const id = Date.now();
+      peopleList.push({ id, role, name, description, clothing, identification });
+      renderPeople();
+      closeAddPersonModal();
+      showStatus(`${role} added to narrative inputs`, 'success');
     }
   </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Incident Report — Signature Security Specialist</title>
+  <title>Incident Report Generator — Signature Security Specialist</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
@@ -15,12 +15,25 @@
     .nav-link[aria-current="page"]{ background:rgba(255,255,255,0.08); }
     #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
     .accent{ color:var(--accent); }
+    .split-layout { display: flex; flex-direction: column; height: calc(100vh - 120px - var(--bottom-nav-height,56px)); }
+    .report-section { flex: 1; overflow-y: auto; min-height: 40%; }
+    .form-section { flex: 1; overflow-y: auto; min-height: 40%; border-top: 2px solid rgba(255,255,255,0.1); }
+    .report-display { background: linear-gradient(135deg, rgba(174,174,90,0.05), rgba(92,98,73,0.05)); border: 2px solid var(--accent-2); }
+    .narrative-display { background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 8px; font-family: ui-monospace, 'Courier New', monospace; line-height: 1.6; }
+    .control-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #000; font-weight: 600; }
+    .btn-primary:hover { opacity: 0.9; }
+    .field-group { background: rgba(255,255,255,0.02); padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; }
+    .incident-type-badge { display: inline-block; padding: 0.25rem 0.75rem; background: var(--accent-2); color: #fff; border-radius: 20px; font-size: 0.875rem; }
+    @media (min-width: 1024px) {
+      .split-layout { flex-direction: column; }
+    }
     @media print{
       html,body{ background:#fff !important; color:#000 !important; }
       header,#bottomNav{ display:none !important; }
       #mainContent{ padding:0 !important; }
-      #formControls,#statusLine,.controls-bar{ display:none !important; }
-      #templatePreview{ border:0 !important; padding:0 !important; color:#000 !important; font-size:12pt; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .control-buttons,.form-section{ display:none !important; }
+      .narrative-display{ border:0 !important; padding:0 !important; color:#000 !important; font-size:12pt; }
     }
   </style>
 </head>
@@ -28,31 +41,204 @@
   <header class="p-4 pb-6 flex justify-between items-center">
     <div>
       <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
-      <p class="text-sm text-gray-400">Incident Report — fill, preview, copy</p>
+      <p class="text-sm text-gray-400">Automated Incident Report Generator</p>
     </div>
     <div class="flex space-x-2">
       <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
     </div>
   </header>
 
-  <main id="mainContent" class="flex-1 overflow-auto p-5">
-    <section class="max-w-4xl mx-auto space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end controls-bar">
-        <div class="text-sm text-gray-300">Incident Report</div>
-        <div class="flex flex-wrap gap-2 md:justify-end">
-          <button id="btnImportIncident" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Import Latest Incident</button>
-          <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Draft</button>
-          <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Load Draft</button>
-          <button id="btnClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Clear</button>
-          <button id="btnSaveReport" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Report</button>
-          <button id="btnCopy" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Copy</button>
+  <main id="mainContent" class="flex-1 overflow-auto px-5">
+    <section class="max-w-7xl mx-auto split-layout">
+      
+      <!-- Top Section: Report Display and Controls -->
+      <div class="report-section pb-4">
+        <div class="app-card report-display">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-bold">Generated Report & Narrative</h2>
+              <div id="reportStatus" class="text-sm text-gray-400 mt-1">Fill in the fields below to generate report</div>
+            </div>
+            <div class="control-buttons">
+              <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 hover:bg-[#1a1a1a]">💾 Save Draft</button>
+              <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 hover:bg-[#1a1a1a]">📂 Load Draft</button>
+              <button id="btnExport" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 hover:bg-[#1a1a1a]">📄 Export PDF</button>
+              <button id="btnEmail" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 hover:bg-[#1a1a1a]">📧 Email</button>
+              <button id="btnSaveReport" class="px-4 py-2 rounded-md btn-primary">✅ Save Report</button>
+              <button id="btnCopy" class="px-4 py-2 rounded-md btn-primary">📋 Copy to Clipboard</button>
+            </div>
+          </div>
+          
+          <div class="narrative-display">
+            <div id="incidentTypeBadge" class="mb-3 hidden">
+              <span class="incident-type-badge"></span>
+            </div>
+            <pre id="reportNarrative" class="whitespace-pre-wrap text-gray-200">
+═══════════════════════════════════════════════════════════════════════════════
+                          INCIDENT REPORT - NOT GENERATED YET
+═══════════════════════════════════════════════════════════════════════════════
+
+Please fill in the incident details below to generate a comprehensive report.
+The system will automatically:
+• Anonymize all names (Victim1, Suspect1, Witness1, etc.)
+• Generate a detailed, professional narrative
+• Format everything properly for official use
+
+Start by filling in the basic incident information below...
+            </pre>
+          </div>
         </div>
       </div>
-      <div id="statusLine" class="text-sm text-gray-400"></div>
-      <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-      <div class="app-card">
-        <div class="font-semibold mb-2">Preview</div>
-        <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
+
+      <!-- Bottom Section: Input Form -->
+      <div class="form-section pt-4 pb-8">
+        <div class="mb-4">
+          <h3 class="text-lg font-semibold">📝 Incident Details - Fill in the Blanks</h3>
+          <p class="text-sm text-gray-400">Complete all fields to generate a detailed report. All names will be anonymized automatically.</p>
+        </div>
+
+        <div class="space-y-3">
+          <!-- Basic Information -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3 text-yellow-400">⏰ When & Where</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="text-sm text-gray-300">Date & Time of Incident</span>
+                <input type="datetime-local" id="dateTime" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Report Filed Date & Time</span>
+                <input type="datetime-local" id="reportDateTime" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Location/Property Name</span>
+                <input type="text" id="location" placeholder="e.g., ABC Shopping Mall" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Specific Area/Address</span>
+                <input type="text" id="specificLocation" placeholder="e.g., North Parking Lot, Level 2" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+            </div>
+          </div>
+
+          <!-- Incident Type -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3 text-yellow-400">🚨 Incident Classification</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="text-sm text-gray-300">Incident Type</span>
+                <select id="incidentType" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+                  <option value="">Select Type...</option>
+                  <option value="Trespassing">Trespassing</option>
+                  <option value="Theft">Theft</option>
+                  <option value="Vandalism">Vandalism/Property Damage</option>
+                  <option value="Assault">Assault</option>
+                  <option value="Disturbance">Disturbance</option>
+                  <option value="Suspicious Activity">Suspicious Activity</option>
+                  <option value="Medical Emergency">Medical Emergency</option>
+                  <option value="Fire/Smoke">Fire/Smoke</option>
+                  <option value="Alarm Response">Alarm Response</option>
+                  <option value="Vehicle Incident">Vehicle Incident</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Severity Level</span>
+                <select id="severity" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+                  <option value="Low">Low - Minor Incident</option>
+                  <option value="Medium">Medium - Moderate Concern</option>
+                  <option value="High">High - Serious Incident</option>
+                  <option value="Critical">Critical - Emergency Response</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <!-- People Involved -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3 text-yellow-400">👥 People Involved</h4>
+            <div id="peopleContainer" class="space-y-2">
+              <!-- Dynamic people entries will be added here -->
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button onclick="addPerson('Victim')" class="px-3 py-2 bg-red-900/30 border border-red-500/30 rounded-md hover:bg-red-900/40">+ Add Victim</button>
+              <button onclick="addPerson('Suspect')" class="px-3 py-2 bg-orange-900/30 border border-orange-500/30 rounded-md hover:bg-orange-900/40">+ Add Suspect</button>
+              <button onclick="addPerson('Witness')" class="px-3 py-2 bg-blue-900/30 border border-blue-500/30 rounded-md hover:bg-blue-900/40">+ Add Witness</button>
+            </div>
+          </div>
+
+          <!-- Incident Details -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3 text-yellow-400">📋 What Happened</h4>
+            <label class="block mb-3">
+              <span class="text-sm text-gray-300">How did the incident begin? (Initial Contact/Discovery)</span>
+              <textarea id="initialContact" rows="2" placeholder="e.g., While conducting routine patrol at 1430 hours, I observed..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1"></textarea>
+            </label>
+            <label class="block mb-3">
+              <span class="text-sm text-gray-300">Describe what happened (Sequence of Events)</span>
+              <textarea id="incidentDescription" rows="4" placeholder="Describe the incident in detail - what you saw, heard, and did..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1"></textarea>
+            </label>
+            <label class="block mb-3">
+              <span class="text-sm text-gray-300">What action did you take?</span>
+              <textarea id="actionTaken" rows="3" placeholder="e.g., Approached the individual, called for backup, secured the area..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1"></textarea>
+            </label>
+            <label class="block">
+              <span class="text-sm text-gray-300">How was the incident resolved?</span>
+              <textarea id="resolution" rows="2" placeholder="e.g., Subject left property, police arrived and took over, medical transported patient..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1"></textarea>
+            </label>
+          </div>
+
+          <!-- Evidence and Documentation -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3 text-yellow-400">📸 Evidence & Documentation</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="text-sm text-gray-300">Property Damage/Loss</span>
+                <textarea id="propertyDamage" rows="2" placeholder="Describe any damage or stolen items..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1"></textarea>
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Injuries Sustained</span>
+                <textarea id="injuries" rows="2" placeholder="Describe any injuries to persons..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1"></textarea>
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Evidence Collected</span>
+                <input type="text" id="evidence" placeholder="e.g., CCTV footage, photos, physical items..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Police Report #</span>
+                <input type="text" id="policeReport" placeholder="If applicable" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+            </div>
+          </div>
+
+          <!-- Officer Information -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3 text-yellow-400">👮 Reporting Officer</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label class="block">
+                <span class="text-sm text-gray-300">Officer Name</span>
+                <input type="text" id="officerName" placeholder="Your name" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Badge/ID Number</span>
+                <input type="text" id="badgeNumber" placeholder="Badge #" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+              <label class="block">
+                <span class="text-sm text-gray-300">Post/Assignment</span>
+                <input type="text" id="post" placeholder="e.g., Main Gate, Patrol Unit 3" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1">
+              </label>
+            </div>
+          </div>
+
+          <!-- Additional Notes -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3 text-yellow-400">📝 Additional Information</h4>
+            <label class="block">
+              <span class="text-sm text-gray-300">Other Relevant Details / Follow-up Required</span>
+              <textarea id="additionalNotes" rows="3" placeholder="Any other important information, recommendations, or follow-up actions needed..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2 mt-1"></textarea>
+            </label>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -67,335 +253,536 @@
   </nav>
 
   <script>
-    function toggleLarge(){ document.body.classList.toggle('text-lg'); localStorage.setItem('sss_large', document.body.classList.contains('text-lg')); }
-    document.addEventListener('DOMContentLoaded',()=>{ if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); });
-    // Fixed bottom nav; no scroll toggling required
+    // UI Functions
+    function toggleLarge(){ 
+      document.body.classList.toggle('text-lg'); 
+      localStorage.setItem('sss_large', document.body.classList.contains('text-lg')); 
+    }
+    
+    document.addEventListener('DOMContentLoaded',()=>{ 
+      if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); 
+      initializeForm();
+      setDefaultDateTime();
+    });
 
-    const STORE_KEYS = { profile:'sss_profile', incidents:'sss_incidents', templateDrafts:'sss_template_drafts', savedIncidentReports:'sss_saved_incident_reports' };
-    function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }
-    function saveJson(key,value){ localStorage.setItem(key, JSON.stringify(value)); }
-
-    const fieldsContainer = document.getElementById('formControls');
-    const previewEl = document.getElementById('templatePreview');
-    const statusEl = document.getElementById('statusLine');
-    const btnImport = document.getElementById('btnImportIncident');
-    const btnSave = document.getElementById('btnSaveDraft');
-    const btnLoad = document.getElementById('btnLoadDraft');
-    const btnClear = document.getElementById('btnClear');
-    const btnCopy = document.getElementById('btnCopy');
-    const btnSaveReport = document.getElementById('btnSaveReport');
-
-    const TEMPLATE = {
-      id: 'incident_report',
-      name: 'Incident Report',
-      fields: [
-        { key:'dateTime', label:'Date / Time', type:'datetime-local' },
-        { key:'guardName', label:'Guard Name', type:'text' },
-        { key:'post', label:'Post / Location', type:'text' },
-        { key:'location', label:'Where (Location)', type:'text' },
-        { key:'locationDetails', label:'Where (Details)', type:'text' },
-        { key:'incidentType', label:'Incident Type', type:'select', options:['Trespass','Disturbance','Theft','Medical','Property Damage','Other'] },
-        { key:'participants', label:'Who (Participants)', type:'participants', roles:['Suspect','Victim','Witness'] },
-        { key:'what', label:'Narrative', type:'textarea', rows:4, placeholder:'Objective narrative. Tip: tap role labels below to insert tokens (e.g., suspect1); tokens expand to names in preview.' },
-        { key:'details', label:'Actions Taken / Additional Details', type:'textarea', rows:4 },
-        { key:'injuries', label:'Injuries', type:'textarea', rows:2 },
-        { key:'evidence', label:'Evidence/Attachments', type:'textarea', rows:2 },
-        { key:'reportingParty', label:'Reporting Party', type:'text' }
-      ],
-      body: (
-        'Incident Report\n' +
-        'Who:\n{whoSection}\n\n' +
-        'Narrative:\n{whatExpanded}\n\n' +
-        'When:\n{when}\n\n' +
-        'Where:\n{where}\n\n' +
-        'Type: {incidentType}\n' +
-        'Details:\n{detailsExpanded}\n\n' +
-        'Injuries:\n{injuries}\n\n' +
-        'Evidence/Attachments:\n{evidence}\n\n' +
-        'Reporting Party: {reportingParty}\n' +
-        'Officer: {guardName}\n' +
-        'Post: {post}'
-      )
+    // Storage Functions
+    const STORE_KEYS = { 
+      profile:'sss_profile', 
+      savedIncidentReports:'sss_saved_incident_reports',
+      incidentDrafts:'sss_incident_drafts'
     };
+    
+    function loadJson(key,fallback){ 
+      try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+      catch{ return fallback; } 
+    }
+    
+    function saveJson(key,value){ 
+      localStorage.setItem(key, JSON.stringify(value)); 
+    }
 
-    let fieldValues = {};
+    // People Management
+    let peopleList = [];
+    
+    function addPerson(role) {
+      const id = Date.now();
+      const person = { id, role, name: '', description: '', clothing: '', identification: '' };
+      peopleList.push(person);
+      renderPeople();
+    }
+    
+    function removePerson(id) {
+      peopleList = peopleList.filter(p => p.id !== id);
+      renderPeople();
+    }
+    
+    function updatePerson(id, field, value) {
+      const person = peopleList.find(p => p.id === id);
+      if (person) {
+        person[field] = value;
+        generateReport();
+      }
+    }
+    
+    function renderPeople() {
+      const container = document.getElementById('peopleContainer');
+      
+      if (peopleList.length === 0) {
+        container.innerHTML = '<div class="text-gray-400 text-sm">No people added yet. Use buttons below to add victims, suspects, or witnesses.</div>';
+        generateReport();
+        return;
+      }
+      
+      container.innerHTML = peopleList.map(person => {
+        const roleColors = {
+          'Victim': 'border-red-500/30 bg-red-900/10',
+          'Suspect': 'border-orange-500/30 bg-orange-900/10',
+          'Witness': 'border-blue-500/30 bg-blue-900/10'
+        };
+        
+        return `
+          <div class="p-3 border rounded-md ${roleColors[person.role] || 'border-white/10'} space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">${person.role} ${getPersonIndex(person)}</span>
+              <button onclick="removePerson(${person.id})" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input type="text" placeholder="Name (will be anonymized)" value="${person.name}" 
+                     onchange="updatePerson(${person.id}, 'name', this.value)"
+                     class="bg-[#111] border border-white/10 rounded px-2 py-1 text-sm">
+              <input type="text" placeholder="Description (age, gender, build)" value="${person.description}"
+                     onchange="updatePerson(${person.id}, 'description', this.value)"
+                     class="bg-[#111] border border-white/10 rounded px-2 py-1 text-sm">
+              <input type="text" placeholder="Clothing description" value="${person.clothing}"
+                     onchange="updatePerson(${person.id}, 'clothing', this.value)"
+                     class="bg-[#111] border border-white/10 rounded px-2 py-1 text-sm">
+              <input type="text" placeholder="ID/License (if obtained)" value="${person.identification}"
+                     onchange="updatePerson(${person.id}, 'identification', this.value)"
+                     class="bg-[#111] border border-white/10 rounded px-2 py-1 text-sm">
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      generateReport();
+    }
+    
+    function getPersonIndex(person) {
+      const sameRole = peopleList.filter(p => p.role === person.role);
+      return sameRole.indexOf(person) + 1;
+    }
 
-    function toDisplay(value){ return (value==null || String(value).trim()==='') ? 'N/A' : String(value); }
-    function ensureArray(v){ return Array.isArray(v) ? v : []; }
-    function normalizeRole(role){
-      const r = String(role||'').toLowerCase();
-      if (r.startsWith('sus')) return 'suspect';
-      if (r.startsWith('vic')) return 'victim';
-      if (r.startsWith('wit')) return 'witness';
-      if (r.startsWith('subj')) return 'suspect';
-      return r || 'other';
+    // Report Generation
+    function generateReport() {
+      const data = collectFormData();
+      
+      if (!isFormValid(data)) {
+        document.getElementById('reportNarrative').textContent = generateEmptyReport();
+        document.getElementById('reportStatus').textContent = 'Fill in required fields to generate report';
+        document.getElementById('reportStatus').className = 'text-sm text-yellow-400 mt-1';
+        return;
+      }
+      
+      const narrative = generateDetailedNarrative(data);
+      document.getElementById('reportNarrative').textContent = narrative;
+      document.getElementById('reportStatus').textContent = '✅ Report generated successfully';
+      document.getElementById('reportStatus').className = 'text-sm text-green-400 mt-1';
+      
+      // Show incident type badge
+      if (data.incidentType) {
+        const badge = document.getElementById('incidentTypeBadge');
+        badge.classList.remove('hidden');
+        badge.querySelector('.incident-type-badge').textContent = data.incidentType.toUpperCase();
+      }
     }
-    function groupParticipants(list){
-      const groups = { suspect: [], victim: [], witness: [], other: [] };
-      ensureArray(list).forEach(p => {
-        const name = (p && p.name) ? String(p.name).trim() : '';
-        const role = normalizeRole(p && p.role);
-        groups[role] = groups[role] || [];
-        groups[role].push(name);
-      });
-      Object.keys(groups).forEach(k => { groups[k] = groups[k].filter(Boolean); });
-      return groups;
-    }
-    function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-    function buildTokenMap(groups){
-      const map = {};
-      const add = (base, names) => { names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = nm; }); };
-      add('suspect', groups.suspect||[]);
-      add('subject', groups.suspect||[]);
-      add('victim', groups.victim||[]);
-      add('witness', groups.witness||[]);
-      return map;
-    }
-    function expandTokens(text, tokenMap){
-      const keys = Object.keys(tokenMap);
-      if (!text || keys.length === 0) return text || '';
-      const pattern = new RegExp('\\b(' + keys.map(escapeRegExp).join('|') + ')\\b', 'gi');
-      return text.replace(pattern, (m) => tokenMap[m.toLowerCase()] || m);
-    }
-    function buildWhoSection(groups){
-      const lines = [];
-      const pushLines = (label, arr) => { arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${nm}`); }); };
-      if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
-      if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
-      if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
-      return lines.length ? lines.join('\n') : 'N/A';
-    }
-    function insertAtCursor(textarea, text){
-      if(!textarea) return;
-      const start = textarea.selectionStart || 0;
-      const end = textarea.selectionEnd || 0;
-      const before = textarea.value.slice(0, start);
-      const after = textarea.value.slice(end);
-      textarea.value = before + text + after;
-      const pos = start + text.length;
-      textarea.selectionStart = textarea.selectionEnd = pos;
-      textarea.focus();
-    }
-    function insertTokenIntoNarrative(token){
-      const ta = document.querySelector('textarea[data-key="what"]');
-      const toInsert = (token || '').trim();
-      if(!ta || !toInsert) return;
-      insertAtCursor(ta, toInsert + ' ');
-      ta.dispatchEvent(new Event('input', { bubbles:true }));
-    }
-    function compileBody(){
-      const participants = ensureArray(fieldValues.participants);
-      const groups = groupParticipants(participants);
-      const tokenMap = buildTokenMap(groups);
-      const whenText = toDisplay(fieldValues.dateTime);
-      const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
-      const computed = {
-        whoSection: buildWhoSection(groups),
-        when: whenText,
-        where: whereText,
-        whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
-        detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
+    
+    function collectFormData() {
+      return {
+        dateTime: document.getElementById('dateTime').value,
+        reportDateTime: document.getElementById('reportDateTime').value,
+        location: document.getElementById('location').value,
+        specificLocation: document.getElementById('specificLocation').value,
+        incidentType: document.getElementById('incidentType').value,
+        severity: document.getElementById('severity').value,
+        initialContact: document.getElementById('initialContact').value,
+        incidentDescription: document.getElementById('incidentDescription').value,
+        actionTaken: document.getElementById('actionTaken').value,
+        resolution: document.getElementById('resolution').value,
+        propertyDamage: document.getElementById('propertyDamage').value,
+        injuries: document.getElementById('injuries').value,
+        evidence: document.getElementById('evidence').value,
+        policeReport: document.getElementById('policeReport').value,
+        officerName: document.getElementById('officerName').value,
+        badgeNumber: document.getElementById('badgeNumber').value,
+        post: document.getElementById('post').value,
+        additionalNotes: document.getElementById('additionalNotes').value,
+        people: peopleList
       };
-      return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> (k in computed) ? toDisplay(computed[k]) : toDisplay(fieldValues[k]));
     }
+    
+    function isFormValid(data) {
+      return data.dateTime && data.location && data.incidentType && 
+             data.incidentDescription && data.officerName;
+    }
+    
+    function generateEmptyReport() {
+      return `═══════════════════════════════════════════════════════════════════════════════
+                          INCIDENT REPORT - INCOMPLETE
+═══════════════════════════════════════════════════════════════════════════════
 
-    function saveIncidentReport(){
-      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Who, What, When, and Where before saving.'; return; }
-      const bodyText = compileBody();
-      const arr = loadJson(STORE_KEYS.savedIncidentReports, []);
-      const record = {
-        id: 'inc_'+Date.now(),
-        category: 'incident',
-        templateId: TEMPLATE.id,
-        at: Date.now(),
-        fields: { ...fieldValues },
-        meta: {
-          dateTime: fieldValues.dateTime || '',
-          type: fieldValues.incidentType || '',
-          post: fieldValues.post || '',
-          where: [fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — ')
-        },
-        body: bodyText
+⚠️ Required fields missing. Please complete:
+   □ Date & Time of incident
+   □ Location
+   □ Incident type
+   □ Description of what happened
+   □ Officer name
+
+Fill in the fields below to generate a complete professional report.`;
+    }
+    
+    function generateDetailedNarrative(data) {
+      // Process people into anonymized format
+      const victims = data.people.filter(p => p.role === 'Victim');
+      const suspects = data.people.filter(p => p.role === 'Suspect');
+      const witnesses = data.people.filter(p => p.role === 'Witness');
+      
+      // Format date and time
+      const incidentDate = data.dateTime ? new Date(data.dateTime) : new Date();
+      const reportDate = data.reportDateTime ? new Date(data.reportDateTime) : new Date();
+      
+      const formatDateTime = (date) => {
+        const options = { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        };
+        return date.toLocaleString('en-US', options);
       };
-      arr.unshift(record);
-      saveJson(STORE_KEYS.savedIncidentReports, arr);
-      statusEl.textContent = 'Incident report saved.';
-    }
+      
+      const formatTime = (date) => {
+        return date.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          hour12: false 
+        });
+      };
 
-    function formatDateTimeForInput(iso){ try{ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return ''; const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }catch{return '';} }
+      // Build the comprehensive narrative
+      let narrative = `═══════════════════════════════════════════════════════════════════════════════
+                            SECURITY INCIDENT REPORT
+═══════════════════════════════════════════════════════════════════════════════
 
-    function createInput(field){
-      const commonCls = 'w-full bg-[#111] border border-white/10 rounded-md px-3 py-2';
-      let el;
-      if(field.type==='textarea'){
-        el=document.createElement('textarea'); el.className=commonCls; el.rows=field.rows||3; if(field.placeholder) el.placeholder=field.placeholder; el.value=fieldValues[field.key]||''; el.addEventListener('input',onChange);
-      } else if(field.type==='participants'){
-        const container = document.createElement('div');
-        container.className = 'space-y-2';
-        const roles = Array.isArray(field.roles) && field.roles.length ? field.roles : ['Suspect','Victim','Witness'];
-        if (!Array.isArray(fieldValues[field.key])) fieldValues[field.key] = [];
+REPORT NUMBER: INC-${Date.now().toString().slice(-8)}
+CLASSIFICATION: ${data.incidentType.toUpperCase()} - ${data.severity.toUpperCase()} PRIORITY
 
-        function renderRows(){
-          container.innerHTML = '';
-          const list = ensureArray(fieldValues[field.key]);
-          const counters = {};
-          list.forEach((p) => { const r = normalizeRole(p.role||''); counters[r] = (counters[r]||0) + 1; p._idx = counters[r]; });
-          list.forEach((p, idx) => {
-            const row = document.createElement('div');
-            row.className = 'flex items-center gap-2';
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                              INCIDENT SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-            const roleSel = document.createElement('select');
-            roleSel.className = 'bg-[#111] border border-white/10 rounded-md px-2 py-2';
-            roles.forEach(r => { const o=document.createElement('option'); o.value=r; o.textContent=r; roleSel.appendChild(o); });
-            roleSel.value = p.role || roles[0];
+DATE OF INCIDENT:     ${formatDateTime(incidentDate)}
+DATE OF REPORT:       ${formatDateTime(reportDate)}
+TIME REPORTED:        ${formatTime(reportDate)}
 
-            const label = document.createElement('button');
-            label.type = 'button';
-            label.className = 'text-xs text-gray-400 w-24 text-left underline decoration-dotted decoration-white/20 cursor-pointer';
-            label.textContent = `${roleSel.value} ${p._idx || 1}`;
-            label.title = 'Tap to insert role token into Narrative';
+LOCATION:             ${data.location || 'Not specified'}
+SPECIFIC AREA:        ${data.specificLocation || 'Not specified'}
+POST/ASSIGNMENT:      ${data.post || 'Not specified'}
 
-            const nameInput = document.createElement('input');
-            nameInput.type = 'text';
-            nameInput.placeholder = 'Name';
-            nameInput.className = 'flex-1 ' + commonCls;
-            nameInput.value = p.name || '';
+REPORTING OFFICER:    ${data.officerName}
+BADGE NUMBER:         ${data.badgeNumber || 'Not specified'}
 
-            const delBtn = document.createElement('button');
-            delBtn.type = 'button';
-            delBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
-            delBtn.textContent = 'Remove';
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           INVOLVED PARTIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
 
-            const insertBtn = document.createElement('button');
-            insertBtn.type = 'button';
-            insertBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
-            insertBtn.textContent = 'Insert to Narrative';
+      // Add Victims
+      if (victims.length > 0) {
+        narrative += '\nVICTIMS:\n';
+        victims.forEach((v, i) => {
+          narrative += `\n  VICTIM ${i + 1}:\n`;
+          narrative += `    • Description: ${v.description || 'Not provided'}\n`;
+          narrative += `    • Clothing: ${v.clothing || 'Not described'}\n`;
+          if (v.identification) {
+            narrative += `    • ID Obtained: Yes - On file\n`;
+          }
+        });
+      }
+      
+      // Add Suspects
+      if (suspects.length > 0) {
+        narrative += '\nSUSPECTS:\n';
+        suspects.forEach((s, i) => {
+          narrative += `\n  SUSPECT ${i + 1}:\n`;
+          narrative += `    • Description: ${s.description || 'Not provided'}\n`;
+          narrative += `    • Clothing: ${s.clothing || 'Not described'}\n`;
+          if (s.identification) {
+            narrative += `    • ID Obtained: Yes - On file\n`;
+          }
+        });
+      }
+      
+      // Add Witnesses
+      if (witnesses.length > 0) {
+        narrative += '\nWITNESSES:\n';
+        witnesses.forEach((w, i) => {
+          narrative += `\n  WITNESS ${i + 1}:\n`;
+          narrative += `    • Description: ${w.description || 'Not provided'}\n`;
+          if (w.identification) {
+            narrative += `    • Contact Information: On file\n`;
+          }
+        });
+      }
+      
+      if (data.people.length === 0) {
+        narrative += '\n  No involved parties documented.\n';
+      }
 
-            roleSel.addEventListener('change', () => {
-              const arr = ensureArray(fieldValues[field.key]);
-              if (!arr[idx]) return; arr[idx].role = roleSel.value; renderRows(); updatePreview();
-            });
-            nameInput.addEventListener('input', () => {
-              const arr = ensureArray(fieldValues[field.key]);
-              if (!arr[idx]) return; arr[idx].name = nameInput.value; updatePreview();
-            });
-            delBtn.addEventListener('click', () => {
-              const arr = ensureArray(fieldValues[field.key]);
-              arr.splice(idx,1); fieldValues[field.key] = arr; renderRows(); updatePreview();
-            });
+      narrative += `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           NARRATIVE OF INCIDENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-            label.addEventListener('click', () => {
-              const base = normalizeRole(roleSel.value);
-              const token = `${base}${p._idx || 1}`;
-              insertTokenIntoNarrative(token);
-            });
-            insertBtn.addEventListener('click', () => {
-              const arr = ensureArray(fieldValues[field.key]);
-              const current = arr[idx] || {};
-              const name = String(current.name||'').trim();
-              const base = normalizeRole(roleSel.value);
-              const fallback = `${base}${p._idx || 1}`;
-              insertTokenIntoNarrative(name || fallback);
-            });
+INITIAL CONTACT:
+${formatNarrativeText(data.initialContact || 'Security officer discovered/was alerted to the incident during routine duties.')}
 
-            row.appendChild(roleSel);
-            row.appendChild(label);
-            row.appendChild(nameInput);
-            row.appendChild(delBtn);
-            row.appendChild(insertBtn);
-            container.appendChild(row);
-          });
+SEQUENCE OF EVENTS:
+${formatNarrativeText(data.incidentDescription, true)}
 
-          const btnRow = document.createElement('div');
-          btnRow.className = 'flex flex-wrap gap-2';
-          roles.forEach(r => {
-            const btn = document.createElement('button');
-            btn.type = 'button'; btn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md'; btn.textContent = `Add ${r}`;
-            btn.addEventListener('click', () => {
-              const arr = ensureArray(fieldValues[field.key]); arr.push({ role: r, name: '' }); fieldValues[field.key] = arr; renderRows(); updatePreview();
-            });
-            btnRow.appendChild(btn);
-          });
-          const hint = document.createElement('div'); hint.className = 'text-xs text-gray-400'; hint.textContent = 'Tip: Tap role label to insert token or use Insert to add the name. Tokens expand to full names in preview/copy.';
-          container.appendChild(btnRow);
-          container.appendChild(hint);
-        }
-        renderRows();
-        el = container;
-      } else if(field.type==='select'){
-        el=document.createElement('select'); el.className=commonCls; (field.options||[]).forEach(opt=>{ const o=document.createElement('option'); o.value=opt; o.textContent=opt; el.appendChild(o); }); el.value=fieldValues[field.key]|| (field.options?.[0]||''); el.addEventListener('change',onChange);
+OFFICER RESPONSE & ACTIONS TAKEN:
+${formatNarrativeText(data.actionTaken || 'Standard security protocols were followed.')}
+
+INCIDENT RESOLUTION:
+${formatNarrativeText(data.resolution || 'Incident was resolved without further escalation.')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                        DAMAGES, INJURIES & EVIDENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+      // Add property damage section
+      narrative += '\nPROPERTY DAMAGE/LOSS:\n';
+      if (data.propertyDamage) {
+        narrative += formatNarrativeText(data.propertyDamage) + '\n';
       } else {
-        el=document.createElement('input'); el.type=field.type||'text'; el.className=commonCls; el.value=fieldValues[field.key]||''; el.addEventListener('input',onChange);
+        narrative += '  None reported.\n';
       }
-      el.dataset.key = field.key; return el;
-    }
+      
+      // Add injuries section
+      narrative += '\nINJURIES:\n';
+      if (data.injuries) {
+        narrative += formatNarrativeText(data.injuries) + '\n';
+      } else {
+        narrative += '  No injuries reported.\n';
+      }
+      
+      // Add evidence section
+      narrative += '\nEVIDENCE COLLECTED:\n';
+      if (data.evidence) {
+        narrative += '  • ' + data.evidence + '\n';
+      } else {
+        narrative += '  None collected at scene.\n';
+      }
+      
+      // Add police report if applicable
+      if (data.policeReport) {
+        narrative += `\nLAW ENFORCEMENT INVOLVEMENT:\n`;
+        narrative += `  Police Report Number: ${data.policeReport}\n`;
+      }
 
-    function renderFields(){
-      fieldsContainer.innerHTML='';
-      TEMPLATE.fields.forEach(field=>{
-        const wrap=document.createElement('label'); wrap.className='block';
-        const title=document.createElement('div'); title.className='text-sm text-gray-300 mb-1'; title.textContent=field.label;
-        const input=createInput(field);
-        wrap.appendChild(title); wrap.appendChild(input); fieldsContainer.appendChild(wrap);
+      // Add additional notes section if present
+      if (data.additionalNotes) {
+        narrative += `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         ADDITIONAL INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${formatNarrativeText(data.additionalNotes)}
+`;
+      }
+
+      narrative += `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         REPORT CERTIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+I certify that the information contained in this report is true and accurate to
+the best of my knowledge and belief.
+
+REPORTING OFFICER: ${data.officerName}
+BADGE NUMBER: ${data.badgeNumber || 'Not specified'}
+DATE/TIME: ${formatDateTime(reportDate)}
+
+═══════════════════════════════════════════════════════════════════════════════
+                           END OF REPORT
+═══════════════════════════════════════════════════════════════════════════════`;
+
+      // Replace actual names with anonymized references
+      narrative = anonymizeNarrative(narrative, data.people);
+      
+      return narrative;
+    }
+    
+    function formatNarrativeText(text, detailed = false) {
+      if (!text) return '  No information provided.';
+      
+      // Clean up the text and ensure proper formatting
+      let formatted = text.trim();
+      
+      // Add proper indentation
+      formatted = formatted.split('\n').map(line => '  ' + line).join('\n');
+      
+      // Ensure the narrative flows properly
+      if (detailed && formatted.length > 100) {
+        // Add some structure to longer narratives
+        formatted = formatted.replace(/\. /g, '.\n  ');
+      }
+      
+      return formatted;
+    }
+    
+    function anonymizeNarrative(text, people) {
+      // Replace any occurrence of actual names with anonymized versions
+      people.forEach((person, index) => {
+        if (person.name) {
+          const roleIndex = getPersonIndex(person);
+          const anonymizedName = `${person.role}${roleIndex}`;
+          // Use regex to replace the name globally
+          const nameRegex = new RegExp(escapeRegExp(person.name), 'gi');
+          text = text.replace(nameRegex, anonymizedName);
+        }
       });
-      updatePreview();
+      return text;
+    }
+    
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    function updatePreview(){ previewEl.textContent = compileBody(); }
-    function onChange(e){ const key=e.target.dataset.key; if(!key) return; fieldValues[key] = (e.target.type==='checkbox') ? e.target.checked : e.target.value; updatePreview(); }
-
-    function prefillDefaults(){
-      const prof=loadJson(STORE_KEYS.profile,{});
-      if('guardName' in fieldValues && !fieldValues.guardName) fieldValues.guardName = prof.name || '';
-      const nowIso = new Date().toISOString();
-      TEMPLATE.fields.forEach(f=>{
-        if(f.type==='datetime-local' && !fieldValues[f.key]) fieldValues[f.key] = formatDateTimeForInput(nowIso);
+    // Form initialization and event handlers
+    function initializeForm() {
+      // Add event listeners to all form fields
+      const fields = [
+        'dateTime', 'reportDateTime', 'location', 'specificLocation', 
+        'incidentType', 'severity', 'initialContact', 'incidentDescription',
+        'actionTaken', 'resolution', 'propertyDamage', 'injuries',
+        'evidence', 'policeReport', 'officerName', 'badgeNumber', 
+        'post', 'additionalNotes'
+      ];
+      
+      fields.forEach(field => {
+        const element = document.getElementById(field);
+        if (element) {
+          element.addEventListener('input', generateReport);
+          element.addEventListener('change', generateReport);
+        }
       });
+      
+      // Load profile data if available
+      const profile = loadJson(STORE_KEYS.profile, {});
+      if (profile.name) {
+        document.getElementById('officerName').value = profile.name;
+      }
+      
+      // Initialize buttons
+      document.getElementById('btnSaveDraft').addEventListener('click', saveDraft);
+      document.getElementById('btnLoadDraft').addEventListener('click', loadDraft);
+      document.getElementById('btnSaveReport').addEventListener('click', saveReport);
+      document.getElementById('btnCopy').addEventListener('click', copyToClipboard);
+      document.getElementById('btnExport').addEventListener('click', exportPDF);
+      document.getElementById('btnEmail').addEventListener('click', emailReport);
+    }
+    
+    function setDefaultDateTime() {
+      const now = new Date();
+      const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+      
+      document.getElementById('dateTime').value = localDateTime;
+      document.getElementById('reportDateTime').value = localDateTime;
     }
 
-    function importFromIncident(){
-      const inc = (loadJson(STORE_KEYS.incidents, [])[0]) || null;
-      if(!inc){ statusEl.textContent='No incident found to import.'; return; }
-      const map = { dateTime: formatDateTimeForInput(inc.at), post: inc.post||'', incidentType: inc.type||'', summary: inc.desc||'' };
-      Object.keys(map).forEach(k=>{ if(k in fieldValues) fieldValues[k] = map[k]; });
-      statusEl.textContent='Imported latest incident.';
-      renderFields();
+    // Save/Load Functions
+    function saveDraft() {
+      const data = collectFormData();
+      saveJson(STORE_KEYS.incidentDrafts, data);
+      showStatus('Draft saved successfully!', 'success');
     }
-
-    function saveDraft(){ const drafts = loadJson(STORE_KEYS.templateDrafts, {}); drafts[TEMPLATE.id] = fieldValues; saveJson(STORE_KEYS.templateDrafts, drafts); statusEl.textContent='Draft saved.'; }
-    function loadDraft(){ const drafts = loadJson(STORE_KEYS.templateDrafts, {}); fieldValues = { ...(drafts[TEMPLATE.id] || {}) }; statusEl.textContent=drafts[TEMPLATE.id]?'Draft loaded.':'No draft saved.'; renderFields(); }
-    function clearFields(){ fieldValues={}; prefillDefaults(); statusEl.textContent='Cleared.'; renderFields(); }
-
-    function isIncidentWsComplete(){
-      const hasWhat = String(fieldValues.what||'').trim().length > 0;
-      const hasWhen = String(fieldValues.dateTime||'').trim().length > 0;
-      const hasWhere = String([fieldValues.location||'', fieldValues.locationDetails||''].join('')).trim().length > 0;
-      const participants = ensureArray(fieldValues.participants);
-      const hasWho = participants.some(p => (p && String(p.name||'').trim().length > 0));
-      return hasWhat && hasWhen && hasWhere && hasWho;
+    
+    function loadDraft() {
+      const draft = loadJson(STORE_KEYS.incidentDrafts, null);
+      if (!draft) {
+        showStatus('No draft found', 'error');
+        return;
+      }
+      
+      // Load simple fields
+      Object.keys(draft).forEach(key => {
+        if (key !== 'people') {
+          const element = document.getElementById(key);
+          if (element) {
+            element.value = draft[key] || '';
+          }
+        }
+      });
+      
+      // Load people
+      peopleList = draft.people || [];
+      renderPeople();
+      
+      showStatus('Draft loaded successfully!', 'success');
     }
-
-    async function copyToClipboard(){
-      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Who, What, When, and Where before copying.'; return; }
-      const text = compileBody();
-      try{ await navigator.clipboard.writeText(text); statusEl.textContent='Copied to clipboard.'; }
-      catch{
-        try{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); statusEl.textContent='Copied to clipboard.'; }
-        catch{ statusEl.textContent='Copy failed. Select and copy manually.'; }
+    
+    function saveReport() {
+      const data = collectFormData();
+      if (!isFormValid(data)) {
+        showStatus('Please complete required fields before saving', 'error');
+        return;
+      }
+      
+      const reports = loadJson(STORE_KEYS.savedIncidentReports, []);
+      const report = {
+        id: 'inc_' + Date.now(),
+        category: 'incident',
+        at: Date.now(),
+        fields: data,
+        meta: {
+          dateTime: data.dateTime,
+          type: data.incidentType,
+          post: data.post,
+          where: data.location + ' - ' + data.specificLocation
+        },
+        body: document.getElementById('reportNarrative').textContent
+      };
+      
+      reports.unshift(report);
+      saveJson(STORE_KEYS.savedIncidentReports, reports);
+      showStatus('Report saved successfully!', 'success');
+    }
+    
+    async function copyToClipboard() {
+      const text = document.getElementById('reportNarrative').textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        showStatus('Report copied to clipboard!', 'success');
+      } catch (err) {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showStatus('Report copied to clipboard!', 'success');
       }
     }
-
-    btnImport.addEventListener('click', importFromIncident);
-    btnSave.addEventListener('click', saveDraft);
-    btnLoad.addEventListener('click', loadDraft);
-    btnClear.addEventListener('click', clearFields);
-    btnCopy.addEventListener('click', copyToClipboard);
-    btnSaveReport.addEventListener('click', saveIncidentReport);
-
-    // init
-    fieldValues = {};
-    prefillDefaults();
-    renderFields();
+    
+    function exportPDF() {
+      window.print();
+    }
+    
+    function emailReport() {
+      const subject = 'Incident Report - ' + document.getElementById('incidentType').value;
+      const body = encodeURIComponent(document.getElementById('reportNarrative').textContent);
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+    
+    function showStatus(message, type) {
+      const status = document.getElementById('reportStatus');
+      status.textContent = message;
+      status.className = type === 'success' ? 'text-sm text-green-400 mt-1' : 
+                         type === 'error' ? 'text-sm text-red-400 mt-1' : 
+                         'text-sm text-yellow-400 mt-1';
+      
+      setTimeout(() => {
+        status.textContent = '';
+        generateReport();
+      }, 3000);
+    }
   </script>
 </body>
 </html>

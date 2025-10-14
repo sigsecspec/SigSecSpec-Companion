@@ -229,13 +229,26 @@
         <h3 class="text-xl font-bold mb-4" style="color: var(--warning);">Mission Still Active!</h3>
         <p id="earlyEndMessage" class="text-center mb-6" style="color: var(--text-secondary); line-height: 1.5;"></p>
         <div class="flex gap-3">
-          <button class="touch-btn flex-1" onclick="closeEarlyEndPopup()">
+          <button class="touch-btn primary w-full" onclick="closeEarlyEndPopup()">
             Continue Mission
           </button>
-          <button class="touch-btn danger flex-1" onclick="forceEndFromPopup()">
-            End Early
-          </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Already In Mission Popup Modal -->
+  <div id="alreadyInMissionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 w-full max-w-md" style="background: var(--bg-primary); border: 1px solid var(--border);">
+      <div class="text-center">
+        <div class="text-4xl mb-4">😅</div>
+        <h3 class="text-xl font-bold mb-4" style="color: var(--warning);">Your already in a mission silly</h3>
+        <p class="text-center mb-6" style="color: var(--text-secondary); line-height: 1.5;">
+          You can't start a new mission while you're already on duty! Finish your current mission first.
+        </p>
+        <button class="touch-btn primary w-full" onclick="closeAlreadyInMissionPopup()">
+          Ooh okay
+        </button>
       </div>
     </div>
   </div>
@@ -577,7 +590,7 @@
       // Check if there's already an active mission
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (activeMission && activeMission.status === 'active') {
-        showNotification('Please end the current mission before starting a new one', 'warning');
+        showAlreadyInMissionPopup();
         return;
       }
 
@@ -992,6 +1005,17 @@
       if (window.currentForceEndCallback) {
         window.currentForceEndCallback();
       }
+    }
+    
+    // Already In Mission Popup Functions
+    function showAlreadyInMissionPopup() {
+      document.getElementById('alreadyInMissionModal').classList.remove('hidden');
+      document.getElementById('alreadyInMissionModal').classList.add('flex');
+    }
+    
+    function closeAlreadyInMissionPopup() {
+      document.getElementById('alreadyInMissionModal').classList.add('hidden');
+      document.getElementById('alreadyInMissionModal').classList.remove('flex');
     }
     
     // Overtime Monitoring

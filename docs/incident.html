@@ -120,6 +120,15 @@
             <button id="btnCopy" class="touch-btn primary">📋 Copy</button>
           </div>
         </div>
+        
+        <!-- Incident Report Buttons for Involved People -->
+        <div id="incidentReportButtons" class="mt-3" style="display: none;">
+          <div class="text-sm mb-2" style="color: var(--text-secondary)">Generate Individual Reports:</div>
+          <div id="individualReportButtons" class="flex flex-wrap gap-2">
+            <!-- Buttons will be populated dynamically -->
+          </div>
+        </div>
+        
         <div id="reportStatus" class="text-sm mt-2" style="color: var(--text-secondary)">
           Fill in the fields below to generate a comprehensive, detailed report
         </div>
@@ -385,6 +394,7 @@ The system will automatically generate a comprehensive, detailed security report
       if (peopleList.length === 0) {
         container.innerHTML = '<div class="text-gray-400 text-sm">No people added yet. Use buttons below to add victims, suspects, or witnesses.</div>';
         generateReport();
+        updateIndividualReportButtons();
         return;
       }
       
@@ -420,6 +430,274 @@ The system will automatically generate a comprehensive, detailed security report
       }).join('');
       
       generateReport();
+      updateIndividualReportButtons();
+    }
+
+    // Update individual report buttons for involved people
+    function updateIndividualReportButtons() {
+      const buttonsContainer = document.getElementById('individualReportButtons');
+      const sectionContainer = document.getElementById('incidentReportButtons');
+      
+      if (peopleList.length === 0) {
+        sectionContainer.style.display = 'none';
+        return;
+      }
+      
+      sectionContainer.style.display = 'block';
+      
+      // Group people by role and create abbreviated buttons
+      const roleGroups = {};
+      peopleList.forEach(person => {
+        if (!roleGroups[person.role]) {
+          roleGroups[person.role] = [];
+        }
+        roleGroups[person.role].push(person);
+      });
+      
+      let buttonsHtml = '';
+      
+      Object.keys(roleGroups).forEach(role => {
+        roleGroups[role].forEach((person, index) => {
+          const abbreviation = `${role.charAt(0).toUpperCase()}${index + 1}`;
+          const roleColor = role === 'Victim' ? 'danger' : 
+                           role === 'Suspect' ? 'warning' : 'primary';
+          
+          buttonsHtml += `
+            <button class="touch-btn ${roleColor}" 
+                    onclick="generateIndividualReport('${person.id}')"
+                    title="Generate report for ${role} ${index + 1}">
+              📄 ${abbreviation}
+            </button>
+          `;
+        });
+      });
+      
+      buttonsContainer.innerHTML = buttonsHtml;
+    }
+
+    // Generate individual report for a specific person
+    function generateIndividualReport(personId) {
+      const person = peopleList.find(p => p.id == personId);
+      if (!person) return;
+      
+      const data = collectFormData();
+      if (!isFormValid(data)) {
+        showStatus('Please complete required fields before generating individual reports', 'error');
+        return;
+      }
+      
+      const personIndex = getPersonIndex(person);
+      const anonymizedName = `${person.role}${personIndex}`;
+      
+      // Generate a focused report for this individual
+      const individualReport = generateIndividualNarrative(data, person, anonymizedName);
+      
+      // Create a modal or new window to show the individual report
+      showIndividualReportModal(anonymizedName, individualReport);
+    }
+
+    // Generate narrative focused on a specific individual
+    function generateIndividualNarrative(data, person, anonymizedName) {
+      const incidentDate = data.dateTime ? new Date(data.dateTime) : new Date();
+      const reportDate = data.reportDateTime ? new Date(data.reportDateTime) : new Date();
+      
+      const formatDateTime = (date) => {
+        const options = { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        };
+        return date.toLocaleString('en-US', options);
+      };
+      
+      const reportNumber = `SEC-${anonymizedName}-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      
+      let narrative = `═══════════════════════════════════════════════════════════════════════════════
+                    🛡️ INDIVIDUAL INCIDENT REPORT - ${anonymizedName.toUpperCase()} 🛡️
+═══════════════════════════════════════════════════════════════════════════════
+
+REPORT NUMBER:        ${reportNumber}
+SUBJECT:              ${anonymizedName} (${person.role.toUpperCase()})
+INCIDENT TYPE:        ${data.incidentType.toUpperCase()} INCIDENT
+REPORT STATUS:        INDIVIDUAL FOCUS REPORT - CONFIDENTIAL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                              📋 INCIDENT OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 INCIDENT DATE/TIME:    ${formatDateTime(incidentDate)}
+🏢 LOCATION:              ${data.location || 'Not specified'}
+📍 SPECIFIC AREA:         ${data.specificLocation || 'Not specified'}
+👮 REPORTING OFFICER:     ${data.officerName}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           👤 INDIVIDUAL SUBJECT DETAILS - ${anonymizedName.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔹 ROLE IN INCIDENT:      ${person.role.toUpperCase()}
+📋 PHYSICAL DESCRIPTION:  ${person.description || 'Not documented'}
+👔 CLOTHING/APPEARANCE:   ${person.clothing || 'Not documented'}
+🆔 IDENTIFICATION:        ${person.identification ? 'VERIFIED - Information on file' : 'Not obtained'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                        📖 INCIDENT NARRATIVE - ${anonymizedName.toUpperCase()} FOCUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 INITIAL CONTACT WITH ${anonymizedName.toUpperCase()}:
+${formatNarrativeText(data.initialContact || `Security officer made initial contact with ${anonymizedName} during the course of responding to this incident.`)}
+
+📋 ${anonymizedName.toUpperCase()}'S INVOLVEMENT IN INCIDENT:
+${formatNarrativeTextForIndividual(data.incidentDescription || 'Detailed involvement will be documented here.', person, anonymizedName)}
+
+🚨 ACTIONS TAKEN REGARDING ${anonymizedName.toUpperCase()}:
+${formatNarrativeTextForIndividual(data.actionTaken || `Security officer took appropriate action in accordance with ${anonymizedName}'s role in this incident.`, person, anonymizedName)}
+
+✅ RESOLUTION INVOLVING ${anonymizedName.toUpperCase()}:
+${formatNarrativeTextForIndividual(data.resolution || `The incident was resolved with ${anonymizedName}'s cooperation and in accordance with security protocols.`, person, anonymizedName)}`;
+
+      // Add role-specific sections
+      if (person.role === 'Victim') {
+        narrative += `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           🏥 VICTIM IMPACT ASSESSMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🩹 INJURIES TO ${anonymizedName.toUpperCase()}:
+${data.injuries && data.injuries.trim() ? formatNarrativeText(data.injuries) : '  No injuries reported or observed.'}
+
+💼 PROPERTY LOSS/DAMAGE TO ${anonymizedName.toUpperCase()}:
+${data.propertyDamage && data.propertyDamage.trim() ? formatNarrativeText(data.propertyDamage) : '  No property damage or loss reported.'}`;
+      } else if (person.role === 'Suspect') {
+        narrative += `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           ⚠️ SUSPECT INFORMATION & ACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 ${anonymizedName.toUpperCase()}'S ALLEGED ACTIONS:
+  Based on witness statements and security observations, ${anonymizedName} was involved in the incident as described in the main narrative.
+
+🚔 LAW ENFORCEMENT INVOLVEMENT:
+${data.policeReport && data.policeReport.trim() ? `  Police Report #${data.policeReport} - ${anonymizedName} information provided to law enforcement.` : `  ${anonymizedName} information documented for potential future law enforcement coordination.`}`;
+      } else if (person.role === 'Witness') {
+        narrative += `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                           👁️ WITNESS STATEMENT & COOPERATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 ${anonymizedName.toUpperCase()}'S WITNESS ACCOUNT:
+  ${anonymizedName} provided witness information regarding the incident as documented in the main incident narrative.
+
+📞 FOLLOW-UP AVAILABILITY:
+${person.identification ? `  Contact information obtained for potential follow-up interviews.` : `  No contact information obtained at time of incident.`}`;
+      }
+
+      narrative += `
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         ✍️ INDIVIDUAL REPORT CERTIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 CERTIFICATION STATEMENT:
+This individual report focuses specifically on ${anonymizedName}'s involvement in the incident.
+All information contained herein is true and accurate to the best of my knowledge.
+
+👮 REPORTING OFFICER:     ${data.officerName || 'Not specified'}
+🆔 BADGE NUMBER:          ${data.badgeNumber || 'Not specified'}
+📅 REPORT DATE:           ${formatDateTime(reportDate)}
+
+🔒 CONFIDENTIALITY NOTICE:
+This individual report contains confidential information specific to ${anonymizedName}.
+Distribution is limited to authorized personnel only.
+
+═══════════════════════════════════════════════════════════════════════════════
+                🛡️ END OF INDIVIDUAL REPORT - ${anonymizedName.toUpperCase()} 🛡️
+═══════════════════════════════════════════════════════════════════════════════`;
+
+      return narrative;
+    }
+
+    // Format narrative text for individual focus
+    function formatNarrativeTextForIndividual(text, person, anonymizedName) {
+      if (!text) return '  No specific information documented.';
+      
+      let formatted = text.trim();
+      
+      // Replace any occurrence of the person's actual name with the anonymized version
+      if (person.name && person.name.trim()) {
+        const nameRegex = new RegExp(`\\b${escapeRegExp(person.name.trim())}\\b`, 'gi');
+        formatted = formatted.replace(nameRegex, anonymizedName);
+      }
+      
+      // Add proper indentation
+      formatted = formatted.split('\n').map(line => '  ' + line).join('\n');
+      
+      return formatted;
+    }
+
+    // Show individual report in modal
+    function showIndividualReportModal(title, content) {
+      // Create modal if it doesn't exist
+      let modal = document.getElementById('individualReportModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'individualReportModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50';
+        modal.style.overflowY = 'auto';
+        modal.innerHTML = `
+          <div class="mobile-card max-w-4xl mx-4 my-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-bold">📄 Individual Report - ${title}</h3>
+              <div class="flex gap-2">
+                <button class="touch-btn" onclick="copyIndividualReport()">📋 Copy</button>
+                <button class="touch-btn" onclick="closeIndividualReportModal()">✕ Close</button>
+              </div>
+            </div>
+            <pre id="individualReportContent" class="whitespace-pre-wrap text-sm" 
+                 style="color: var(--text-secondary); max-height: 70vh; overflow-y: auto; font-family: monospace; line-height: 1.4;">${content}</pre>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      } else {
+        modal.querySelector('h3').textContent = `📄 Individual Report - ${title}`;
+        document.getElementById('individualReportContent').textContent = content;
+      }
+      
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    // Close individual report modal
+    function closeIndividualReportModal() {
+      const modal = document.getElementById('individualReportModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    // Copy individual report to clipboard
+    async function copyIndividualReport() {
+      const content = document.getElementById('individualReportContent').textContent;
+      try {
+        await navigator.clipboard.writeText(content);
+        showStatus('Individual report copied to clipboard!', 'success');
+      } catch (err) {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = content;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showStatus('Individual report copied to clipboard!', 'success');
+      }
     }
     
     function getPersonIndex(person) {

@@ -74,28 +74,10 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
 
-  #bottomNav {
-    position: fixed;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    backdrop-filter: blur(6px);
-    border-radius: 9999px;
-    background: #111;
-    display: flex;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    z-index: 50;
-  }
-  #bottomNav.footer {
-    position: static;
-    transform: none;
-    border-radius: 0;
-    width: 100%;
-    justify-content: space-around;
-    padding: 0.75rem 0;
-    margin-top: 1rem;
-  }
+  #bottomNav{ position:fixed; left:0; right:0; bottom:0; width:100%; height:var(--bottom-nav-height,56px); display:flex; justify-content:space-around; align-items:center; gap:.25rem; background:rgba(17,17,17,0.9); backdrop-filter:saturate(180%) blur(10px); border-top:1px solid rgba(255,255,255,0.06); z-index:60; padding:0 .5rem calc(env(safe-area-inset-bottom,0px)); }
+  #bottomNav a{ flex:1 1 0; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .nav-link{ border-radius:10px; padding:.5rem .75rem; transition:background 160ms ease; }
+  .nav-link[aria-current="page"]{ background:rgba(255,255,255,0.08); }
 
 </style>
 </head>
@@ -137,11 +119,11 @@
 </div>
 
 <nav id="bottomNav">
-  <a href="index.html" class="px-3 py-1 rounded-md">Home</a>
-  <a href="codes.html" class="px-3 py-1 rounded-md">Codes</a>
-  <a href="radio.html" class="px-3 py-1 rounded-md">Phonetics</a>
-  <a href="incident.html" class="px-3 py-1 rounded-md">Incident</a>
-  <a href="shift.html" class="px-3 py-1 rounded-md">Shift</a>
+  <a href="index.html" class="nav-link">Home</a>
+  <a href="codes.html" class="nav-link" aria-current="page">Codes</a>
+  <a href="radio.html" class="nav-link">Phonetics</a>
+  <a href="incident.html" class="nav-link">Incident</a>
+  <a href="shift.html" class="nav-link">Shift</a>
 </nav>
 
 <script>
@@ -153,15 +135,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg');
 });
 
-const mainContent = document.getElementById('mainContent');
-const bottomNav = document.getElementById('bottomNav');
-mainContent.addEventListener('scroll', ()=>{
-  if(mainContent.scrollTop + mainContent.clientHeight >= mainContent.scrollHeight - 5){
-    bottomNav.classList.add('footer');
-  } else {
-    bottomNav.classList.remove('footer');
-  }
-});
+// Bottom nav is fixed; no scroll-based toggling
 
 // UI elements
 const codesGrid = document.getElementById('codesGrid');

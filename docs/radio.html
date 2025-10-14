@@ -4,286 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Phonetic Alphabet — Security Companion</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="app-styles.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f0f0f">
-<style>
-  :root {
-    /* Dark theme (default) */
-    --bg-primary: #0f0f0f;
-    --bg-secondary: #121212;
-    --bg-tertiary: #1a1a1a;
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-muted: #666666;
-    --accent-primary: #a7b99e;
-    --accent-secondary: #43534a;
-    --border-primary: rgba(255, 255, 255, 0.1);
-    --border-secondary: rgba(255, 255, 255, 0.05);
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --shadow: rgba(0, 0, 0, 0.3);
-    --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --info: #3b82f6;
-  }
-
-  [data-theme="light"] {
-    /* Light theme */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --text-primary: #1e293b;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --accent-primary: #059669;
-    --accent-secondary: #065f46;
-    --border-primary: rgba(0, 0, 0, 0.1);
-    --border-secondary: rgba(0, 0, 0, 0.05);
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --shadow: rgba(0, 0, 0, 0.1);
-    --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --info: #3b82f6;
-  }
-
-  * { box-sizing: border-box; }
-
-  html, body {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    height: 100%;
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .bg-pattern {
-    background-image: 
-      radial-gradient(circle at 25% 25%, var(--accent-primary) 10%, transparent 50%),
-      radial-gradient(circle at 75% 75%, var(--accent-secondary) 10%, transparent 50%);
-    background-size: 100px 100px;
-    background-position: 0 0, 50px 50px;
-  }
-
-  .mobile-card {
-    background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02));
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-primary);
-    border-radius: 16px;
-    padding: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .mobile-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
-    opacity: 0.5;
-  }
-
-  .mobile-card:active {
-    transform: scale(0.98);
-    background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.04));
-  }
-
-  .mobile-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 40px var(--shadow);
-    border-color: var(--accent-primary);
-  }
-
-  .touch-btn {
-    min-height: 48px;
-    min-width: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    color: var(--text-primary);
-    font-weight: 500;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .touch-btn:active {
-    transform: scale(0.95);
-    background: var(--bg-tertiary);
-  }
-
-  .form-input {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    color: var(--text-primary);
-    font-size: 1rem;
-    transition: all 0.2s ease;
-  }
-
-  .form-input:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(167, 185, 158, 0.1);
-  }
-
-  .form-input::placeholder {
-    color: var(--text-muted);
-  }
-
-  .accent { color: var(--accent-primary); }
-
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--bg-secondary);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border-primary);
-    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
-    z-index: 100;
-  }
-
-  .nav-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.25rem;
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 0 1rem;
-  }
-
-  .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.5rem 0.25rem;
-    border-radius: 12px;
-    text-decoration: none;
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    min-height: 60px;
-    justify-content: center;
-  }
-
-  .nav-item.active {
-    background: var(--accent-primary);
-    color: white;
-  }
-
-  .nav-item:not(.active):hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-  }
-
-  .nav-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .main-content {
-    flex: 1;
-    padding: 1rem;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .theme-toggle {
-    position: relative;
-    width: 60px;
-    height: 32px;
-    background: var(--bg-tertiary);
-    border-radius: 16px;
-    border: 1px solid var(--border-primary);
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .theme-toggle::before {
-    content: '🌙';
-    position: absolute;
-    top: 50%;
-    left: 4px;
-    transform: translateY(-50%);
-    font-size: 1rem;
-    transition: all 0.3s ease;
-  }
-
-  [data-theme="light"] .theme-toggle::before {
-    content: '☀️';
-    left: 32px;
-  }
-
-  .theme-toggle::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 26px;
-    height: 26px;
-    background: var(--accent-primary);
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px var(--shadow);
-  }
-
-  [data-theme="light"] .theme-toggle::after {
-    left: 30px;
-  }
-
-  @media (max-width: 640px) {
-    .mobile-card {
-      padding: 1rem;
-    }
-  }
-
-  @media print {
-    .bottom-nav, .theme-toggle { display: none !important; }
-    .main-content { padding-bottom: 0 !important; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="push-notifications.js"></script>
 </head>
 <body class="bg-pattern">
 
 <!-- Header -->
-<header class="p-4 pb-6 flex justify-between items-center relative z-10">
+<header class="app-header">
   <div class="flex items-center gap-3">
-    <div class="w-14 h-14 rounded-xl p-2 shadow-lg" style="background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02)); border: 1px solid var(--border-primary);">
-      <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain" style="filter: brightness(1.2) contrast(1.1);">
+    <div class="app-logo">
+      <img src="patch-bg.png" alt="Security Logo">
     </div>
-    <div>
-      <h1 class="text-2xl font-bold">Phonetic Alphabet</h1>
-      <p class="text-sm" style="color: var(--text-secondary)">NATO standard</p>
+    <div class="header-content">
+      <h1>Phonetic Alphabet</h1>
+      <p>NATO standard</p>
     </div>
   </div>
-  <div class="flex items-center gap-3">
+  <div class="header-actions">
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
     <button class="touch-btn" onclick="toggleLarge()" aria-label="Toggle text size">A+</button>
   </div>
@@ -419,7 +160,7 @@ function renderList(query){
   radioCount.textContent = list.length ? `${list.length} item${list.length!==1?'s':''}` : '';
   radioNoResults.classList.toggle('hidden', list.length!==0);
   radioGrid.innerHTML = list.map((it,idx)=>`
-    <button class="mobile-card text-left" data-index="${idx}" title="Tap to copy">
+    <button class="mobile-card interactive text-left" data-index="${idx}" title="Tap to copy">
       <div class="font-semibold">${it.letter} — ${it.word}</div>
     </button>
   `).join('');

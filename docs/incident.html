@@ -15,6 +15,8 @@
     .nav-link[aria-current="page"]{ background:rgba(255,255,255,0.08); }
     #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
     .accent{ color:var(--accent); }
+    /* Ensure preview text is left-to-right and readable */
+    #templatePreview{ direction:ltr; unicode-bidi:plaintext; text-align:left; }
     @media print{
       html,body{ background:#fff !important; color:#000 !important; }
       header,#bottomNav{ display:none !important; }
@@ -41,6 +43,7 @@
         <div class="text-sm text-gray-300">Incident Report</div>
         <div class="flex flex-wrap gap-2 md:justify-end">
           <button id="btnImportIncident" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Import Latest Incident</button>
+          <button id="btnGenerateNarrative" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Generate Narrative</button>
           <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Draft</button>
           <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Load Draft</button>
           <button id="btnClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Clear</button>
@@ -49,11 +52,11 @@
         </div>
       </div>
       <div id="statusLine" class="text-sm text-gray-400"></div>
-      <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
       <div class="app-card">
         <div class="font-semibold mb-2">Preview</div>
         <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
       </div>
+      <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </section>
   </main>
 
@@ -79,6 +82,7 @@
     const previewEl = document.getElementById('templatePreview');
     const statusEl = document.getElementById('statusLine');
     const btnImport = document.getElementById('btnImportIncident');
+    const btnGenerate = document.getElementById('btnGenerateNarrative');
     const btnSave = document.getElementById('btnSaveDraft');
     const btnLoad = document.getElementById('btnLoadDraft');
     const btnClear = document.getElementById('btnClear');
@@ -142,27 +146,55 @@
       return groups;
     }
     function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    function placeholderFor(role, idx){
+      const base = role === 'suspect' || role === 'subject' ? 'Suspect' : role === 'victim' ? 'Victim' : role === 'witness' ? 'Witness' : 'Person';
+      return base + String(idx);
+    }
     function buildTokenMap(groups){
+      // Map tokens like victim1/suspect1 to placeholders Victim1/Suspect1
       const map = {};
-      const add = (base, names) => { names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = nm; }); };
+      const add = (base, arr) => { arr.forEach((_, idx) => { map[base + String(idx+1)] = placeholderFor(base, idx+1); }); };
       add('suspect', groups.suspect||[]);
       add('subject', groups.suspect||[]);
       add('victim', groups.victim||[]);
       add('witness', groups.witness||[]);
       return map;
     }
-    function expandTokens(text, tokenMap){
+    function buildAnonymizationMap(groups){
+      // Map actual names to placeholders (e.g., "John Doe" -> "Victim1")
+      const map = {};
+      (groups.victim||[]).forEach((nm, i)=>{ if(nm) map[nm] = placeholderFor('victim', i+1); });
+      (groups.suspect||[]).forEach((nm, i)=>{ if(nm) map[nm] = placeholderFor('suspect', i+1); });
+      (groups.witness||[]).forEach((nm, i)=>{ if(nm) map[nm] = placeholderFor('witness', i+1); });
+      return map;
+    }
+    function expandTokensToPlaceholders(text, tokenMap){
       const keys = Object.keys(tokenMap);
       if (!text || keys.length === 0) return text || '';
       const pattern = new RegExp('\\b(' + keys.map(escapeRegExp).join('|') + ')\\b', 'gi');
       return text.replace(pattern, (m) => tokenMap[m.toLowerCase()] || m);
     }
+    function anonymizeNames(text, anonMap){
+      if (!text) return '';
+      let out = text;
+      const names = Object.keys(anonMap).sort((a,b)=>b.length-a.length);
+      names.forEach(nm=>{
+        if(!nm) return;
+        const rx = new RegExp('\\b' + escapeRegExp(nm) + '\\b', 'gi');
+        out = out.replace(rx, anonMap[nm]);
+      });
+      return out;
+    }
+    function applyAnonymization(text, tokenMap, anonMap){
+      const step1 = expandTokensToPlaceholders(text||'', tokenMap);
+      return anonymizeNames(step1, anonMap);
+    }
     function buildWhoSection(groups){
       const lines = [];
-      const pushLines = (label, arr) => { arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${nm}`); }); };
-      if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
-      if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
-      if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
+      const pushLines = (roleKey, label, arr) => { arr.forEach((_, i) => { lines.push(`- ${label} ${i+1}: ${placeholderFor(roleKey, i+1)}`); }); };
+      if ((groups.suspect||[]).length) pushLines('suspect', 'Suspect', groups.suspect);
+      if ((groups.victim||[]).length) pushLines('victim', 'Victim', groups.victim);
+      if ((groups.witness||[]).length) pushLines('witness', 'Witness', groups.witness);
       return lines.length ? lines.join('\n') : 'N/A';
     }
     function insertAtCursor(textarea, text){
@@ -187,14 +219,15 @@
       const participants = ensureArray(fieldValues.participants);
       const groups = groupParticipants(participants);
       const tokenMap = buildTokenMap(groups);
+      const anonMap = buildAnonymizationMap(groups);
       const whenText = toDisplay(fieldValues.dateTime);
       const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
       const computed = {
         whoSection: buildWhoSection(groups),
         when: whenText,
         where: whereText,
-        whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
-        detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
+        whatExpanded: applyAnonymization(fieldValues.what || '', tokenMap, anonMap),
+        detailsExpanded: applyAnonymization(fieldValues.details || '', tokenMap, anonMap)
       };
       return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> (k in computed) ? toDisplay(computed[k]) : toDisplay(fieldValues[k]));
     }
@@ -290,12 +323,9 @@
               insertTokenIntoNarrative(token);
             });
             insertBtn.addEventListener('click', () => {
-              const arr = ensureArray(fieldValues[field.key]);
-              const current = arr[idx] || {};
-              const name = String(current.name||'').trim();
               const base = normalizeRole(roleSel.value);
               const fallback = `${base}${p._idx || 1}`;
-              insertTokenIntoNarrative(name || fallback);
+              insertTokenIntoNarrative(fallback);
             });
 
             row.appendChild(roleSel);
@@ -366,6 +396,39 @@
     function loadDraft(){ const drafts = loadJson(STORE_KEYS.templateDrafts, {}); fieldValues = { ...(drafts[TEMPLATE.id] || {}) }; statusEl.textContent=drafts[TEMPLATE.id]?'Draft loaded.':'No draft saved.'; renderFields(); }
     function clearFields(){ fieldValues={}; prefillDefaults(); statusEl.textContent='Cleared.'; renderFields(); }
 
+    function generateNarrative(){
+      const participants = ensureArray(fieldValues.participants);
+      const groups = groupParticipants(participants);
+      const tokenMap = buildTokenMap(groups);
+      const anonMap = buildAnonymizationMap(groups);
+      const whenText = toDisplay(fieldValues.dateTime);
+      const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
+      const typeText = toDisplay(fieldValues.incidentType);
+      const officer = toDisplay(fieldValues.guardName);
+      const post = toDisplay(fieldValues.post);
+
+      const listFor = (arr, role)=> (arr||[]).map((_,i)=> placeholderFor(role, i+1)).join(', ');
+      const victims = listFor(groups.victim, 'victim');
+      const suspects = listFor(groups.suspect, 'suspect');
+      const witnesses = listFor(groups.witness, 'witness');
+      const contacts = [victims && `victims (${victims})`, suspects && `suspects (${suspects})`, witnesses && `witnesses (${witnesses})`].filter(Boolean).join('; ');
+
+      const intro = `On ${whenText}, at ${whereText}, I, Officer ${officer}, responded to a ${typeText} at ${post}.`;
+      const contactLine = contacts ? `Upon arrival, I made contact with ${contacts}.` : '';
+      const whatText = applyAnonymization(String(fieldValues.what||'').trim(), tokenMap, anonMap);
+      const detailsText = applyAnonymization(String(fieldValues.details||'').trim(), tokenMap, anonMap);
+      const injuriesText = String(fieldValues.injuries||'').trim() || 'None reported.';
+      const evidenceText = String(fieldValues.evidence||'').trim() || 'None.';
+
+      const narrative = [intro, contactLine, whatText && `Summary: ${whatText}`, detailsText && `Actions Taken: ${detailsText}`, `Injuries: ${injuriesText}`, `Evidence/Attachments: ${evidenceText}`]
+        .filter(Boolean)
+        .join('\n\n');
+
+      fieldValues.what = narrative;
+      updatePreview();
+      statusEl.textContent = 'Narrative generated.';
+    }
+
     function isIncidentWsComplete(){
       const hasWhat = String(fieldValues.what||'').trim().length > 0;
       const hasWhen = String(fieldValues.dateTime||'').trim().length > 0;
@@ -386,6 +449,7 @@
     }
 
     btnImport.addEventListener('click', importFromIncident);
+    btnGenerate.addEventListener('click', generateNarrative);
     btnSave.addEventListener('click', saveDraft);
     btnLoad.addEventListener('click', loadDraft);
     btnClear.addEventListener('click', clearFields);

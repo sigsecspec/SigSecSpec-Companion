@@ -114,6 +114,10 @@
       #templatePreview { border: 0 !important; padding: 0 !important; color: #000 !important; font-size: 12pt; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     }
   </style>
+  <style>
+    /* Ensure preview text is left-to-right and readable */
+    #templatePreview{ direction:ltr; unicode-bidi:plaintext; text-align:left; }
+  </style>
 </head>
 <body>
 
@@ -210,6 +214,7 @@
           </label>
           <div class="flex flex-wrap gap-2 md:justify-end">
             <button id="tplImportIncident" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Import from Incident</button>
+            <button id="tplGenerateNarrative" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Generate Narrative</button>
             <button id="tplSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Save Draft</button>
             <button id="tplLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Load Draft</button>
             <button id="tplClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Clear</button>
@@ -217,11 +222,11 @@
           </div>
         </div>
         <div id="templateStatus" class="text-sm text-gray-400"></div>
-        <div id="templateFormFields" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         <div class="app-card">
           <div class="font-semibold mb-2">Preview</div>
           <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
         </div>
+        <div id="templateFormFields" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
       </div>
     </section>
 
@@ -591,6 +596,7 @@
       const btnLoad = document.getElementById('tplLoadDraft');
       const btnClear = document.getElementById('tplClear');
       const btnCopy = document.getElementById('tplCopy');
+      const btnGenerate = document.getElementById('tplGenerateNarrative');
 
       const TEMPLATES = [
         {
@@ -677,9 +683,8 @@
       }
 
       function updateControls(){
-        if (btnImport) {
-          btnImport.style.display = (currentTemplateId === 'incident_report') ? '' : 'none';
-        }
+        if (btnImport) btnImport.style.display = (currentTemplateId === 'incident_report') ? '' : 'none';
+        if (btnGenerate) btnGenerate.style.display = (currentTemplateId === 'incident_report') ? '' : 'none';
       }
 
       function setStatus(msg){ statusEl.textContent = msg || ''; }
@@ -722,31 +727,56 @@
         return groups;
       }
       function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+      function placeholderFor(role, idx){
+        const base = role === 'suspect' || role === 'subject' ? 'Suspect' : role === 'victim' ? 'Victim' : role === 'witness' ? 'Witness' : 'Person';
+        return base + String(idx);
+      }
       function buildTokenMap(groups){
+        // Map tokens to placeholders
         const map = {};
-        const add = (base, names) => {
-          names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = nm; });
-        };
+        const add = (base, arr) => { arr.forEach((_, idx) => { map[base + String(idx+1)] = placeholderFor(base, idx+1); }); };
         add('suspect', groups.suspect||[]);
-        add('subject', groups.suspect||[]); // synonym
+        add('subject', groups.suspect||[]);
         add('victim', groups.victim||[]);
         add('witness', groups.witness||[]);
         return map;
       }
-      function expandTokens(text, tokenMap){
+      function buildAnonymizationMap(groups){
+        const map = {};
+        (groups.victim||[]).forEach((nm, i)=>{ if(nm) map[nm] = placeholderFor('victim', i+1); });
+        (groups.suspect||[]).forEach((nm, i)=>{ if(nm) map[nm] = placeholderFor('suspect', i+1); });
+        (groups.witness||[]).forEach((nm, i)=>{ if(nm) map[nm] = placeholderFor('witness', i+1); });
+        return map;
+      }
+      function expandTokensToPlaceholders(text, tokenMap){
         const keys = Object.keys(tokenMap);
         if (!text || keys.length === 0) return text || '';
         const pattern = new RegExp('\\b(' + keys.map(escapeRegExp).join('|') + ')\\b', 'gi');
         return text.replace(pattern, (m) => tokenMap[m.toLowerCase()] || m);
       }
+      function anonymizeNames(text, anonMap){
+        if (!text) return '';
+        let out = text;
+        const names = Object.keys(anonMap).sort((a,b)=>b.length-a.length);
+        names.forEach(nm=>{
+          if(!nm) return;
+          const rx = new RegExp('\\b' + escapeRegExp(nm) + '\\b', 'gi');
+          out = out.replace(rx, anonMap[nm]);
+        });
+        return out;
+      }
+      function applyAnonymization(text, tokenMap, anonMap){
+        const step1 = expandTokensToPlaceholders(text||'', tokenMap);
+        return anonymizeNames(step1, anonMap);
+      }
       function buildWhoSection(groups){
         const lines = [];
-        const pushLines = (label, arr) => {
-          arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${nm}`); });
+        const pushLines = (roleKey, label, arr) => {
+          arr.forEach((_, i) => { lines.push(`- ${label} ${i+1}: ${placeholderFor(roleKey, i+1)}`); });
         };
-        if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
-        if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
-        if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
+        if ((groups.suspect||[]).length) pushLines('suspect', 'Suspect', groups.suspect);
+        if ((groups.victim||[]).length) pushLines('victim', 'Victim', groups.victim);
+        if ((groups.witness||[]).length) pushLines('witness', 'Witness', groups.witness);
         return lines.length ? lines.join('\n') : 'N/A';
       }
 
@@ -754,14 +784,15 @@
         const participants = ensureArray(fieldValues.participants);
         const groups = groupParticipants(participants);
         const tokenMap = buildTokenMap(groups);
+        const anonMap = buildAnonymizationMap(groups);
         const whenText = toDisplay(fieldValues.dateTime);
         const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
         const computed = {
           whoSection: buildWhoSection(groups),
           when: whenText,
           where: whereText,
-          whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
-          detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
+          whatExpanded: applyAnonymization(fieldValues.what || '', tokenMap, anonMap),
+          detailsExpanded: applyAnonymization(fieldValues.details || '', tokenMap, anonMap)
         };
         return template.body.replace(/\{(.*?)\}/g, (_, key) => {
           if (key in computed) return toDisplay(computed[key]);
@@ -849,12 +880,9 @@
                 insertTokenIntoNarrative(token);
               });
               insertBtn.addEventListener('click', () => {
-                const arr = ensureArray(fieldValues[field.key]);
-                const current = arr[idx] || {};
-                const name = String(current.name||'').trim();
                 const base = normalizeRole(roleSel.value);
                 const fallback = `${base}${p._idx || 1}`;
-                insertTokenIntoNarrative(name || fallback);
+                insertTokenIntoNarrative(fallback);
               });
 
               row.appendChild(roleSel);
@@ -1027,6 +1055,40 @@
         renderFields();
       }
 
+      function generateNarrative(){
+        if (currentTemplateId !== 'incident_report') return;
+        const participants = ensureArray(fieldValues.participants);
+        const groups = groupParticipants(participants);
+        const tokenMap = buildTokenMap(groups);
+        const anonMap = buildAnonymizationMap(groups);
+        const whenText = toDisplay(fieldValues.dateTime);
+        const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
+        const typeText = toDisplay(fieldValues.incidentType);
+        const officer = toDisplay(fieldValues.guardName);
+        const post = toDisplay(fieldValues.post);
+
+        const listFor = (arr, role)=> (arr||[]).map((_,i)=> placeholderFor(role, i+1)).join(', ');
+        const victims = listFor(groups.victim, 'victim');
+        const suspects = listFor(groups.suspect, 'suspect');
+        const witnesses = listFor(groups.witness, 'witness');
+        const contacts = [victims && `victims (${victims})`, suspects && `suspects (${suspects})`, witnesses && `witnesses (${witnesses})`].filter(Boolean).join('; ');
+
+        const intro = `On ${whenText}, at ${whereText}, I, Officer ${officer}, responded to a ${typeText} at ${post}.`;
+        const contactLine = contacts ? `Upon arrival, I made contact with ${contacts}.` : '';
+        const whatText = applyAnonymization(String(fieldValues.what||'').trim(), tokenMap, anonMap);
+        const detailsText = applyAnonymization(String(fieldValues.details||'').trim(), tokenMap, anonMap);
+        const injuriesText = String(fieldValues.injuries||'').trim() || 'None reported.';
+        const evidenceText = String(fieldValues.evidence||'').trim() || 'None.';
+
+        const narrative = [intro, contactLine, whatText && `Summary: ${whatText}`, detailsText && `Actions Taken: ${detailsText}`, `Injuries: ${injuriesText}`, `Evidence/Attachments: ${evidenceText}`]
+          .filter(Boolean)
+          .join('\n\n');
+
+        fieldValues.what = narrative;
+        updatePreview();
+        setStatus('Narrative generated.');
+      }
+
       function isIncidentWsComplete(){
         if (currentTemplateId !== 'incident_report') return true;
         const hasWhat = String(fieldValues.what||'').trim().length > 0;
@@ -1064,6 +1126,7 @@
         renderFields();
       });
       btnImport.addEventListener('click', importFromIncident);
+      if (btnGenerate) btnGenerate.addEventListener('click', generateNarrative);
       btnSave.addEventListener('click', saveDraft);
       btnLoad.addEventListener('click', loadDraft);
       btnClear.addEventListener('click', clearFields);

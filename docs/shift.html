@@ -15,6 +15,8 @@
     .nav-link[aria-current="page"]{ background:rgba(255,255,255,0.08); }
     #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
     .accent{ color:var(--accent); }
+    /* Ensure preview text is left-to-right and readable */
+    #templatePreview{ direction:ltr; unicode-bidi:plaintext; text-align:left; }
     @media print{
       html,body{ background:#fff !important; color:#000 !important; }
       header,#bottomNav{ display:none !important; }
@@ -48,7 +50,7 @@
         </div>
       </div>
       <div id="statusLine" class="text-sm text-gray-400"></div>
-      <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      
       <div class="app-card">
         <div class="font-semibold mb-1">Attach Incidents</div>
         <div id="incidentAttachList" class="space-y-2"></div>
@@ -58,6 +60,7 @@
         <div class="font-semibold mb-2">Preview</div>
         <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
       </div>
+      <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </section>
   </main>
 

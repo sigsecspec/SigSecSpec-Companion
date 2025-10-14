@@ -4,139 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shift Report — Security Companion</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="app-styles.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f0f0f">
-  <style>
-    :root {
-      /* Dark theme (default) */
-      --bg-primary: #0f0f0f;
-      --bg-secondary: #121212;
-      --bg-tertiary: #1a1a1a;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0a0;
-      --text-muted: #666666;
-      --accent-primary: #a7b99e;
-      --accent-secondary: #43534a;
-      --border-primary: rgba(255, 255, 255, 0.1);
-      --border-secondary: rgba(255, 255, 255, 0.05);
-      --glass-bg: rgba(255, 255, 255, 0.04);
-      --shadow: rgba(0, 0, 0, 0.3);
-    }
-
-    [data-theme="light"] {
-      /* Light theme */
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8fafc;
-      --bg-tertiary: #f1f5f9;
-      --text-primary: #1e293b;
-      --text-secondary: #475569;
-      --text-muted: #94a3b8;
-      --accent-primary: #059669;
-      --accent-secondary: #065f46;
-      --border-primary: rgba(0, 0, 0, 0.1);
-      --border-secondary: rgba(0, 0, 0, 0.05);
-      --glass-bg: rgba(255, 255, 255, 0.8);
-      --shadow: rgba(0, 0, 0, 0.1);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      height: 100%;
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .bg-pattern {
-      background-image:
-        radial-gradient(circle at 25% 25%, var(--accent-primary)10 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, var(--accent-secondary)10 0%, transparent 50%);
-      background-size: 100px 100px;
-      background-position: 0 0, 50px 50px;
-    }
-
-    .mobile-card {
-      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02));
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-primary);
-      border-radius: 16px;
-      padding: 1.5rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .mobile-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
-      opacity: 0.5;
-    }
-
-    .touch-btn {
-      min-height: 48px;
-      min-width: 48px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-primary);
-      color: var(--text-primary);
-      font-weight: 500;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      padding: .5rem .75rem;
-    }
-    .touch-btn.primary { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
-
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--bg-secondary);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-primary);
-      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
-      z-index: 100;
-    }
-    .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: .25rem; max-width: 500px; margin: 0 auto; padding: 0 1rem; }
-    .nav-item { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60px; padding:.5rem .25rem; border-radius:12px; color: var(--text-secondary); text-decoration:none; transition: all .2s; }
-    .nav-item.active { background: var(--accent-primary); color: #fff; }
-    .nav-item:not(.active):hover { background: var(--bg-tertiary); color: var(--text-primary); }
-    .nav-icon { font-size: 1.5rem; margin-bottom: .25rem; }
-
-    .theme-toggle { position: relative; width: 60px; height: 32px; background: var(--bg-tertiary); border-radius: 16px; border:1px solid var(--border-primary); cursor:pointer; }
-    .theme-toggle::before { content: '🌙'; position: absolute; top:50%; left:4px; transform: translateY(-50%); transition: all .3s; }
-    [data-theme="light"] .theme-toggle::before { content: '☀️'; left: 32px; }
-    .theme-toggle::after { content: ''; position:absolute; top:2px; left:2px; width:26px; height:26px; background: var(--accent-primary); border-radius:50%; box-shadow:0 2px 8px var(--shadow); transition: all .3s; }
-    [data-theme="light"] .theme-toggle::after { left: 30px; }
-
-    .main-content { flex: 1; padding: 1rem; padding-bottom: calc(80px + env(safe-area-inset-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
-
-    @media (max-width: 640px){ .mobile-card{ padding: 1rem; } }
-    @media print{ .bottom-nav, .theme-toggle { display:none !important; } .main-content{ padding-bottom:0 !important; } }
-  </style>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script src="push-notifications.js"></script>
 </head>
 <body class="bg-pattern">
-  <header class="p-4 pb-6 flex justify-between items-center relative z-10">
+  <header class="app-header">
     <div class="flex items-center gap-3">
-      <div class="w-14 h-14 rounded-xl p-2 shadow-lg" style="background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02)); border: 1px solid var(--border-primary);">
-        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain" style="filter: brightness(1.2) contrast(1.1);">
+      <div class="app-logo">
+        <img src="patch-bg.png" alt="Security Logo">
       </div>
-      <div>
-        <h1 class="text-2xl font-bold">Shift Report</h1>
-        <p class="text-sm" style="color: var(--text-secondary)">Fill, attach, preview, copy</p>
+      <div class="header-content">
+        <h1>Shift Report</h1>
+        <p>Fill, attach, preview, copy</p>
       </div>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="header-actions">
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
       <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
     </div>
@@ -306,9 +192,23 @@
           const durM = Math.floor((durationMs % (1000*60*60)) / (1000*60));
           const cp = Array.isArray(rec.checkpoints) ? rec.checkpoints : [];
           const notes = Array.isArray(rec.notes) ? rec.notes : [];
+          const details = rec.details || {};
 
           const header = `[${idx+1}] Patrol — ${start?fmtDate(start):''} ${start?fmtTime(start):''}${end?(' - '+fmtTime(end)) : ''}`.trim();
           const meta = `Duration: ${pad2(durH)}:${pad2(durM)}  •  Checkpoints: ${cp.length}  •  Notes: ${notes.length}`;
+
+          // Add patrol details if available
+          let detailsBlock = '';
+          if (details.area || details.weather || details.purpose || details.observations || details.securityConcerns) {
+            const detailLines = [];
+            if (details.area) detailLines.push(`Area/Route: ${details.area}`);
+            if (details.weather) detailLines.push(`Weather: ${details.weather}`);
+            if (details.purpose) detailLines.push(`Purpose: ${details.purpose}`);
+            if (details.observations) detailLines.push(`Observations: ${details.observations}`);
+            if (details.securityConcerns) detailLines.push(`Security Concerns: ${details.securityConcerns}`);
+            
+            detailsBlock = `Patrol Details:\n${detailLines.map(line => `  - ${line}`).join('\n')}`;
+          }
 
           const cpLines = cp.map((c,i) => {
             const t = c.timestamp ? new Date(c.timestamp) : null;
@@ -327,7 +227,7 @@
 
           const cpBlock = cp.length ? `Checkpoints:\n${cpLines}` : '';
           const notesBlock = notes.length ? `Notes:\n${noteLines}` : '';
-          const bodyParts = [cpBlock, notesBlock].filter(Boolean).join('\n\n');
+          const bodyParts = [detailsBlock, cpBlock, notesBlock].filter(Boolean).join('\n\n');
           return `${header}\n${meta}${bodyParts?`\n\n${bodyParts}`:''}`;
         });
         return parts.join('\n\n');

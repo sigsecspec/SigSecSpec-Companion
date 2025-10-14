@@ -1,13 +1,13 @@
 {
-  "name": "Security Companion",
-  "short_name": "SecCompanion",
-  "description": "Mobile companion app for security professionals",
+  "name": "Security Companion - Professional Mobile App",
+  "short_name": "Security Pro",
+  "description": "Professional mobile companion for security guards and officers. Complete incident reporting, patrol logging, and emergency communication system.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f0f0f",
   "theme_color": "#a7b99e",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "business"],
   "icons": [
     {
       "src": "patch-bg.png",

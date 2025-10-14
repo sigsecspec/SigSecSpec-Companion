@@ -49,6 +49,17 @@
       padding: 0.75rem;
       margin-bottom: 0.75rem;
     }
+
+    .patrol-entry.cursor-pointer:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .patrol-entry.cursor-pointer {
+      transition: all 0.2s ease;
+    }
   </style>
 </head>
 <body class="bg-pattern">
@@ -193,9 +204,9 @@
       </div>
     </section>
 
-    <!-- Current Patrol Checks -->
+    <!-- Patrol Checks -->
     <section class="mobile-card mb-6" id="currentPatrolSection" style="display: none;">
-      <h3 class="text-lg font-semibold mb-3">Current Patrol Checks</h3>
+      <h3 class="text-lg font-semibold mb-3">📋 Patrol Checks</h3>
       <div id="currentPatrolChecks">
         <div class="text-center py-8" style="color: var(--text-muted)">
           No checkpoints added yet. Add checkpoints during your patrol.
@@ -279,6 +290,36 @@
       <div class="flex gap-3">
         <button class="touch-btn flex-1" onclick="cancelNote()">Cancel</button>
         <button class="touch-btn primary flex-1" onclick="saveNote()">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Checkpoint Modal -->
+  <div id="editCheckpointModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold mb-4">✏️ Edit Checkpoint</h3>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Location/Area <span style="color: var(--error);">*</span></label>
+        <input type="text" id="editCheckpointLocation" class="w-full p-3 rounded-lg border" 
+               style="background: var(--bg-secondary); border-color: var(--border-primary); color: var(--text-primary);"
+               placeholder="e.g., Main entrance, Parking lot A, Building 2 north side"
+               required>
+        <div class="text-xs mt-1" style="color: var(--text-secondary);">Minimum 10 characters required for thorough checkpoint</div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Notes (optional)</label>
+        <textarea id="editCheckpointNotes" rows="3" class="w-full p-3 rounded-lg border"
+                  style="background: var(--bg-secondary); border-color: var(--border-primary); color: var(--text-primary);"
+                  placeholder="Any observations, security concerns, maintenance issues, or other relevant details..."></textarea>
+        <div class="text-xs mt-1" style="color: var(--text-secondary);">Include security observations, maintenance issues, or unusual activity for thorough documentation</div>
+      </div>
+      <div class="text-xs mb-3 text-center" style="color: var(--text-muted);">
+        Press Ctrl+Enter to save quickly, or Escape to cancel
+      </div>
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="cancelEditCheckpoint()">Cancel</button>
+        <button class="touch-btn danger flex-1" onclick="deleteCheckpoint()">Delete</button>
+        <button class="touch-btn primary flex-1" onclick="saveEditCheckpoint()">Save Changes</button>
       </div>
     </div>
   </div>
@@ -631,6 +672,138 @@
       cancelCheckpoint();
     }
 
+    // Edit checkpoint functionality
+    let editingCheckpointId = null;
+
+    function editCheckpoint(checkpointId) {
+      if (!currentPatrol || currentPatrol.endTime) {
+        showWarning('Cannot edit checkpoint - patrol has ended');
+        return;
+      }
+
+      const checkpoint = currentPatrol.checkpoints.find(c => String(c.id) === String(checkpointId));
+      if (!checkpoint) {
+        showError('Checkpoint not found');
+        return;
+      }
+
+      editingCheckpointId = checkpointId;
+      
+      // Populate the edit form
+      document.getElementById('editCheckpointLocation').value = checkpoint.location || '';
+      document.getElementById('editCheckpointNotes').value = checkpoint.notes || '';
+      
+      // Show the edit modal
+      document.getElementById('editCheckpointModal').classList.remove('hidden');
+      document.getElementById('editCheckpointModal').classList.add('flex');
+      
+      // Focus on location input for better UX
+      setTimeout(() => {
+        document.getElementById('editCheckpointLocation').focus();
+      }, 100);
+      
+      // Add keyboard event listeners
+      const modal = document.getElementById('editCheckpointModal');
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          cancelEditCheckpoint();
+          modal.removeEventListener('keydown', handleKeyDown);
+        } else if (e.key === 'Enter' && e.ctrlKey) {
+          saveEditCheckpoint();
+          modal.removeEventListener('keydown', handleKeyDown);
+        }
+      };
+      modal.addEventListener('keydown', handleKeyDown);
+    }
+
+    function cancelEditCheckpoint() {
+      document.getElementById('editCheckpointModal').classList.add('hidden');
+      document.getElementById('editCheckpointModal').classList.remove('flex');
+      document.getElementById('editCheckpointLocation').value = '';
+      document.getElementById('editCheckpointNotes').value = '';
+      editingCheckpointId = null;
+    }
+
+    async function saveEditCheckpoint() {
+      if (!editingCheckpointId || !currentPatrol) {
+        showError('No checkpoint selected for editing');
+        return;
+      }
+
+      const location = document.getElementById('editCheckpointLocation').value.trim();
+      const notes = document.getElementById('editCheckpointNotes').value.trim();
+      
+      // Same validation as adding new checkpoint
+      if (!location) {
+        showWarning('Please enter a location/area for this checkpoint');
+        document.getElementById('editCheckpointLocation').focus();
+        return;
+      }
+      
+      if (location.length < 3) {
+        showWarning('Location description must be at least 3 characters long');
+        document.getElementById('editCheckpointLocation').focus();
+        return;
+      }
+      
+      if (location.length < 10) {
+        showWarning('Please provide a more detailed location description (at least 10 characters) for a thorough checkpoint');
+        document.getElementById('editCheckpointLocation').focus();
+        return;
+      }
+      
+      const genericTerms = ['here', 'there', 'area', 'place', 'spot'];
+      const isGeneric = genericTerms.some(term => location.toLowerCase() === term);
+      if (isGeneric) {
+        showWarning('Please provide a specific location description rather than generic terms');
+        document.getElementById('editCheckpointLocation').focus();
+        return;
+      }
+
+      // Find and update the checkpoint
+      const checkpointIndex = currentPatrol.checkpoints.findIndex(c => String(c.id) === String(editingCheckpointId));
+      if (checkpointIndex === -1) {
+        showError('Checkpoint not found');
+        return;
+      }
+
+      // Update the checkpoint while preserving original timestamp and other data
+      currentPatrol.checkpoints[checkpointIndex] = {
+        ...currentPatrol.checkpoints[checkpointIndex],
+        location: location,
+        notes: notes,
+        lastModified: new Date()
+      };
+
+      savePatrolState();
+      loadPatrolEntries();
+      loadCurrentPatrolChecks(); // Update current patrol checks display
+      
+      showSuccess(`Checkpoint updated successfully`);
+      cancelEditCheckpoint();
+    }
+
+    async function deleteCheckpoint() {
+      if (!editingCheckpointId || !currentPatrol) {
+        showError('No checkpoint selected for deletion');
+        return;
+      }
+
+      if (!await showConfirm('Are you sure you want to delete this checkpoint? This action cannot be undone.')) {
+        return;
+      }
+
+      // Remove the checkpoint from the array
+      currentPatrol.checkpoints = currentPatrol.checkpoints.filter(c => String(c.id) !== String(editingCheckpointId));
+
+      savePatrolState();
+      loadPatrolEntries();
+      loadCurrentPatrolChecks(); // Update current patrol checks display
+      
+      showSuccess('Checkpoint deleted successfully');
+      cancelEditCheckpoint();
+    }
+
     // Note management
     function takeNote() {
       // Check if patrol buttons are disabled
@@ -788,44 +961,80 @@
       const container = document.getElementById('currentPatrolChecks');
       const section = document.getElementById('currentPatrolSection');
       
-      // Only show during active patrol
-      if (!currentPatrol) {
+      // Show section if there's a current patrol OR if there are completed patrols from today
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      const today = new Date().toDateString();
+      const todayPatrols = completedPatrols.filter(patrol => {
+        if (!patrol.startTime) return false;
+        const patrolDate = new Date(patrol.startTime).toDateString();
+        return patrolDate === today;
+      });
+      
+      if (!currentPatrol && todayPatrols.length === 0) {
         section.style.display = 'none';
         return;
       }
       
       section.style.display = 'block';
       
-      if (!currentPatrol.checkpoints || currentPatrol.checkpoints.length === 0) {
+      // Determine if patrol is active (can be edited) or ended (read-only)
+      const isPatrolActive = currentPatrol && !currentPatrol.endTime;
+      
+      // Get checkpoints from current patrol or most recent completed patrol
+      let checkpoints = [];
+      let patrolStatus = '';
+      
+      if (currentPatrol) {
+        checkpoints = currentPatrol.checkpoints || [];
+        patrolStatus = isPatrolActive ? 'Active Patrol - Checks can be edited' : 'Patrol Ended - Checks are read-only';
+      } else if (todayPatrols.length > 0) {
+        // Show most recent completed patrol
+        const mostRecentPatrol = todayPatrols[0];
+        checkpoints = mostRecentPatrol.checkpoints || [];
+        patrolStatus = 'Patrol Ended - Checks are read-only';
+      }
+      
+      if (checkpoints.length === 0) {
         container.innerHTML = `
           <div class="text-center py-8" style="color: var(--text-muted)">
-            No checkpoints added yet. Add checkpoints during your patrol.
+            <div class="mb-2">${patrolStatus}</div>
+            <div>No checkpoints added yet. ${isPatrolActive ? 'Add checkpoints during your patrol.' : ''}</div>
           </div>
         `;
         return;
       }
 
-      // Show checkpoints from current patrol
-      const checkpoints = [...currentPatrol.checkpoints].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      // Show checkpoints sorted by timestamp (newest first)
+      const sortedCheckpoints = [...checkpoints].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       
-      container.innerHTML = checkpoints.map(checkpoint => {
-        const time = new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        return `
-          <div class="patrol-entry">
-            <div class="flex items-start gap-3">
-              <div class="text-2xl">📍</div>
-              <div class="flex-1">
-                <div class="flex justify-between items-start mb-1">
-                  <div class="font-semibold">${checkpoint.location}</div>
-                  <div class="text-sm" style="color: var(--text-secondary)">${time}</div>
+      container.innerHTML = `
+        <div class="mb-3 text-sm" style="color: var(--text-secondary); text-align: center;">
+          ${patrolStatus}
+        </div>
+        ${sortedCheckpoints.map(checkpoint => {
+          const time = new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const editableClass = isPatrolActive ? 'cursor-pointer hover:bg-opacity-80' : '';
+          const editableTitle = isPatrolActive ? 'Click to edit this checkpoint' : 'Checkpoint cannot be edited - patrol has ended';
+          
+          return `
+            <div class="patrol-entry ${editableClass}" ${isPatrolActive ? `onclick="editCheckpoint('${checkpoint.id}')"` : ''} title="${editableTitle}">
+              <div class="flex items-start gap-3">
+                <div class="text-2xl">📍</div>
+                <div class="flex-1">
+                  <div class="flex justify-between items-start mb-1">
+                    <div class="font-semibold">${checkpoint.location}</div>
+                    <div class="flex items-center gap-2">
+                      <div class="text-sm" style="color: var(--text-secondary)">${time}</div>
+                      ${isPatrolActive ? '<div class="text-xs" style="color: var(--accent-primary)">✏️</div>' : '<div class="text-xs" style="color: var(--text-muted)">🔒</div>'}
+                    </div>
+                  </div>
+                  ${checkpoint.notes ? `<div class="text-sm" style="color: var(--text-secondary)">${checkpoint.notes}</div>` : ''}
                 </div>
-                ${checkpoint.notes ? `<div class="text-sm" style="color: var(--text-secondary)">${checkpoint.notes}</div>` : ''}
               </div>
             </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('')}
+      `;
     }
     
     // Show mission details

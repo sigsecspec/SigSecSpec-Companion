@@ -6,31 +6,38 @@
   <title>Mission Schedule - Security Companion</title>
   <link rel="stylesheet" href="app-styles.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1a1a1a">
+  <meta name="theme-color" content="#0f0f0f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script src="push-notifications.js"></script>
+  <script src="popup-system.js"></script>
+  <script src="emergency-common.js"></script>
 </head>
-<body>
+<body class="bg-pattern">
   <!-- Header -->
   <header class="app-header">
-    <div class="header-content">
-      <button class="back-btn" onclick="window.history.back()">
-        <span>←</span>
-      </button>
-      <div class="header-title">
-        <h1>Mission Schedule</h1>
-        <div class="header-subtitle" id="currentTime">--:--</div>
+    <div class="flex items-center gap-3">
+      <div class="app-logo">
+        <img src="patch-bg.png" alt="Security Logo">
       </div>
-      <div class="header-actions">
-        <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">
-          <span>🌙</span>
-        </button>
-        <button class="icon-btn" onclick="toggleTextSize()" aria-label="Toggle text size">
-          <span>A+</span>
-        </button>
+      <div class="header-content">
+        <h1>Mission Schedule</h1>
+        <p>
+          <span class="status-indicator" id="scheduleStatus"></span>
+          <span id="scheduleStatusText">Managing missions</span>
+        </p>
       </div>
     </div>
+    <div class="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
+    </div>
   </header>
+
+  <!-- Emergency Button - Bottom Right -->
+  <button class="emergency-btn-fixed" onclick="triggerEmergency()" aria-label="Emergency alert">
+    🚨
+  </button>
 
   <!-- Main Content -->
   <main class="main-content">
@@ -255,12 +262,28 @@
 
   <!-- Scripts -->
   <script src="app-common.js"></script>
-  <script src="push-notifications.js"></script>
   <script>
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
+      // Initialize theme and text size
+      initTheme();
+      initTextSize();
+      
       loadScheduleData();
       setActiveNavItem('schedule');
+      
+      // Update status indicator
+      const statusEl = document.getElementById('scheduleStatus');
+      const statusTextEl = document.getElementById('scheduleStatusText');
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      
+      if (activeMission && activeMission.status === 'active') {
+        statusEl.className = 'status-indicator status-active';
+        statusTextEl.textContent = 'Mission in progress';
+      } else {
+        statusEl.className = 'status-indicator status-pending';
+        statusTextEl.textContent = 'Ready to schedule';
+      }
       
       // Set minimum date to today for new missions
       const today = new Date().toISOString().split('T')[0];
@@ -271,6 +294,21 @@
       
       // Auto-refresh schedule every minute
       setInterval(loadScheduleData, 60000);
+      
+      // Update status periodically
+      setInterval(function() {
+        const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+        if (activeMission && activeMission.status === 'active') {
+          statusEl.className = 'status-indicator status-active';
+          statusTextEl.textContent = 'Mission in progress';
+        } else {
+          statusEl.className = 'status-indicator status-pending';
+          statusTextEl.textContent = 'Ready to schedule';
+        }
+      }, 5000);
+      
+      // Add touch feedback to interactive elements
+      addTouchFeedback();
     });
 
     // Load and display schedule data

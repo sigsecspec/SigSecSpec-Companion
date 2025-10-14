@@ -207,6 +207,39 @@
     </div>
   </div>
 
+  <!-- Early Start Popup Modal -->
+  <div id="earlyStartModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 w-full max-w-md" style="background: var(--bg-primary); border: 1px solid var(--border);">
+      <div class="text-center">
+        <div class="text-4xl mb-4">⏰</div>
+        <h3 class="text-xl font-bold mb-4" style="color: var(--warning);">Too Early!</h3>
+        <p id="earlyStartMessage" class="text-center mb-6" style="color: var(--text-secondary); line-height: 1.5;"></p>
+        <button class="touch-btn primary w-full" onclick="closeEarlyStartPopup()">
+          Got it! I'll wait
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Early End Popup Modal -->
+  <div id="earlyEndModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 w-full max-w-md" style="background: var(--bg-primary); border: 1px solid var(--border);">
+      <div class="text-center">
+        <div class="text-4xl mb-4">🛑</div>
+        <h3 class="text-xl font-bold mb-4" style="color: var(--warning);">Mission Still Active!</h3>
+        <p id="earlyEndMessage" class="text-center mb-6" style="color: var(--text-secondary); line-height: 1.5;"></p>
+        <div class="flex gap-3">
+          <button class="touch-btn flex-1" onclick="closeEarlyEndPopup()">
+            Continue Mission
+          </button>
+          <button class="touch-btn danger flex-1" onclick="forceEndFromPopup()">
+            End Early
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="app-common.js"></script>
   <script src="push-notifications.js"></script>
@@ -219,6 +252,9 @@
       // Set minimum date to today for new missions
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('missionDate').min = today;
+      
+      // Resume overtime monitoring if needed
+      resumeOvertimeMonitoring();
       
       // Auto-refresh schedule every minute
       setInterval(loadScheduleData, 60000);
@@ -418,8 +454,8 @@
               ${mission.location || mission.originalMission?.location ? `<div>📍 ${mission.location || mission.originalMission?.location}</div>` : ''}
             </div>
             <div class="mt-3">
-              <button class="touch-btn w-full" onclick="viewMissionDetails('${isCompleted ? 'completed' : 'past'}', '${mission.id}')" disabled style="opacity: 0.6;">
-                <span class="mr-1">🔒</span> View Only (Locked)
+              <button class="touch-btn w-full" onclick="viewMissionDetails('${isCompleted ? 'completed' : 'past'}', '${mission.id}')">
+                <span class="mr-1">📋</span> View Details & Reports
               </button>
             </div>
           </div>
@@ -545,6 +581,34 @@
         return;
       }
 
+      // Check if it's too early to start the mission (before 15 minutes)
+      const now = new Date();
+      const missionStartTime = new Date(mission.date + 'T' + mission.startTime);
+      const timeUntilStart = missionStartTime - now;
+      const minutesUntilStart = Math.floor(timeUntilStart / (1000 * 60));
+      
+      if (timeUntilStart > 15 * 60 * 1000) { // More than 15 minutes early
+        const hoursUntil = Math.floor(minutesUntilStart / 60);
+        const remainingMinutes = minutesUntilStart % 60;
+        
+        let timeMessage = '';
+        if (hoursUntil > 0) {
+          timeMessage = `${hoursUntil} hour${hoursUntil > 1 ? 's' : ''} and ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+        } else {
+          timeMessage = `${minutesUntilStart} minute${minutesUntilStart !== 1 ? 's' : ''}`;
+        }
+        
+        let message = '';
+        if (minutesUntilStart > 60) {
+          message = `Woah! It's too early for this mission. You have ${timeMessage} until shift start. Take a break and come back closer to mission time! ⏰`;
+        } else {
+          message = `Hold on! It's still ${timeMessage} until your mission starts. Maybe grab a coffee and wait a bit longer? ☕`;
+        }
+        
+        showEarlyStartPopup(message);
+        return;
+      }
+
       // Start the mission
       const newActiveMission = {
         id: Date.now().toString(),
@@ -559,6 +623,9 @@
       // Update mission status
       mission.status = 'started';
       localStorage.setItem('scheduledMissions', JSON.stringify(scheduledMissions));
+      
+      // Start overtime monitoring
+      startOvertimeMonitoring(newActiveMission);
       
       loadScheduleData();
       showNotification('Mission started successfully!', 'success');
@@ -609,15 +676,69 @@
     }
 
     function endCurrentMission() {
-      if (!confirm('Are you sure you want to end the current mission?')) {
-        return;
-      }
-
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission) {
         showNotification('No active mission found', 'error');
         return;
       }
+
+      // Check if it's too early to end the mission
+      const now = new Date();
+      const originalMission = activeMission.originalMission;
+      
+      if (originalMission) {
+        const missionEndTime = new Date(originalMission.date + 'T' + originalMission.endTime);
+        const timeUntilEnd = missionEndTime - now;
+        const minutesUntilEnd = Math.floor(timeUntilEnd / (1000 * 60));
+        
+        if (timeUntilEnd > 0) { // Mission hasn't reached its scheduled end time
+          const hoursUntil = Math.floor(minutesUntilEnd / 60);
+          const remainingMinutes = minutesUntilEnd % 60;
+          
+          let timeMessage = '';
+          if (hoursUntil > 0) {
+            timeMessage = `${hoursUntil} hour${hoursUntil > 1 ? 's' : ''} and ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+          } else {
+            timeMessage = `${minutesUntilEnd} minute${minutesUntilEnd !== 1 ? 's' : ''}`;
+          }
+          
+          let message = '';
+          if (minutesUntilEnd > 60) {
+            message = `Woah, not so fast! This mission time hasn't ended yet. You still have ${timeMessage} left on the clock. Stay vigilant! 🕐`;
+          } else {
+            message = `Hold up! You've got ${timeMessage} left in this mission. Finish strong! 💪`;
+          }
+          
+          showEarlyEndPopup(message, () => {
+            // Allow force end if user really wants to
+            forceEndMission();
+          });
+          return;
+        }
+      }
+
+      // Proceed with normal mission end
+      if (!confirm('Are you sure you want to end the current mission?')) {
+        return;
+      }
+
+      endMissionNow();
+    }
+    
+    function forceEndMission() {
+      if (confirm('Are you sure you want to end the mission early? This will be noted in your report.')) {
+        endMissionNow();
+      }
+    }
+    
+    function endMissionNow() {
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (!activeMission) {
+        return;
+      }
+
+      // Clear overtime monitoring
+      clearOvertimeMonitoring();
 
       // Create completed mission record
       const completedMission = {
@@ -640,8 +761,6 @@
 
     // View mission details
     function viewMissionDetails(type, missionId) {
-      // This function would open a detailed view of the mission
-      // For now, just show a simple alert with mission info
       let mission = null;
       
       if (type === 'active') {
@@ -652,16 +771,338 @@
       } else if (type === 'completed' || type === 'past') {
         const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
         mission = missionHistory.find(m => m.id === missionId);
+        
+        // Also check scheduled missions for past ones
+        if (!mission) {
+          const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+          mission = scheduledMissions.find(m => m.id === missionId);
+        }
       }
 
       if (mission) {
-        const details = type === 'active' 
-          ? `Active Mission\nStarted: ${new Date(mission.startTime).toLocaleString()}`
-          : type === 'scheduled'
-          ? `Scheduled Mission: ${mission.title}\nDate: ${mission.date}\nTime: ${mission.startTime} - ${mission.endTime}`
-          : `Completed Mission\nStarted: ${new Date(mission.startTime).toLocaleString()}\nEnded: ${new Date(mission.endTime).toLocaleString()}`;
+        showMissionDetailsModal(mission, type);
+      }
+    }
+    
+    function showMissionDetailsModal(mission, type) {
+      const modal = document.getElementById('missionDetailsModal');
+      const title = document.getElementById('modalTitle');
+      const content = document.getElementById('missionDetailsContent');
+      const actions = document.getElementById('missionActions');
+      
+      // Set title based on type
+      const titles = {
+        'active': '🟢 Active Mission Details',
+        'scheduled': '📅 Scheduled Mission Details',
+        'completed': '✅ Completed Mission Details',
+        'past': '📋 Past Mission Details'
+      };
+      title.textContent = titles[type] || 'Mission Details';
+      
+      // Build content based on mission type and data
+      let missionData = mission.originalMission || mission;
+      let contentHTML = '';
+      
+      // Basic mission info
+      contentHTML += `
+        <div class="space-y-4">
+          <div class="p-3 rounded-lg" style="background: var(--bg-tertiary);">
+            <h4 class="font-semibold mb-2">📋 Mission Information</h4>
+            <div class="space-y-2 text-sm">
+              <div><strong>Title:</strong> ${missionData.title || 'Mission'}</div>
+              ${missionData.date ? `<div><strong>Date:</strong> ${missionData.date}</div>` : ''}
+              ${missionData.startTime ? `<div><strong>Scheduled:</strong> ${missionData.startTime} - ${missionData.endTime}</div>` : ''}
+              ${missionData.location ? `<div><strong>Location:</strong> 📍 ${missionData.location}</div>` : ''}
+              ${missionData.priority ? `<div><strong>Priority:</strong> <span style="color: ${getPriorityColor(missionData.priority)}">${missionData.priority.toUpperCase()}</span></div>` : ''}
+              ${missionData.description ? `<div><strong>Description:</strong> ${missionData.description}</div>` : ''}
+            </div>
+          </div>
+      `;
+      
+      // Add timing information for active/completed missions
+      if (type === 'active' || type === 'completed') {
+        const startTime = new Date(mission.startTime);
+        const endTime = mission.endTime ? new Date(mission.endTime) : new Date();
+        const duration = Math.floor((endTime - startTime) / (1000 * 60));
+        const hours = Math.floor(duration / 60);
+        const minutes = duration % 60;
         
-        alert(details);
+        contentHTML += `
+          <div class="p-3 rounded-lg" style="background: var(--bg-tertiary);">
+            <h4 class="font-semibold mb-2">⏱️ Timing Details</h4>
+            <div class="space-y-2 text-sm">
+              <div><strong>Started:</strong> ${startTime.toLocaleString()}</div>
+              ${mission.endTime ? `<div><strong>Ended:</strong> ${new Date(mission.endTime).toLocaleString()}</div>` : '<div><strong>Status:</strong> <span style="color: var(--success)">Currently Active</span></div>'}
+              <div><strong>Duration:</strong> ${hours}h ${minutes}m</div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Add reports section for completed missions
+      if (type === 'completed') {
+        const reports = getReportsForMission(mission.id);
+        contentHTML += `
+          <div class="p-3 rounded-lg" style="background: var(--bg-tertiary);">
+            <h4 class="font-semibold mb-2">📝 Reports & Documentation</h4>
+            <div class="space-y-2 text-sm">
+              ${reports.length > 0 ? 
+                reports.map(report => `
+                  <div class="p-2 rounded" style="background: var(--bg-secondary);">
+                    <div><strong>${report.type}:</strong> ${report.title}</div>
+                    <div class="text-xs" style="color: var(--text-secondary);">${new Date(report.timestamp).toLocaleString()}</div>
+                  </div>
+                `).join('') : 
+                '<div style="color: var(--text-secondary);">No reports filed for this mission</div>'
+              }
+              <button class="touch-btn primary w-full mt-2" onclick="viewAllReports('${mission.id}')">
+                📋 View All Reports
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      
+      contentHTML += '</div>';
+      content.innerHTML = contentHTML;
+      
+      // Set up action buttons
+      let actionsHTML = '';
+      if (type === 'active') {
+        actionsHTML = `
+          <button class="touch-btn danger flex-1" onclick="closeMissionDetails(); endCurrentMission();">
+            End Mission
+          </button>
+          <button class="touch-btn flex-1" onclick="closeMissionDetails()">
+            Close
+          </button>
+        `;
+      } else if (type === 'scheduled') {
+        actionsHTML = `
+          <button class="touch-btn primary flex-1" onclick="closeMissionDetails(); startScheduledMission('${mission.id}');">
+            Start Mission
+          </button>
+          <button class="touch-btn flex-1" onclick="closeMissionDetails(); editMission('${mission.id}');">
+            Edit
+          </button>
+          <button class="touch-btn flex-1" onclick="closeMissionDetails()">
+            Close
+          </button>
+        `;
+      } else {
+        actionsHTML = `
+          <button class="touch-btn primary flex-1" onclick="exportMissionData('${mission.id}')">
+            📤 Export Data
+          </button>
+          <button class="touch-btn flex-1" onclick="closeMissionDetails()">
+            Close
+          </button>
+        `;
+      }
+      
+      actions.innerHTML = actionsHTML;
+      
+      // Show modal
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    
+    function closeMissionDetails() {
+      const modal = document.getElementById('missionDetailsModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    
+    function getPriorityColor(priority) {
+      const colors = {
+        'urgent': 'var(--error)',
+        'high': 'var(--warning)',
+        'normal': 'var(--info)'
+      };
+      return colors[priority] || colors.normal;
+    }
+    
+    function getReportsForMission(missionId) {
+      // Get reports associated with this mission
+      const allReports = JSON.parse(localStorage.getItem('incidentReports') || '[]');
+      return allReports.filter(report => report.missionId === missionId);
+    }
+    
+    function viewAllReports(missionId) {
+      // Navigate to reports page with mission filter
+      window.location.href = `reports.html?mission=${missionId}`;
+    }
+    
+    function exportMissionData(missionId) {
+      // Export mission data as JSON
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+      const mission = missionHistory.find(m => m.id === missionId);
+      
+      if (mission) {
+        const reports = getReportsForMission(missionId);
+        const exportData = {
+          mission: mission,
+          reports: reports,
+          exportDate: new Date().toISOString()
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `mission-${missionId}-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+        showNotification('Mission data exported successfully!', 'success');
+      }
+    }
+
+    // Popup Functions
+    function showEarlyStartPopup(message) {
+      document.getElementById('earlyStartMessage').textContent = message;
+      document.getElementById('earlyStartModal').classList.remove('hidden');
+      document.getElementById('earlyStartModal').classList.add('flex');
+    }
+    
+    function closeEarlyStartPopup() {
+      document.getElementById('earlyStartModal').classList.add('hidden');
+      document.getElementById('earlyStartModal').classList.remove('flex');
+    }
+    
+    function showEarlyEndPopup(message, forceEndCallback) {
+      document.getElementById('earlyEndMessage').textContent = message;
+      document.getElementById('earlyEndModal').classList.remove('hidden');
+      document.getElementById('earlyEndModal').classList.add('flex');
+      
+      // Store the callback for force end
+      window.currentForceEndCallback = forceEndCallback;
+    }
+    
+    function closeEarlyEndPopup() {
+      document.getElementById('earlyEndModal').classList.add('hidden');
+      document.getElementById('earlyEndModal').classList.remove('flex');
+      window.currentForceEndCallback = null;
+    }
+    
+    function forceEndFromPopup() {
+      closeEarlyEndPopup();
+      if (window.currentForceEndCallback) {
+        window.currentForceEndCallback();
+      }
+    }
+    
+    // Overtime Monitoring
+    let overtimeInterval = null;
+    let overtimeNotificationCount = 0;
+    
+    function startOvertimeMonitoring(activeMission) {
+      // Clear any existing monitoring
+      clearOvertimeMonitoring();
+      
+      if (!activeMission.originalMission) {
+        return; // Can't monitor overtime without scheduled end time
+      }
+      
+      const missionEndTime = new Date(activeMission.originalMission.date + 'T' + activeMission.originalMission.endTime);
+      
+      // Check every minute for overtime
+      overtimeInterval = setInterval(() => {
+        const now = new Date();
+        const overtimeMs = now - missionEndTime;
+        
+        if (overtimeMs > 0) { // Mission is running overtime
+          const overtimeMinutes = Math.floor(overtimeMs / (1000 * 60));
+          
+          // Send notification every 15 minutes starting at 15 minutes overtime
+          if (overtimeMinutes >= 15 && overtimeMinutes % 15 === 0) {
+            const notificationId = Math.floor(overtimeMinutes / 15);
+            
+            // Only send if we haven't sent this specific notification yet
+            if (notificationId > overtimeNotificationCount) {
+              overtimeNotificationCount = notificationId;
+              sendOvertimeNotification(overtimeMinutes);
+            }
+          }
+        }
+      }, 60000); // Check every minute
+      
+      // Store monitoring info
+      localStorage.setItem('overtimeMonitoring', JSON.stringify({
+        missionId: activeMission.id,
+        endTime: missionEndTime.toISOString(),
+        notificationCount: 0
+      }));
+    }
+    
+    function clearOvertimeMonitoring() {
+      if (overtimeInterval) {
+        clearInterval(overtimeInterval);
+        overtimeInterval = null;
+      }
+      overtimeNotificationCount = 0;
+      localStorage.removeItem('overtimeMonitoring');
+    }
+    
+    function sendOvertimeNotification(overtimeMinutes) {
+      const hours = Math.floor(overtimeMinutes / 60);
+      const minutes = overtimeMinutes % 60;
+      
+      let timeText = '';
+      if (hours > 0) {
+        timeText = `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+      } else {
+        timeText = `${overtimeMinutes} minute${overtimeMinutes !== 1 ? 's' : ''}`;
+      }
+      
+      let message = '';
+      let title = '';
+      
+      if (overtimeMinutes === 15) {
+        title = '⏰ Still On The Clock!';
+        message = `Hey! You're ${timeText} past your scheduled end time. Don't forget to clock out when you're ready! 🕐`;
+      } else if (overtimeMinutes === 30) {
+        title = '⏰ Overtime Alert!';
+        message = `You've been on duty for an extra ${timeText}! Time to wrap up and clock out. You've earned your rest! 💪`;
+      } else if (overtimeMinutes >= 60) {
+        title = '⏰ Extended Overtime!';
+        message = `Wow! You've been working ${timeText} overtime! Please remember to end your mission and get some well-deserved rest. 🛌`;
+      } else {
+        title = '⏰ Overtime Reminder';
+        message = `You're ${timeText} past your scheduled end time. Please remember to clock out when you're finished! ⏱️`;
+      }
+      
+      // Use the notification system if available
+      if (window.securityNotifications) {
+        window.securityNotifications.showLocalNotification(
+          title,
+          message,
+          {
+            tag: 'overtime-reminder',
+            requireInteraction: true,
+            vibrate: [200, 100, 200, 100, 200],
+            data: { 
+              type: 'overtime', 
+              url: '/schedule.html',
+              overtimeMinutes: overtimeMinutes
+            }
+          }
+        );
+      } else {
+        showNotification(message, 'warning');
+      }
+    }
+    
+    // Resume overtime monitoring on page load if needed
+    function resumeOvertimeMonitoring() {
+      const monitoringInfo = JSON.parse(localStorage.getItem('overtimeMonitoring') || 'null');
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      
+      if (monitoringInfo && activeMission && activeMission.id === monitoringInfo.missionId) {
+        overtimeNotificationCount = monitoringInfo.notificationCount || 0;
+        startOvertimeMonitoring(activeMission);
       }
     }
 

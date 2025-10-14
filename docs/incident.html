@@ -128,9 +128,9 @@
           </div>
         </div>
         
-        <!-- Incident Report Buttons for Involved People -->
+        <!-- Quick Person Reference Buttons -->
         <div id="incidentReportButtons" class="mt-3" style="display: none;">
-          <div class="text-sm mb-2" style="color: var(--text-secondary)">Generate Individual Reports:</div>
+          <div class="text-sm mb-2" style="color: var(--text-secondary)">Quick Add to Narrative:</div>
           <div id="individualReportButtons" class="flex flex-wrap gap-2">
             <!-- Buttons will be populated dynamically -->
           </div>
@@ -440,7 +440,7 @@ The system will automatically generate a comprehensive, detailed security report
       updateIndividualReportButtons();
     }
 
-    // Update individual report buttons for involved people
+    // Update quick person reference buttons for involved people
     function updateIndividualReportButtons() {
       const buttonsContainer = document.getElementById('individualReportButtons');
       const sectionContainer = document.getElementById('incidentReportButtons');
@@ -452,7 +452,7 @@ The system will automatically generate a comprehensive, detailed security report
       
       sectionContainer.style.display = 'block';
       
-      // Group people by role and create abbreviated buttons
+      // Group people by role and create abbreviated reference buttons
       const roleGroups = {};
       peopleList.forEach(person => {
         if (!roleGroups[person.role]) {
@@ -471,8 +471,8 @@ The system will automatically generate a comprehensive, detailed security report
           
           buttonsHtml += `
             <button class="touch-btn ${roleColor}" 
-                    onclick="generateIndividualReport('${person.id}')"
-                    title="Generate report for ${role} ${index + 1}">
+                    onclick="insertPersonToNarrative('${person.id}')"
+                    title="Add ${role} ${index + 1} to narrative">
               📄 ${abbreviation}
             </button>
           `;
@@ -501,6 +501,47 @@ The system will automatically generate a comprehensive, detailed security report
       
       // Create a modal or new window to show the individual report
       showIndividualReportModal(anonymizedName, individualReport);
+    }
+
+    // Insert person reference into narrative with "ex" prefix
+    function insertPersonToNarrative(personId) {
+      const person = peopleList.find(p => p.id == personId);
+      if (!person) return;
+      
+      const personIndex = getPersonIndex(person);
+      const fullReference = `ex ${person.role}${personIndex}`;
+      
+      // Try to insert into the incident description textarea first
+      let textarea = document.getElementById('incidentDescription');
+      
+      // If incident description is not focused, try other text areas
+      if (document.activeElement !== textarea) {
+        const textareas = ['actionTaken', 'resolution', 'initialContact', 'additionalNotes'];
+        for (const id of textareas) {
+          const element = document.getElementById(id);
+          if (document.activeElement === element) {
+            textarea = element;
+            break;
+          }
+        }
+      }
+      
+      const cursorPos = textarea.selectionStart;
+      const textBefore = textarea.value.substring(0, cursorPos);
+      const textAfter = textarea.value.substring(cursorPos);
+      
+      // Insert the reference at cursor position
+      textarea.value = textBefore + fullReference + textAfter;
+      
+      // Move cursor after the inserted reference
+      textarea.selectionStart = textarea.selectionEnd = cursorPos + fullReference.length;
+      textarea.focus();
+      
+      // Trigger auto-generation
+      generateReport();
+      
+      // Show a helpful tip
+      showStatus(`Inserted "${fullReference}" into narrative.`, 'success');
     }
 
     // Generate narrative focused on a specific individual

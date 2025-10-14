@@ -9,8 +9,9 @@
     :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
     html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
     .app-card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:1rem; }
-    #bottomNav{ position:fixed; bottom:1rem; left:50%; transform:translateX(-50%); backdrop-filter:blur(6px); border-radius:9999px; background:#111; display:flex; gap:.5rem; transition:all .3s ease; z-index:50; }
-    #bottomNav.footer{ position:static; transform:none; border-radius:0; width:100%; justify-content:space-around; padding:.75rem 0; margin-top:1rem; }
+    #bottomNav{ position:fixed; left:0; right:0; bottom:0; width:100%; height:var(--bottom-nav-height,56px); display:flex; justify-content:space-around; align-items:center; gap:.25rem; background:rgba(17,17,17,0.9); backdrop-filter:saturate(180%) blur(10px); border-top:1px solid rgba(255,255,255,0.06); z-index:60; padding:0 .5rem calc(env(safe-area-inset-bottom,0px)); }
+    #bottomNav a{ flex:1 1 0; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
     .accent{ color:var(--accent); }
     @media print{
       html,body{ background:#fff !important; color:#000 !important; }
@@ -59,14 +60,12 @@
     <a href="radio.html" class="px-3 py-1 rounded-md">Phonetics</a>
     <a href="incident.html" class="px-3 py-1 rounded-md">Incident</a>
     <a href="shift.html" class="px-3 py-1 rounded-md">Shift</a>
-    <a href="index.html#fourws" class="px-3 py-1 rounded-md">4Ws</a>
   </nav>
 
   <script>
     function toggleLarge(){ document.body.classList.toggle('text-lg'); localStorage.setItem('sss_large', document.body.classList.contains('text-lg')); }
     document.addEventListener('DOMContentLoaded',()=>{ if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); });
-    const mainContent=document.getElementById('mainContent'); const bottomNav=document.getElementById('bottomNav');
-    mainContent.addEventListener('scroll',()=>{ if(mainContent.scrollTop + mainContent.clientHeight >= mainContent.scrollHeight - 5){ bottomNav.classList.add('footer'); } else { bottomNav.classList.remove('footer'); } });
+    // Fixed bottom nav; no scroll toggling required
 
     const STORE_KEYS = { profile:'sss_profile', incidents:'sss_incidents', templateDrafts:'sss_template_drafts' };
     function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }
@@ -88,33 +87,94 @@
         { key:'dateTime', label:'Date / Time', type:'datetime-local' },
         { key:'guardName', label:'Guard Name', type:'text' },
         { key:'post', label:'Post / Location', type:'text' },
+        { key:'location', label:'Where (Location)', type:'text' },
+        { key:'locationDetails', label:'Where (Details)', type:'text' },
         { key:'incidentType', label:'Incident Type', type:'select', options:['Trespass','Disturbance','Theft','Medical','Property Damage','Other'] },
-        { key:'summary', label:'Summary', type:'textarea', rows:4, placeholder:'Brief, objective description' },
-        { key:'actionsTaken', label:'Actions Taken', type:'textarea', rows:3 },
-        { key:'personsInvolved', label:'Persons Involved', type:'textarea', rows:3, placeholder:'Names/roles/descriptions' },
+        { key:'participants', label:'Who (Participants)', type:'participants', roles:['Suspect','Victim','Witness'] },
+        { key:'what', label:'What Happened', type:'textarea', rows:4, placeholder:'Objective narrative; tokens like suspect1, victim1 allowed' },
+        { key:'details', label:'Actions Taken / Additional Details', type:'textarea', rows:4 },
         { key:'injuries', label:'Injuries', type:'textarea', rows:2 },
         { key:'evidence', label:'Evidence/Attachments', type:'textarea', rows:2 },
         { key:'reportingParty', label:'Reporting Party', type:'text' }
       ],
       body: (
         'Incident Report\n' +
-        'Date/Time: {dateTime}\n' +
-        'Guard: {guardName}\n' +
-        'Post/Location: {post}\n' +
-        'Type: {incidentType}\n\n' +
-        'Summary:\n{summary}\n\n' +
-        'Actions Taken:\n{actionsTaken}\n\n' +
-        'Persons Involved:\n{personsInvolved}\n\n' +
+        'Who:\n{whoSection}\n\n' +
+        'What:\n{whatExpanded}\n\n' +
+        'When:\n{when}\n\n' +
+        'Where:\n{where}\n\n' +
+        'Type: {incidentType}\n' +
+        'Details:\n{detailsExpanded}\n\n' +
         'Injuries:\n{injuries}\n\n' +
         'Evidence/Attachments:\n{evidence}\n\n' +
-        'Reporting Party: {reportingParty}'
+        'Reporting Party: {reportingParty}\n' +
+        'Officer: {guardName}\n' +
+        'Post: {post}'
       )
     };
 
     let fieldValues = {};
 
     function toDisplay(value){ return (value==null || String(value).trim()==='') ? 'N/A' : String(value); }
-    function compileBody(){ return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> toDisplay(fieldValues[k])); }
+    function ensureArray(v){ return Array.isArray(v) ? v : []; }
+    function normalizeRole(role){
+      const r = String(role||'').toLowerCase();
+      if (r.startsWith('sus')) return 'suspect';
+      if (r.startsWith('vic')) return 'victim';
+      if (r.startsWith('wit')) return 'witness';
+      if (r.startsWith('subj')) return 'suspect';
+      return r || 'other';
+    }
+    function groupParticipants(list){
+      const groups = { suspect: [], victim: [], witness: [], other: [] };
+      ensureArray(list).forEach(p => {
+        const name = (p && p.name) ? String(p.name).trim() : '';
+        const role = normalizeRole(p && p.role);
+        groups[role] = groups[role] || [];
+        groups[role].push(name);
+      });
+      Object.keys(groups).forEach(k => { groups[k] = groups[k].filter(Boolean); });
+      return groups;
+    }
+    function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    function buildTokenMap(groups){
+      const map = {};
+      const add = (base, names) => { names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = nm; }); };
+      add('suspect', groups.suspect||[]);
+      add('subject', groups.suspect||[]);
+      add('victim', groups.victim||[]);
+      add('witness', groups.witness||[]);
+      return map;
+    }
+    function expandTokens(text, tokenMap){
+      const keys = Object.keys(tokenMap);
+      if (!text || keys.length === 0) return text || '';
+      const pattern = new RegExp('\\b(' + keys.map(escapeRegExp).join('|') + ')\\b', 'gi');
+      return text.replace(pattern, (m) => tokenMap[m.toLowerCase()] || m);
+    }
+    function buildWhoSection(groups){
+      const lines = [];
+      const pushLines = (label, arr) => { arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${nm}`); }); };
+      if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
+      if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
+      if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
+      return lines.length ? lines.join('\n') : 'N/A';
+    }
+    function compileBody(){
+      const participants = ensureArray(fieldValues.participants);
+      const groups = groupParticipants(participants);
+      const tokenMap = buildTokenMap(groups);
+      const whenText = toDisplay(fieldValues.dateTime);
+      const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
+      const computed = {
+        whoSection: buildWhoSection(groups),
+        when: whenText,
+        where: whereText,
+        whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
+        detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
+      };
+      return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> (k in computed) ? toDisplay(computed[k]) : toDisplay(fieldValues[k]));
+    }
 
     function formatDateTimeForInput(iso){ try{ if(!iso) return ''; const d=new Date(iso); if(isNaN(d.getTime())) return ''; const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }catch{return '';} }
 
@@ -123,6 +183,77 @@
       let el;
       if(field.type==='textarea'){
         el=document.createElement('textarea'); el.className=commonCls; el.rows=field.rows||3; if(field.placeholder) el.placeholder=field.placeholder; el.value=fieldValues[field.key]||''; el.addEventListener('input',onChange);
+      } else if(field.type==='participants'){
+        const container = document.createElement('div');
+        container.className = 'space-y-2';
+        const roles = Array.isArray(field.roles) && field.roles.length ? field.roles : ['Suspect','Victim','Witness'];
+        if (!Array.isArray(fieldValues[field.key])) fieldValues[field.key] = [];
+
+        function renderRows(){
+          container.innerHTML = '';
+          const list = ensureArray(fieldValues[field.key]);
+          const counters = {};
+          list.forEach((p) => { const r = normalizeRole(p.role||''); counters[r] = (counters[r]||0) + 1; p._idx = counters[r]; });
+          list.forEach((p, idx) => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2';
+
+            const roleSel = document.createElement('select');
+            roleSel.className = 'bg-[#111] border border-white/10 rounded-md px-2 py-2';
+            roles.forEach(r => { const o=document.createElement('option'); o.value=r; o.textContent=r; roleSel.appendChild(o); });
+            roleSel.value = p.role || roles[0];
+
+            const label = document.createElement('div');
+            label.className = 'text-xs text-gray-400 w-24';
+            label.textContent = `${roleSel.value} ${p._idx || 1}`;
+
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.placeholder = 'Name';
+            nameInput.className = 'flex-1 ' + commonCls;
+            nameInput.value = p.name || '';
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
+            delBtn.textContent = 'Remove';
+
+            roleSel.addEventListener('change', () => {
+              const arr = ensureArray(fieldValues[field.key]);
+              if (!arr[idx]) return; arr[idx].role = roleSel.value; renderRows(); updatePreview();
+            });
+            nameInput.addEventListener('input', () => {
+              const arr = ensureArray(fieldValues[field.key]);
+              if (!arr[idx]) return; arr[idx].name = nameInput.value; updatePreview();
+            });
+            delBtn.addEventListener('click', () => {
+              const arr = ensureArray(fieldValues[field.key]);
+              arr.splice(idx,1); fieldValues[field.key] = arr; renderRows(); updatePreview();
+            });
+
+            row.appendChild(roleSel);
+            row.appendChild(label);
+            row.appendChild(nameInput);
+            row.appendChild(delBtn);
+            container.appendChild(row);
+          });
+
+          const btnRow = document.createElement('div');
+          btnRow.className = 'flex flex-wrap gap-2';
+          roles.forEach(r => {
+            const btn = document.createElement('button');
+            btn.type = 'button'; btn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md'; btn.textContent = `Add ${r}`;
+            btn.addEventListener('click', () => {
+              const arr = ensureArray(fieldValues[field.key]); arr.push({ role: r, name: '' }); fieldValues[field.key] = arr; renderRows(); updatePreview();
+            });
+            btnRow.appendChild(btn);
+          });
+          const hint = document.createElement('div'); hint.className = 'text-xs text-gray-400'; hint.textContent = 'Tip: Use tokens like "suspect1", "victim2" in What/Details.';
+          container.appendChild(btnRow);
+          container.appendChild(hint);
+        }
+        renderRows();
+        el = container;
       } else if(field.type==='select'){
         el=document.createElement('select'); el.className=commonCls; (field.options||[]).forEach(opt=>{ const o=document.createElement('option'); o.value=opt; o.textContent=opt; el.appendChild(o); }); el.value=fieldValues[field.key]|| (field.options?.[0]||''); el.addEventListener('change',onChange);
       } else {
@@ -167,7 +298,17 @@
     function loadDraft(){ const drafts = loadJson(STORE_KEYS.templateDrafts, {}); fieldValues = { ...(drafts[TEMPLATE.id] || {}) }; statusEl.textContent=drafts[TEMPLATE.id]?'Draft loaded.':'No draft saved.'; renderFields(); }
     function clearFields(){ fieldValues={}; prefillDefaults(); statusEl.textContent='Cleared.'; renderFields(); }
 
+    function isIncidentWsComplete(){
+      const hasWhat = String(fieldValues.what||'').trim().length > 0;
+      const hasWhen = String(fieldValues.dateTime||'').trim().length > 0;
+      const hasWhere = String([fieldValues.location||'', fieldValues.locationDetails||''].join('')).trim().length > 0;
+      const participants = ensureArray(fieldValues.participants);
+      const hasWho = participants.some(p => (p && String(p.name||'').trim().length > 0));
+      return hasWhat && hasWhen && hasWhere && hasWho;
+    }
+
     async function copyToClipboard(){
+      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Who, What, When, and Where before copying.'; return; }
       const text = compileBody();
       try{ await navigator.clipboard.writeText(text); statusEl.textContent='Copied to clipboard.'; }
       catch{

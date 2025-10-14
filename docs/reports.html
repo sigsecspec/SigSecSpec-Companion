@@ -30,7 +30,9 @@
 <body class="bg-pattern">
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">📑</div>
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-2 shadow-lg border border-white/10">
+        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain filter brightness-110">
+      </div>
       <div>
         <h1 class="text-2xl font-bold">Reports</h1>
         <p class="text-sm" style="color: var(--text-secondary)">Saved incidents and shift reports</p>
@@ -62,7 +64,7 @@
       <a href="codes.html" class="nav-item"><div class="nav-icon">📟</div><span>Codes</span></a>
       <a href="incident.html" class="nav-item"><div class="nav-icon">📝</div><span>Report</span></a>
       <a href="patrol.html" class="nav-item"><div class="nav-icon">🚶</div><span>Patrol</span></a>
-      <a href="profile.html" class="nav-item active"><div class="nav-icon">👤</div><span>Profile</span></a>
+      <a href="profile.html" class="nav-item"><div class="nav-icon">👤</div><span>Profile</span></a>
     </div>
   </nav>
 
@@ -167,6 +169,10 @@
       initTheme();
       renderIncidents();
       renderShifts();
+      // Register service worker for offline + push
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(console.error);
+      }
     });
   </script>
 </body>

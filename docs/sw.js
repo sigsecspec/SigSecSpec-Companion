@@ -1,16 +1,24 @@
-const CACHE_NAME = 'security-companion-v2.0.0';
+const CACHE_NAME = 'security-companion-v2.1.0';
+
+// Compute base path so the SW works in subdirectories (e.g., GitHub Pages /docs)
+const BASE_PATH = new URL('.', self.location).pathname; // e.g., '/docs/'
+const rel = (path) => {
+  const clean = String(path || '').replace(/^\//, '');
+  return BASE_PATH + clean; // '/docs/' + 'index.html' => '/docs/index.html'
+};
+
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/codes.html',
-  '/radio.html',
-  '/incident.html',
-  '/shift.html',
-  '/reports.html',
-  '/patrol.html',
-  '/profile.html',
-  '/manifest.json',
-  '/patch-bg.png',
+  BASE_PATH, // '/docs/'
+  rel('index.html'),
+  rel('codes.html'),
+  rel('radio.html'),
+  rel('incident.html'),
+  rel('shift.html'),
+  rel('reports.html'),
+  rel('patrol.html'),
+  rel('profile.html'),
+  rel('manifest.json'),
+  rel('patch-bg.png'),
   'https://cdn.tailwindcss.com'
 ];
 

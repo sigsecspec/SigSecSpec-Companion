@@ -310,8 +310,8 @@
   <!-- Header -->
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
-        👤
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-2 shadow-lg border border-white/10">
+        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain filter brightness-110">
       </div>
       <div>
         <h1 class="text-2xl font-bold">Profile & Settings</h1>
@@ -724,8 +724,8 @@
         profile: JSON.parse(localStorage.getItem('userProfile') || '{}'),
         contacts: JSON.parse(localStorage.getItem('emergencyContacts') || '{}'),
         patrols: JSON.parse(localStorage.getItem('completedPatrols') || '[]'),
-        incidents: JSON.parse(localStorage.getItem('savedIncidentReports') || '[]'),
-        shifts: JSON.parse(localStorage.getItem('savedShiftReports') || '[]'),
+        incidents: JSON.parse(localStorage.getItem('sss_saved_incident_reports') || '[]'),
+        shifts: JSON.parse(localStorage.getItem('sss_saved_shift_reports') || '[]'),
         settings: {
           theme: localStorage.getItem('theme'),
           largeText: localStorage.getItem('largeText')
@@ -759,8 +759,8 @@
               if (data.profile) localStorage.setItem('userProfile', JSON.stringify(data.profile));
               if (data.contacts) localStorage.setItem('emergencyContacts', JSON.stringify(data.contacts));
               if (data.patrols) localStorage.setItem('completedPatrols', JSON.stringify(data.patrols));
-              if (data.incidents) localStorage.setItem('savedIncidentReports', JSON.stringify(data.incidents));
-              if (data.shifts) localStorage.setItem('savedShiftReports', JSON.stringify(data.shifts));
+              if (data.incidents) localStorage.setItem('sss_saved_incident_reports', JSON.stringify(data.incidents));
+              if (data.shifts) localStorage.setItem('sss_saved_shift_reports', JSON.stringify(data.shifts));
               if (data.settings) {
                 if (data.settings.theme) localStorage.setItem('theme', data.settings.theme);
                 if (data.settings.largeText) localStorage.setItem('largeText', data.settings.largeText);
@@ -823,6 +823,7 @@
       loadProfile();
       loadContacts();
       loadDeviceInfo();
+      if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(console.error); }
       
       // Check permissions
       if (navigator.permissions) {

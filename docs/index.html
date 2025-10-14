@@ -13,15 +13,6 @@
   <script src="app-common.js"></script>
 </head>
 <body class="bg-pattern">
-  <!-- Professional Loading Screen -->
-  <div id="loadingScreen" class="loading-screen">
-    <div class="loading-logo">
-      <img src="patch-bg.png" alt="Security Logo">
-    </div>
-    <div class="loading-text">Security Companion</div>
-    <div class="loading-subtitle">Professional Security Management</div>
-    <div class="loading-progress"></div>
-  </div>
   <!-- Header -->
   <header class="app-header">
     <div class="flex items-center gap-3">
@@ -42,8 +33,8 @@
     </div>
   </header>
 
-  <!-- Emergency Button -->
-  <button class="emergency-btn" onclick="triggerEmergency()" aria-label="Emergency alert">
+  <!-- Emergency Button - Bottom Right -->
+  <button class="emergency-btn-fixed" onclick="triggerEmergency()" aria-label="Emergency alert">
     🚨
   </button>
 
@@ -686,8 +677,24 @@
     }
 
     function startPatrol() {
-      // Check if there's an active mission
+      // Check if patrol buttons should be disabled
+      const savedShiftReports = JSON.parse(localStorage.getItem('sss_saved_shift_reports') || '[]');
+      const today = new Date().toDateString();
+      const todayShiftReport = savedShiftReports.find(report => {
+        if (!report.at) return false;
+        const reportDate = new Date(report.at).toDateString();
+        return reportDate === today;
+      });
+      
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      
+      // If shift report submitted but no active mission, disable patrol
+      if (todayShiftReport && (!activeMission || activeMission.status !== 'active')) {
+        alert('Patrol is disabled - shift report has been submitted and no active mission. Please start a new mission to enable patrols.');
+        return;
+      }
+      
+      // Check if there's an active mission
       if (!activeMission || activeMission.status !== 'active') {
         showCustomPopup('⚠️ No Active Mission', 
           '<p>You cannot start a patrol without an active mission. Please start a mission first.</p>',
@@ -886,6 +893,22 @@
     function endMission() {
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission) return;
+      
+      // Check if shift report has been submitted
+      const savedShiftReports = JSON.parse(localStorage.getItem('sss_saved_shift_reports') || '[]');
+      const today = new Date().toDateString();
+      const todayShiftReport = savedShiftReports.find(report => {
+        if (!report.at) return false;
+        const reportDate = new Date(report.at).toDateString();
+        return reportDate === today;
+      });
+      
+      if (!todayShiftReport) {
+        if (confirm('No shift report has been submitted today. Missions cannot be ended without a shift report. Would you like to go to the shift report page?')) {
+          window.location.href = 'shift.html';
+        }
+        return;
+      }
       
       // Calculate mission duration
       const startTime = new Date(activeMission.startTime);
@@ -1206,16 +1229,7 @@
       }
     }
 
-    // Loading screen management
-    function hideLoadingScreen() {
-      const loadingScreen = document.getElementById('loadingScreen');
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-        setTimeout(() => {
-          loadingScreen.remove();
-        }, 500);
-      }
-    }
+    // Loading screen management removed as requested
 
     // Update recent activity with clickable items
     function updateRecentActivity() {
@@ -1866,8 +1880,7 @@
       // Update recent activity
       updateRecentActivity();
 
-      // Hide loading screen after initialization
-      setTimeout(hideLoadingScreen, 1500);
+      // Loading screen removed as requested
 
       // Add enhanced touch feedback to all interactive elements
       document.querySelectorAll('.mobile-card, .touch-btn').forEach(element => {

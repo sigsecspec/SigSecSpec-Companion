@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="push-notifications.js"></script>
+  <script src="emergency-common.js"></script>
   <style>
     .avatar {
       width: 80px;
@@ -75,6 +76,11 @@
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
     </div>
   </header>
+
+  <!-- Emergency Button - Bottom Right -->
+  <button class="emergency-btn-fixed" onclick="triggerEmergency()" aria-label="Emergency alert">
+    🚨
+  </button>
 
   <!-- Main Content -->
   <main class="main-content">

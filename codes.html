@@ -113,7 +113,10 @@
 
 <main class="flex-1 overflow-auto p-5" id="mainContent">
   <section class="fade-enter">
-    <h2 class="text-xl font-bold accent mb-3">10-Codes Directory</h2>
+    <h2 class="text-xl font-bold accent mb-2">10-Codes Directory</h2>
+    <div class="mb-4 text-sm text-gray-300 bg-white/5 border border-white/10 rounded-md p-3">
+      Note: 10-codes vary by jurisdiction and agency. These are generalized for security use. Always follow your site SOP and dispatch guidance.
+    </div>
     <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
       <input id="searchInput" class="w-full md:max-w-lg bg-[#111] border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[--accent]" placeholder="Search 10-codes or keywords (e.g., 'shots fired', 'call')" />
       <div class="flex items-center gap-2 md:ml-auto">
@@ -187,6 +190,7 @@ const TEN_CODES = [
   { code: '10-8', title: 'In Service', details: 'Back in service; available for calls.', examples: ['10-8, available.'], synonyms: ['available', 'clear'] },
   { code: '10-9', title: 'Repeat', details: 'Repeat last transmission.', examples: ['10-9 your last.'], synonyms: ['say again', 'repeat'] },
   { code: '10-10', title: 'Fight in Progress', details: 'Physical altercation reported.', examples: ['10-10 at 5th and Pine.'], synonyms: ['fight', 'disturbance', 'brawl'] },
+  { code: '10-11', title: 'Talking Too Rapidly', details: 'Reduce speaking speed to improve clarity.', examples: ['Control, 10-11. Please say again slowly.'], synonyms: ['slow down', 'too fast', 'talk slower', 'speak slowly'] },
   { code: '10-12', title: 'Visitors Present', details: 'Officials or visitors present; use discretion.', examples: ['10-12 in the office.'], synonyms: ['visitors', 'company', 'ride-along'] },
   { code: '10-13', title: 'Weather/Road Conditions', details: 'Request or provide conditions update.', examples: ['10-13 on road conditions.'], synonyms: ['conditions', 'weather', 'roads'] },
   { code: '10-14', title: 'Escort/Convoy', details: 'Provide or request an escort.', examples: ['Requesting 10-14 for transport.'], synonyms: ['escort', 'convoy'] },
@@ -229,6 +233,7 @@ const TEN_CODES = [
   { code: '10-51', title: 'Wrecker Needed', details: 'Request tow truck.', examples: ['10-51 for a flatbed.'], synonyms: ['tow', 'wrecker'] },
   { code: '10-52', title: 'Ambulance Needed', details: 'Request EMS/ambulance.', examples: ['10-52 for one patient.'], synonyms: ['ambulance', 'ems', 'medic'] },
   { code: '10-53', title: 'Road Blocked', details: 'Roadway blocked / impassable.', examples: ['10-53 trees down across road.'], synonyms: ['blocked road', 'closure'] },
+  { code: '10-54', title: 'Livestock/Animal on Roadway', details: 'Animal loose in roadway or high-risk area.', examples: ['10-54: deer near north gate access road.'], synonyms: ['animal on road', 'livestock', 'loose animal'] },
   { code: '10-55', title: 'Intoxicated Driver', details: 'Possible DUI driver.', examples: ['10-55 swerving vehicle.'], synonyms: ['DUI', 'drunk driver', 'impaired'] },
   { code: '10-56', title: 'Intoxicated Pedestrian', details: 'Pedestrian under influence.', examples: ['10-56 near bus stop.'], synonyms: ['drunk', 'intoxicated pedestrian'] },
   { code: '10-57', title: 'Hit and Run', details: 'Collision with fleeing party.', examples: ['10-57 just occurred.'], synonyms: ['hit & run', 'leaving scene'] },
@@ -279,15 +284,129 @@ const TEN_CODES = [
 let lastRendered = [];
 const normalize = (s) => (s || '').toLowerCase();
 
+function computeCategory(item){
+  const code = item.code;
+  const sets = {
+    'Radio/Signal': new Set(['10-1','10-2','10-3','10-4','10-11','10-30','10-33','10-63','10-67','10-68','10-69']),
+    'Status': new Set(['10-6','10-7','10-8','10-19','10-23','10-24','10-41','10-42','10-76','10-77','10-86','10-98']),
+    'Communications': new Set(['10-5','10-21','10-22','10-25','10-62','10-64','10-65']),
+    'Location': new Set(['10-20']),
+    'Traffic': new Set(['10-37','10-38','10-39','10-40','10-46','10-47','10-48','10-49','10-58','10-59','10-50','10-51','10-52','10-53','10-54','10-55','10-56','10-57','10-92','10-94']),
+    'Incident/Emergency': new Set(['10-0','10-10','10-31','10-32','10-34','10-35','10-70','10-71','10-72','10-73','10-78','10-79','10-80','10-89','10-90','10-93','10-95','10-96','10-97','10-99']),
+    'Admin/Logistics': new Set(['10-12','10-13','10-14','10-15','10-16','10-17','10-18','10-44','10-45','10-82','10-83','10-84','10-85','10-87','10-88','10-91'])
+  };
+  for(const [label,set] of Object.entries(sets)){
+    if(set.has(code)) return label;
+  }
+  return 'General';
+}
+
+function computeUsage(item){
+  const category = computeCategory(item);
+  switch(category){
+    case 'Radio/Signal': return 'Manage radio clarity/discipline and prioritize traffic.';
+    case 'Status': return 'Update your availability and progress on assignments.';
+    case 'Communications': return 'Coordinate messages, callbacks, and meet-ups.';
+    case 'Location': return 'Request or provide exact location details.';
+    case 'Traffic': return 'Report or manage roadway/vehicle-related issues safely.';
+    case 'Incident/Emergency': return 'Report hazards and critical incidents; follow SOP and stage as needed.';
+    case 'Admin/Logistics': return 'Handle escorts, logistics, and administrative tasks.';
+    default: return 'General field communication.';
+  }
+}
+
+function computeGuidance(item) {
+  const title = normalize(item.title);
+  const details = normalize(item.details);
+  const code = item.code;
+  const text = `${title} ${details} ${(item.synonyms||[]).join(' ')}`;
+
+  let priority = 'low';
+  const actions = [];
+  const notify = [];
+
+  const mark = (p) => { if (['low','medium','high','critical'].indexOf(p) > -1) priority = p; };
+
+  if (/shots|gun|armed|bomb|explosive|pursuit|emergency traffic/.test(text) || ['10-71','10-32','10-33','10-80','10-89'].includes(code)) {
+    mark('critical');
+  } else if (/fire|alarm|accident|crash|ambulance|fight|crime in progress|coroner|bank alarm/.test(text) || ['10-10','10-31','10-50','10-52','10-70','10-79','10-90'].includes(code)) {
+    mark('high');
+  } else if (/suspicious|detaining|escort|convoy|missing|riot|blockade|road blocked|livestock/.test(text)) {
+    mark('medium');
+  }
+
+  // Baseline actions by situation
+  if (code === '10-71' || /shots/.test(text)) {
+    actions.push('Take cover; avoid self-deployment');
+    actions.push('Provide precise location, number of shots, direction');
+    actions.push('Notify law enforcement; stage until scene secure');
+    notify.push('Law Enforcement', 'Dispatch/Supervisor');
+  } else if (code === '10-32' || /gun|armed/.test(text)) {
+    actions.push('Do not approach; observe and report');
+    actions.push('Initiate lockdown/access control per SOP');
+    actions.push('Maintain safe distance and cover');
+    notify.push('Law Enforcement', 'Dispatch/Supervisor');
+  } else if (code === '10-10' || /fight/.test(text)) {
+    actions.push('Request backup; approach only per training');
+    actions.push('De-escalate verbally; prioritize safety');
+    actions.push('Call 911 if weapons or injuries involved');
+    notify.push('Dispatch', 'Law Enforcement');
+  } else if (code === '10-31' || /crime in progress/.test(text)) {
+    actions.push('Maintain visual; do not intervene beyond policy');
+    actions.push('Preserve evidence; note descriptions and direction');
+    notify.push('Law Enforcement', 'Dispatch');
+  } else if (code === '10-70' || /fire/.test(text)) {
+    actions.push('Activate fire response; evacuate per plan');
+    actions.push('Verify panel location; keep elevators out of use');
+    notify.push('Fire Department', 'Dispatch/Facilities');
+  } else if (code === '10-50' || /accident|crash|collision/.test(text)) {
+    actions.push('Assess injuries and hazards; request EMS if needed');
+    actions.push('Secure scene; establish traffic/pedestrian control');
+    notify.push('EMS', 'Dispatch');
+  } else if (code === '10-52' || /ambulance/.test(text)) {
+    actions.push('Provide patient age, condition, access instructions');
+    actions.push('Assign escort to meet EMS at gate/entrance');
+    notify.push('EMS', 'Dispatch');
+  } else if (code === '10-89' || /bomb|explosive/.test(text)) {
+    actions.push('Use landlines if device suspected; avoid radio near device');
+    actions.push('Initiate bomb threat checklist and evacuation per SOP');
+    notify.push('Law Enforcement/Bomb Squad', 'Dispatch/Management');
+  } else if (code === '10-33' || /emergency traffic/.test(text)) {
+    actions.push('Hold non-emergency radio traffic');
+    actions.push('Clear channel for priority communications');
+    notify.push('All Units');
+  } else if (code === '10-38' || /traffic stop/.test(text)) {
+    actions.push('Announce location, plate, occupants if assisting');
+    actions.push('Position safely; do not crowd primary unit');
+    notify.push('Dispatch');
+  } else if (code === '10-59' || /escort|convoy/.test(text)) {
+    actions.push('Plan route; brief units; maintain spacing and comms');
+    notify.push('Dispatch');
+  } else if (/suspicious/.test(text)) {
+    actions.push('Observe from cover; avoid confrontation; capture details');
+    notify.push('Dispatch');
+  }
+
+  return { priority, actions, notify };
+}
+
 function matches(item, query) {
   if (!query) return true;
   const tokens = query.split(/\s+/).filter(Boolean);
+  const guidance = computeGuidance(item);
+  const category = computeCategory(item);
+  const usage = computeUsage(item);
   const haystack = normalize([
     item.code,
     item.title,
     item.details,
     ...(item.examples || []),
-    ...(item.synonyms || [])
+    ...(item.synonyms || []),
+    category,
+    usage,
+    guidance.priority,
+    ...(guidance.actions || []),
+    ...(guidance.notify || [])
   ].join(' '));
   return tokens.every(t => haystack.includes(t));
 }
@@ -308,6 +427,10 @@ function renderList(query) {
 
 function openModal(item) {
   modalTitle.textContent = `${item.code} — ${item.title}`;
+  const guidance = computeGuidance(item);
+  const category = computeCategory(item);
+  const usage = computeUsage(item);
+  const priorityBadgeClass = guidance.priority === 'critical' ? 'bg-red-500/20 text-red-300 border-red-500/30' : guidance.priority === 'high' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' : guidance.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30' : 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   const examplesHtml = (item.examples && item.examples.length)
     ? `<div class="mt-3">
          <div class="text-sm font-semibold mb-1">Examples</div>
@@ -324,10 +447,28 @@ function openModal(item) {
          </div>
        </div>`
     : '';
+  const metaHtml = `
+    <div class="mt-2 text-xs text-gray-400">
+      <span class="inline-flex items-center gap-1">
+        <span class="px-2 py-0.5 rounded border border-white/10 bg-white/5">${category}</span>
+      </span>
+      <div class="mt-2 text-gray-300 text-sm">Usage: ${usage}</div>
+    </div>`;
+  const guidanceHtml = `
+    <div class="mt-4 border-t border-white/10 pt-3">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-sm font-semibold">Security guidance</span>
+        <span class="text-xs px-2 py-0.5 rounded border ${priorityBadgeClass}">Priority: ${guidance.priority}</span>
+      </div>
+      ${guidance.actions && guidance.actions.length ? `<ul class="list-disc list-inside space-y-1 text-sm text-gray-300">${guidance.actions.map(a => `<li>${a}</li>`).join('')}</ul>` : ''}
+      ${guidance.notify && guidance.notify.length ? `<div class="text-xs text-gray-400 mt-2">Notify: ${guidance.notify.join(', ')}</div>` : ''}
+    </div>`;
   modalBody.innerHTML = `
     <div class="text-gray-300">${item.details}</div>
+    ${metaHtml}
     ${examplesHtml}
     ${synonymsHtml}
+    ${guidanceHtml}
   `;
   modalEl.classList.add('show');
   modalEl.setAttribute('aria-hidden', 'false');

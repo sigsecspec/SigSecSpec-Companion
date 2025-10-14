@@ -146,6 +146,7 @@
         <a href="#radio" data-route="radio" class="app-card ripple-container">🅰️<div class="font-semibold mt-2">Phonetic Alphabet</div></a>
         <a href="#emergency" data-route="emergency" class="app-card ripple-container">🚨<div class="font-semibold mt-2">Emergency Tools</div></a>
         <a href="#tools" data-route="tools" class="app-card ripple-container">🧰<div class="font-semibold mt-2">Field Tools</div></a>
+        <a href="#templates" data-route="templates" class="app-card ripple-container">📄<div class="font-semibold mt-2">Report Templates</div></a>
         <a href="#training" data-route="training" class="app-card ripple-container">🎓<div class="font-semibold mt-2">Training & Quiz</div></a>
         <a href="#game" data-route="game" class="app-card ripple-container">🎮<div class="font-semibold mt-2">Boredom Breaker</div></a>
         <a href="#profile" data-route="profile" class="app-card ripple-container">🪪<div class="font-semibold mt-2">Profile</div></a>
@@ -289,6 +290,32 @@
       <div class="mt-6">
         <h3 class="font-semibold mb-2">Recent Reports</h3>
         <div id="incidentList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- REPORT TEMPLATES -->
+    <section id="templates" class="view" aria-labelledby="templatesHeading">
+      <h2 id="templatesHeading" class="text-xl font-bold accent mb-4">Report Templates</h2>
+      <div class="space-y-4 max-w-4xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Template</div>
+            <select id="templateSelect" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></select>
+          </label>
+          <div class="flex flex-wrap gap-2 md:justify-end">
+            <button id="tplImportIncident" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Import from Incident</button>
+            <button id="tplSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Save Draft</button>
+            <button id="tplLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Load Draft</button>
+            <button id="tplClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Clear</button>
+            <button id="tplCopy" class="px-3 py-2 rounded-md bg-[#111] border border-white/10 ripple-container">Copy</button>
+          </div>
+        </div>
+        <div id="templateStatus" class="text-sm text-gray-400"></div>
+        <div id="templateFormFields" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        <div class="app-card">
+          <div class="font-semibold mb-2">Preview</div>
+          <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
+        </div>
       </div>
     </section>
 
@@ -543,11 +570,13 @@
       emergency: 'Emergency Procedures — quick references',
       tools: 'Field Tools — quick references',
       training: 'Training & Quiz — quick references',
+      templates: 'Report Templates — fill and copy',
       game: 'Boredom Breaker — mini-game'
     };
 
     let currentViewId = 'home';
     let codesInitialized = false;
+    let templatesInitialized = false;
 
     function setCurtainFromEvent(evt) {
       const curtain = document.getElementById('transitionCurtain');
@@ -602,6 +631,10 @@
       if (targetId === 'codes' && !codesInitialized) {
         initCodesSection();
         codesInitialized = true;
+      }
+      if (targetId === 'templates' && !templatesInitialized) {
+        initTemplatesSection();
+        templatesInitialized = true;
       }
     }
 
@@ -801,6 +834,329 @@
       clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; applySearch(''); });
     }
 
+    // Report Templates logic
+    function initTemplatesSection() {
+      const selectEl = document.getElementById('templateSelect');
+      const fieldsContainer = document.getElementById('templateFormFields');
+      const previewEl = document.getElementById('templatePreview');
+      const statusEl = document.getElementById('templateStatus');
+      const btnImport = document.getElementById('tplImportIncident');
+      const btnSave = document.getElementById('tplSaveDraft');
+      const btnLoad = document.getElementById('tplLoadDraft');
+      const btnClear = document.getElementById('tplClear');
+      const btnCopy = document.getElementById('tplCopy');
+
+      const TEMPLATES = [
+        {
+          id: 'incident_basic',
+          name: 'Incident Report (Basic)',
+          fields: [
+            { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
+            { key: 'guardName', label: 'Guard Name', type: 'text' },
+            { key: 'post', label: 'Post / Location', type: 'text' },
+            { key: 'incidentType', label: 'Incident Type', type: 'select', options: ['Trespass','Disturbance','Theft','Medical','Property Damage','Other'] },
+            { key: 'summary', label: 'Summary', type: 'textarea', rows: 4, placeholder: 'Brief, objective description' },
+            { key: 'actionsTaken', label: 'Actions Taken', type: 'textarea', rows: 3 },
+            { key: 'personsInvolved', label: 'Persons Involved', type: 'textarea', rows: 3, placeholder: 'Names/roles/descriptions' },
+            { key: 'injuries', label: 'Injuries', type: 'textarea', rows: 2 },
+            { key: 'evidence', label: 'Evidence/Attachments', type: 'textarea', rows: 2 },
+            { key: 'reportingParty', label: 'Reporting Party', type: 'text' }
+          ],
+          body: (
+            'Incident Report\n' +
+            'Date/Time: {dateTime}\n' +
+            'Guard: {guardName}\n' +
+            'Post/Location: {post}\n' +
+            'Type: {incidentType}\n\n' +
+            'Summary:\n{summary}\n\n' +
+            'Actions Taken:\n{actionsTaken}\n\n' +
+            'Persons Involved:\n{personsInvolved}\n\n' +
+            'Injuries:\n{injuries}\n\n' +
+            'Evidence/Attachments:\n{evidence}\n\n' +
+            'Reporting Party: {reportingParty}'
+          )
+        },
+        {
+          id: 'dar_shift',
+          name: 'Daily Activity Report (Shift Summary)',
+          fields: [
+            { key: 'date', label: 'Date', type: 'date' },
+            { key: 'guardName', label: 'Guard Name', type: 'text' },
+            { key: 'post', label: 'Post / Location', type: 'text' },
+            { key: 'startTime', label: 'Shift Start', type: 'time' },
+            { key: 'endTime', label: 'Shift End', type: 'time' },
+            { key: 'patrols', label: 'Patrols Conducted', type: 'textarea', rows: 3, placeholder: 'Times/areas' },
+            { key: 'contacts', label: 'Contacts / Interactions', type: 'textarea', rows: 3 },
+            { key: 'incidents', label: 'Incidents (if any)', type: 'textarea', rows: 3 },
+            { key: 'notes', label: 'Notes', type: 'textarea', rows: 3 }
+          ],
+          body: (
+            'Daily Activity Report\n' +
+            'Date: {date}\n' +
+            'Guard: {guardName}\n' +
+            'Post: {post}\n' +
+            'Shift: {startTime} - {endTime}\n\n' +
+            'Patrols:\n{patrols}\n\n' +
+            'Contacts/Interactions:\n{contacts}\n\n' +
+            'Incidents:\n{incidents}\n\n' +
+            'Notes:\n{notes}'
+          )
+        },
+        {
+          id: 'trespass_warning',
+          name: 'Trespass Warning Issued',
+          fields: [
+            { key: 'subjectName', label: 'Subject Name (if known)', type: 'text' },
+            { key: 'subjectDesc', label: 'Subject Description', type: 'textarea', rows: 3 },
+            { key: 'location', label: 'Location', type: 'text' },
+            { key: 'time', label: 'Time', type: 'datetime-local' },
+            { key: 'reason', label: 'Reason', type: 'textarea', rows: 2 },
+            { key: 'action', label: 'Action Taken', type: 'textarea', rows: 2 },
+            { key: 'policeCase', label: 'Police Case # (if any)', type: 'text' }
+          ],
+          body: (
+            'Trespass Warning\n' +
+            'Date/Time: {time}\n' +
+            'Location: {location}\n' +
+            'Subject: {subjectName}\n' +
+            'Description: {subjectDesc}\n\n' +
+            'Reason: {reason}\n' +
+            'Action Taken: {action}\n' +
+            'Police Case #: {policeCase}'
+          )
+        },
+        {
+          id: 'medical_incident',
+          name: 'Medical Incident',
+          fields: [
+            { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
+            { key: 'location', label: 'Location', type: 'text' },
+            { key: 'patientName', label: 'Patient Name (if known)', type: 'text' },
+            { key: 'condition', label: 'Condition/Complaint', type: 'textarea', rows: 3 },
+            { key: 'aidRendered', label: 'Aid Rendered', type: 'textarea', rows: 3 },
+            { key: 'emsUnit', label: 'EMS Unit', type: 'text' },
+            { key: 'transport', label: 'Transport Destination', type: 'text' }
+          ],
+          body: (
+            'Medical Incident\n' +
+            'Date/Time: {dateTime}\n' +
+            'Location: {location}\n' +
+            'Patient: {patientName}\n' +
+            'Condition: {condition}\n' +
+            'Aid Rendered: {aidRendered}\n' +
+            'EMS Unit: {emsUnit}\n' +
+            'Transport To: {transport}'
+          )
+        },
+        {
+          id: 'property_damage',
+          name: 'Property Damage',
+          fields: [
+            { key: 'dateTime', label: 'Date / Time', type: 'datetime-local' },
+            { key: 'location', label: 'Location', type: 'text' },
+            { key: 'damageDesc', label: 'Damage Description', type: 'textarea', rows: 3 },
+            { key: 'cause', label: 'Apparent Cause', type: 'textarea', rows: 2 },
+            { key: 'photoTaken', label: 'Photos Taken', type: 'checkbox' },
+            { key: 'reportNumber', label: 'Report # (if any)', type: 'text' }
+          ],
+          body: (
+            'Property Damage Report\n' +
+            'Date/Time: {dateTime}\n' +
+            'Location: {location}\n' +
+            'Description: {damageDesc}\n' +
+            'Cause: {cause}\n' +
+            'Photos Taken: {photoTaken}\n' +
+            'Report #: {reportNumber}'
+          )
+        }
+      ];
+
+      let fieldValues = {};
+      let currentTemplateId = TEMPLATES[0]?.id || '';
+
+      function setStatus(msg){ statusEl.textContent = msg || ''; }
+
+      function toDisplay(value){
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+        return (value == null || String(value).trim() === '') ? 'N/A' : String(value);
+      }
+
+      function formatDateTimeForInput(iso){
+        try {
+          if (!iso) return '';
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return '';
+          const pad = (n)=>String(n).padStart(2,'0');
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        } catch { return ''; }
+      }
+
+      function compileBody(template){
+        return template.body.replace(/\{(.*?)\}/g, (_, key) => toDisplay(fieldValues[key]));
+      }
+
+      function createInput(field){
+        const commonCls = 'w-full bg-[#111] border border-white/10 rounded-md px-3 py-2';
+        let inputEl;
+        if (field.type === 'textarea'){
+          inputEl = document.createElement('textarea');
+          inputEl.className = commonCls;
+          inputEl.rows = field.rows || 3;
+          if (field.placeholder) inputEl.placeholder = field.placeholder;
+          inputEl.value = fieldValues[field.key] || '';
+          inputEl.addEventListener('input', onChange);
+        } else if (field.type === 'select'){
+          inputEl = document.createElement('select');
+          inputEl.className = commonCls;
+          (field.options || []).forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt; o.textContent = opt; inputEl.appendChild(o);
+          });
+          inputEl.value = fieldValues[field.key] || (field.options?.[0] || '');
+          inputEl.addEventListener('change', onChange);
+        } else if (field.type === 'checkbox'){
+          inputEl = document.createElement('input');
+          inputEl.type = 'checkbox';
+          inputEl.className = 'h-4 w-4';
+          inputEl.checked = Boolean(fieldValues[field.key]);
+          inputEl.addEventListener('change', onChange);
+        } else {
+          inputEl = document.createElement('input');
+          inputEl.type = field.type || 'text';
+          inputEl.className = commonCls;
+          inputEl.value = fieldValues[field.key] || '';
+          inputEl.addEventListener('input', onChange);
+        }
+        inputEl.dataset.key = field.key;
+        return inputEl;
+      }
+
+      function renderFields(){
+        fieldsContainer.innerHTML = '';
+        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
+        if (!t) return;
+        t.fields.forEach(field => {
+          const wrapper = document.createElement('label');
+          wrapper.className = 'block';
+          const title = document.createElement('div');
+          title.className = 'text-sm text-gray-300 mb-1';
+          title.textContent = field.label;
+          const input = createInput(field);
+          wrapper.appendChild(title);
+          wrapper.appendChild(input);
+          fieldsContainer.appendChild(wrapper);
+        });
+        updatePreview();
+      }
+
+      function updatePreview(){
+        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
+        if (!t) { previewEl.textContent = ''; return; }
+        previewEl.textContent = compileBody(t);
+      }
+
+      function onChange(e){
+        const key = e.target.dataset.key;
+        if (!key) return;
+        fieldValues[key] = (e.target.type === 'checkbox') ? e.target.checked : e.target.value;
+        updatePreview();
+      }
+
+      function renderTemplateOptions(){
+        selectEl.innerHTML = TEMPLATES.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+        selectEl.value = currentTemplateId;
+      }
+
+      function prefillDefaults(){
+        const prof = loadJson(STORE_KEYS.profile, {});
+        if ('guardName' in fieldValues && !fieldValues.guardName) fieldValues.guardName = prof.name || '';
+        // If template has date or dateTime, default to now
+        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
+        if (!t) return;
+        const nowIso = new Date().toISOString();
+        t.fields.forEach(f=>{
+          if ((f.type === 'datetime-local' || f.type === 'time' || f.type === 'date') && !fieldValues[f.key]){
+            if (f.type === 'datetime-local') fieldValues[f.key] = formatDateTimeForInput(nowIso);
+            else if (f.type === 'date') fieldValues[f.key] = nowIso.slice(0,10);
+            else if (f.type === 'time') fieldValues[f.key] = nowIso.slice(11,16);
+          }
+        });
+      }
+
+      function importFromIncident(){
+        const inc = (loadJson(STORE_KEYS.incidents, [])[0]) || null;
+        if (!inc) { setStatus('No incident found to import.'); return; }
+        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
+        if (!t) return;
+        const map = {
+          dateTime: formatDateTimeForInput(inc.at),
+          post: inc.post || '',
+          incidentType: inc.type || '',
+          summary: inc.desc || ''
+        };
+        Object.keys(map).forEach(k=>{ if (k in fieldValues) fieldValues[k] = map[k]; });
+        setStatus('Imported latest incident.');
+        renderFields();
+      }
+
+      function saveDraft(){
+        const drafts = loadJson(STORE_KEYS.templateDrafts, {});
+        drafts[currentTemplateId] = fieldValues;
+        saveJson(STORE_KEYS.templateDrafts, drafts);
+        setStatus('Draft saved.');
+      }
+
+      function loadDraft(){
+        const drafts = loadJson(STORE_KEYS.templateDrafts, {});
+        fieldValues = { ...(drafts[currentTemplateId] || {}) };
+        setStatus(drafts[currentTemplateId] ? 'Draft loaded.' : 'No draft saved.');
+        renderFields();
+      }
+
+      function clearFields(){
+        fieldValues = {};
+        prefillDefaults();
+        setStatus('Cleared.');
+        renderFields();
+      }
+
+      async function copyToClipboard(){
+        const t = TEMPLATES.find(x=>x.id === currentTemplateId);
+        if (!t) return;
+        const text = compileBody(t);
+        try {
+          await navigator.clipboard.writeText(text);
+          setStatus('Copied to clipboard.');
+        } catch {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text; document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
+            setStatus('Copied to clipboard.');
+          } catch {
+            setStatus('Copy failed. Select and copy manually.');
+          }
+        }
+      }
+
+      selectEl.addEventListener('change', ()=>{
+        currentTemplateId = selectEl.value;
+        fieldValues = {};
+        prefillDefaults();
+        renderFields();
+      });
+      btnImport.addEventListener('click', importFromIncident);
+      btnSave.addEventListener('click', saveDraft);
+      btnLoad.addEventListener('click', loadDraft);
+      btnClear.addEventListener('click', clearFields);
+      btnCopy.addEventListener('click', copyToClipboard);
+
+      // Initial render
+      renderTemplateOptions();
+      prefillDefaults();
+      renderFields();
+    }
+
     // Client storage helpers
     const STORE_KEYS = {
       profile: 'sss_profile',
@@ -809,7 +1165,8 @@
       incidents: 'sss_incidents',
       assignments: 'sss_assignments',
       equipment: 'sss_equipment',
-      calendar: 'sss_calendar'
+      calendar: 'sss_calendar',
+      templateDrafts: 'sss_template_drafts'
     };
 
     function loadJson(key, fallback){

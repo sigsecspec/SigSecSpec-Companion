@@ -2345,6 +2345,23 @@
     
     // Make test function available globally for testing
     window.testEndShiftValidation = testEndShiftValidation;
+    
+    // Test persistent notification function
+    window.testPersistentNotification = function() {
+      const testMission = {
+        id: 'test-' + Date.now(),
+        startTime: new Date().toISOString(),
+        status: 'active',
+        originalMission: { title: 'Test Security Mission' }
+      };
+      
+      if (window.securityNotifications && window.securityNotifications.showPersistentMissionNotification) {
+        window.securityNotifications.showPersistentMissionNotification(testMission);
+        showNotification('Test persistent notification shown', 'info');
+      } else {
+        showNotification('Notification system not ready', 'error');
+      }
+    };
   </script>
 </body>
 </html>

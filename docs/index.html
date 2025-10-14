@@ -625,6 +625,18 @@
           <div class="text-sm mt-1" style="color: var(--text-secondary)">Track routes</div>
         </button>
         
+        <button class="mobile-card text-center" onclick="takePhoto()">
+          <div class="text-3xl mb-2">📸</div>
+          <div class="font-semibold">Camera</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Evidence photos</div>
+        </button>
+        
+        <button class="mobile-card text-center" onclick="recordAudio()">
+          <div class="text-3xl mb-2" id="audioIcon">🎤</div>
+          <div class="font-semibold">Voice Recorder</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)" id="audioStatus">Tap to record</div>
+        </button>
+        
         <button class="mobile-card text-center" onclick="openSettings()">
           <div class="text-3xl mb-2">⚙️</div>
           <div class="font-semibold">Settings</div>
@@ -847,12 +859,170 @@
       window.location.href = 'profile.html';
     }
 
-    // Push Notification System
+    // Camera functionality
+    async function takePhoto() {
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+          });
+          
+          // Create video element
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          video.autoplay = true;
+          video.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 9999;
+            background: black;
+          `;
+          
+          // Create capture button
+          const captureBtn = document.createElement('button');
+          captureBtn.textContent = '📸 Capture';
+          captureBtn.style.cssText = `
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            padding: 1rem 2rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+          `;
+          
+          // Create close button
+          const closeBtn = document.createElement('button');
+          closeBtn.textContent = '❌ Close';
+          closeBtn.style.cssText = `
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            z-index: 10000;
+            padding: 0.5rem 1rem;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+          `;
+          
+          document.body.appendChild(video);
+          document.body.appendChild(captureBtn);
+          document.body.appendChild(closeBtn);
+          
+          const cleanup = () => {
+            stream.getTracks().forEach(track => track.stop());
+            document.body.removeChild(video);
+            document.body.removeChild(captureBtn);
+            document.body.removeChild(closeBtn);
+          };
+          
+          captureBtn.onclick = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            canvas.toBlob(blob => {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `security-photo-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.jpg`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }, 'image/jpeg', 0.9);
+            
+            cleanup();
+            alert('Photo captured and saved!');
+          };
+          
+          closeBtn.onclick = cleanup;
+          
+        } else {
+          alert('Camera not available on this device');
+        }
+      } catch (error) {
+        console.error('Camera error:', error);
+        alert('Unable to access camera. Please check permissions.');
+      }
+    }
+
+    // Audio recording functionality
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    async function recordAudio() {
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          
+          mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+          };
+          
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const url = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security-audio-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.wav`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            // Stop all tracks
+            stream.getTracks().forEach(track => track.stop());
+          };
+          
+          mediaRecorder.start();
+          isRecording = true;
+          
+          document.getElementById('audioIcon').textContent = '⏹️';
+          document.getElementById('audioStatus').textContent = 'Recording... Tap to stop';
+          document.getElementById('audioStatus').style.color = 'var(--error)';
+          
+        } catch (error) {
+          console.error('Audio recording error:', error);
+          alert('Unable to access microphone. Please check permissions.');
+        }
+      } else {
+        // Stop recording
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          isRecording = false;
+          
+          document.getElementById('audioIcon').textContent = '🎤';
+          document.getElementById('audioStatus').textContent = 'Recording saved!';
+          document.getElementById('audioStatus').style.color = 'var(--success)';
+          
+          setTimeout(() => {
+            document.getElementById('audioStatus').textContent = 'Tap to record';
+            document.getElementById('audioStatus').style.color = 'var(--text-secondary)';
+          }, 3000);
+        }
+      }
+    }
+
+    // Enhanced Push Notification System
     let pushSubscription = null;
+    let notificationPermission = 'default';
     
     async function initializePushNotifications() {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         console.log('Push messaging is not supported');
+        updateNotificationUI(false, 'Push notifications not supported');
         return;
       }
 
@@ -860,21 +1030,23 @@
         const registration = await navigator.serviceWorker.register('sw.js');
         console.log('ServiceWorker registered successfully');
         
+        // Check current notification permission
+        notificationPermission = Notification.permission;
+        
         // Check if already subscribed
         pushSubscription = await registration.pushManager.getSubscription();
         
-        if (!pushSubscription) {
-          // Request notification permission
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            await subscribeToPush(registration);
-          }
-        } else {
+        if (!pushSubscription && notificationPermission === 'granted') {
+          await subscribeToPush(registration);
+        } else if (pushSubscription) {
           console.log('Already subscribed to push notifications');
-          updateNotificationUI(true);
+          updateNotificationUI(true, 'Push notifications enabled');
+        } else {
+          updateNotificationUI(false, 'Click to enable notifications');
         }
       } catch (error) {
         console.error('ServiceWorker registration failed:', error);
+        updateNotificationUI(false, 'Failed to initialize notifications');
       }
     }
 
@@ -926,11 +1098,11 @@
       localStorage.setItem('pushSubscription', JSON.stringify(subscription));
     }
 
-    function updateNotificationUI(enabled) {
+    function updateNotificationUI(enabled, message = '') {
       // Update UI to show notification status
       const statusElement = document.getElementById('notificationStatus');
       if (statusElement) {
-        statusElement.textContent = enabled ? 'Notifications: ON' : 'Notifications: OFF';
+        statusElement.textContent = message || (enabled ? 'Notifications: ON' : 'Notifications: OFF');
         statusElement.style.color = enabled ? 'var(--success)' : 'var(--text-muted)';
       }
     }
@@ -954,21 +1126,44 @@
       }
     }
 
-    // Test notification function
-    function sendTestNotification() {
-      if (pushSubscription) {
+    // Enhanced test notification function
+    async function sendTestNotification() {
+      if (Notification.permission !== 'granted') {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          await initializePushNotifications();
+        } else {
+          alert('Please enable notifications to receive security alerts.');
+          return;
+        }
+      }
+      
+      if (pushSubscription || Notification.permission === 'granted') {
         showLocalNotification(
-          'Security Alert Test', 
-          'This is a test notification from Security Companion',
+          '🚨 Security Alert Test', 
+          'This is a test notification from Security Companion. All systems operational.',
           {
+            tag: 'test-notification',
+            requireInteraction: true,
             actions: [
-              { action: 'view', title: 'View Details' },
-              { action: 'dismiss', title: 'Dismiss' }
-            ]
+              { action: 'view', title: '👁️ View Details' },
+              { action: 'dismiss', title: '❌ Dismiss' }
+            ],
+            data: { url: '/index.html', type: 'test' }
           }
         );
+        
+        // Show success message
+        const statusElement = document.getElementById('notificationStatus');
+        const originalText = statusElement.textContent;
+        statusElement.textContent = '✅ Test notification sent!';
+        statusElement.style.color = 'var(--success)';
+        
+        setTimeout(() => {
+          updateNotificationUI(true, 'Push notifications enabled');
+        }, 3000);
       } else {
-        alert('Push notifications are not enabled. Please enable them in settings.');
+        alert('Push notifications are not available. Please check your browser settings.');
       }
     }
 

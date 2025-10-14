@@ -65,7 +65,9 @@
 <body class="bg-pattern">
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">📝</div>
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-2 shadow-lg border border-white/10">
+        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain filter brightness-110">
+      </div>
       <div>
         <h1 class="text-2xl font-bold">Incident Report</h1>
         <p class="text-sm" style="color: var(--text-secondary)">Automated narrative generator</p>
@@ -78,26 +80,29 @@
   </header>
 
   <main class="main-content">
-    <section class="max-w-5xl mx-auto space-y-4">
-      <div class="mobile-card">
+    <!-- Top Half - Generated Report & Narrative -->
+    <section class="max-w-5xl mx-auto mb-4">
+      <div class="mobile-card" style="min-height: 50vh;">
         <div class="flex justify-between items-center mb-3">
           <div>
-            <h2 class="text-xl font-bold">Generated Report & Narrative</h2>
+            <h2 class="text-xl font-bold">📋 Generated Report & Narrative</h2>
             <div id="reportStatus" class="text-sm mt-1" style="color: var(--text-secondary)">Fill in the fields below to generate report</div>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button id="btnSaveDraft" class="touch-btn">💾 Save Draft</button>
-            <button id="btnLoadDraft" class="touch-btn">📂 Load Draft</button>
-            <button id="btnExport" class="touch-btn">📄 Export PDF</button>
-            <button id="btnEmail" class="touch-btn">📧 Email</button>
-            <button id="btnSaveReport" class="touch-btn primary">✅ Save Report</button>
+            <button id="btnSaveDraft" class="touch-btn">💾 Save</button>
+            <button id="btnLoadDraft" class="touch-btn">📂 Load</button>
             <button id="btnCopy" class="touch-btn primary">📋 Copy</button>
+            <button id="btnSaveReport" class="touch-btn primary">✅ Save Report</button>
           </div>
         </div>
-        <div class="narrative-display">
-          <div id="incidentTypeBadge" class="mb-3 hidden">
-            <span class="incident-type-badge"></span>
-          </div>
+        
+        <!-- Incident Type Badge -->
+        <div id="incidentTypeBadge" class="mb-3 hidden">
+          <span class="incident-type-badge"></span>
+        </div>
+        
+        <!-- Narrative Display -->
+        <div class="narrative-display" style="max-height: 40vh; overflow-y: auto;">
           <pre id="reportNarrative" class="whitespace-pre-wrap" style="color: var(--text-secondary)">
 ═══════════════════════════════════════════════════════════════════════════════
                           INCIDENT REPORT - NOT GENERATED YET
@@ -112,12 +117,23 @@ The system will automatically:
 Start by filling in the basic incident information below...
           </pre>
         </div>
+        
+        <!-- Additional Action Buttons -->
+        <div class="flex flex-wrap gap-2 mt-4 pt-3 border-t" style="border-color: var(--border-primary)">
+          <button id="btnExport" class="touch-btn">📄 Export PDF</button>
+          <button id="btnEmail" class="touch-btn">📧 Email</button>
+          <button onclick="printReport()" class="touch-btn">🖨️ Print</button>
+          <button onclick="shareReport()" class="touch-btn">📤 Share</button>
+        </div>
       </div>
+    </section>
 
+    <!-- Bottom Half - Form Fields -->
+    <section class="max-w-5xl mx-auto">
       <div class="mobile-card">
-        <div class="mb-2">
-          <h3 class="text-lg font-semibold">📝 Incident Details - Fill in the Blanks</h3>
-          <p class="text-sm" style="color: var(--text-secondary)">Complete all fields to generate a detailed report. All names will be anonymized automatically.</p>
+        <div class="mb-4">
+          <h3 class="text-xl font-semibold">📝 Incident Details - Fill in the Blanks</h3>
+          <p class="text-sm mt-1" style="color: var(--text-secondary)">Complete all fields to generate a detailed report. All names will be anonymized automatically.</p>
         </div>
 
         <div class="space-y-3">
@@ -250,6 +266,20 @@ Start by filling in the basic incident information below...
                 <span class="text-sm" style="color: var(--text-secondary)">Post/Assignment</span>
                 <input type="text" id="post" placeholder="e.g., Main Gate, Patrol Unit 3" class="w-full px-3 py-2 mt-1 rounded-lg" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);">
               </label>
+            </div>
+          </div>
+
+          <!-- Manual Narrative Section -->
+          <div class="field-group">
+            <h4 class="font-semibold mb-3">✍️ Manual Narrative</h4>
+            <label class="block mb-3">
+              <span class="text-sm" style="color: var(--text-secondary)">Type your own narrative (optional - will be added to generated report)</span>
+              <textarea id="manualNarrative" rows="4" placeholder="Type additional narrative details here..." class="w-full px-3 py-2 mt-1 rounded-lg" style="background: var(--bg-secondary); border:1px solid var(--border-primary); color: var(--text-primary);"></textarea>
+            </label>
+            <div class="flex gap-2">
+              <button onclick="addPersonToNarrative('Victim')" class="touch-btn">+ Add Victim to Narrative</button>
+              <button onclick="addPersonToNarrative('Suspect')" class="touch-btn">+ Add Suspect to Narrative</button>
+              <button onclick="addPersonToNarrative('Witness')" class="touch-btn">+ Add Witness to Narrative</button>
             </div>
           </div>
 
@@ -420,6 +450,7 @@ Start by filling in the basic incident information below...
         officerName: document.getElementById('officerName').value,
         badgeNumber: document.getElementById('badgeNumber').value,
         post: document.getElementById('post').value,
+        manualNarrative: document.getElementById('manualNarrative').value,
         additionalNotes: document.getElementById('additionalNotes').value,
         people: peopleList
       };
@@ -598,6 +629,17 @@ ${formatNarrativeText(data.resolution || 'Incident was resolved without further 
         narrative += `  Police Report Number: ${data.policeReport}\n`;
       }
 
+      // Add manual narrative section if present
+      if (data.manualNarrative) {
+        narrative += `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         ADDITIONAL NARRATIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${formatNarrativeText(data.manualNarrative)}
+`;
+      }
+
       // Add additional notes section if present
       if (data.additionalNotes) {
         narrative += `
@@ -675,7 +717,7 @@ DATE/TIME: ${formatDateTime(reportDate)}
         'incidentType', 'severity', 'initialContact', 'incidentDescription',
         'actionTaken', 'resolution', 'propertyDamage', 'injuries',
         'evidence', 'policeReport', 'officerName', 'badgeNumber', 
-        'post', 'additionalNotes'
+        'post', 'manualNarrative', 'additionalNotes'
       ];
       
       fields.forEach(field => {
@@ -796,6 +838,49 @@ DATE/TIME: ${formatDateTime(reportDate)}
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
     
+    function printReport() {
+      const printWindow = window.open('', '_blank');
+      const reportContent = document.getElementById('reportNarrative').textContent;
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Incident Report</title>
+            <style>
+              body { font-family: 'Courier New', monospace; margin: 20px; }
+              pre { white-space: pre-wrap; font-size: 12pt; }
+            </style>
+          </head>
+          <body>
+            <pre>${reportContent}</pre>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    
+    async function shareReport() {
+      const reportContent = document.getElementById('reportNarrative').textContent;
+      const incidentType = document.getElementById('incidentType').value || 'Incident';
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Incident Report - ${incidentType}`,
+            text: reportContent
+          });
+        } catch (error) {
+          console.log('Error sharing:', error);
+          // Fallback to copy
+          copyToClipboard();
+        }
+      } else {
+        // Fallback to copy
+        copyToClipboard();
+        showStatus('Report copied to clipboard for sharing', 'success');
+      }
+    }
+    
     function showStatus(message, type) {
       const status = document.getElementById('reportStatus');
       status.textContent = message;
@@ -807,6 +892,27 @@ DATE/TIME: ${formatDateTime(reportDate)}
         status.textContent = '';
         generateReport();
       }, 3000);
+    }
+    
+    // Add person to narrative function
+    function addPersonToNarrative(role) {
+      const narrativeField = document.getElementById('manualNarrative');
+      const currentText = narrativeField.value;
+      
+      // Find the next available person number for this role
+      const existingPersons = peopleList.filter(p => p.role === role);
+      const personNumber = existingPersons.length > 0 ? existingPersons.length : 1;
+      const personRef = `${role}${personNumber}`;
+      
+      // Add the person reference to the narrative
+      const textToAdd = currentText ? ` ${personRef}` : `${personRef}`;
+      narrativeField.value = currentText + textToAdd;
+      
+      // Trigger report generation
+      generateReport();
+      
+      // Focus back to the narrative field
+      narrativeField.focus();
     }
   </script>
 </body>

@@ -128,7 +128,9 @@
 <body class="bg-pattern">
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">📋</div>
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-2 shadow-lg border border-white/10">
+        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain filter brightness-110">
+      </div>
       <div>
         <h1 class="text-2xl font-bold">Shift Report</h1>
         <p class="text-sm" style="color: var(--text-secondary)">Fill, attach, preview, copy</p>
@@ -168,9 +170,12 @@
       </div>
 
       <div class="mobile-card">
-        <div class="font-semibold mb-1">Attach Patrols</div>
+        <div class="flex justify-between items-center mb-3">
+          <div class="font-semibold">🚶 Attach Patrols</div>
+          <button onclick="addQuickPatrol()" class="touch-btn">+ Quick Patrol</button>
+        </div>
         <div id="patrolAttachList" class="space-y-2"></div>
-        <div class="text-xs mt-2" style="color: var(--text-secondary)">Attach completed patrol logs saved from the Patrol page.</div>
+        <div class="text-xs mt-2" style="color: var(--text-secondary)">Attach completed patrol logs or add quick patrol entries.</div>
       </div>
 
       <div class="mobile-card">
@@ -465,6 +470,43 @@
     btnClear.addEventListener('click', clearFields);
     btnCopy.addEventListener('click', copyToClipboard);
     btnSaveReport.addEventListener('click', saveShiftReport);
+
+    // Quick patrol functionality
+    function addQuickPatrol() {
+      const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const location = prompt('Enter patrol location/area:');
+      if (!location) return;
+      
+      const notes = prompt('Enter patrol notes (optional):') || '';
+      
+      // Create a quick patrol entry
+      const quickPatrol = {
+        id: Date.now(),
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 30 * 60000).toISOString(), // 30 minutes later
+        checkpoints: [{
+          id: Date.now(),
+          location: location,
+          notes: notes,
+          timestamp: new Date().toISOString()
+        }],
+        notes: notes ? [{
+          id: Date.now(),
+          text: notes,
+          timestamp: new Date().toISOString()
+        }] : []
+      };
+      
+      // Add to completed patrols
+      const patrols = loadJson('completedPatrols', []);
+      patrols.unshift(quickPatrol);
+      saveJson('completedPatrols', patrols);
+      
+      // Refresh patrol attachments
+      renderPatrolAttachments();
+      
+      alert('Quick patrol entry added successfully!');
+    }
 
     // init
     document.addEventListener('DOMContentLoaded', ()=>{

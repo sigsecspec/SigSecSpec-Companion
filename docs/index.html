@@ -1084,6 +1084,7 @@
       
       updateMissionUI();
       updateMyMissions();
+      updateRecentActivity();
       
       // Start mission timer
       if (missionTimer) clearInterval(missionTimer);
@@ -1155,6 +1156,7 @@
       
       updateMissionUI();
       updateMyMissions();
+      updateRecentActivity();
       
       // Update status
       document.getElementById('statusText').textContent = 'Off Duty';
@@ -1448,25 +1450,39 @@
 
     // Loading screen management removed as requested
 
-    // Update recent activity with clickable items - show only last completed mission
+    // Update recent activity - show active mission if in one, otherwise show last completed mission
     function updateRecentActivity() {
       const container = document.getElementById('recentActivity');
       const activities = [];
       
-      // Last completed mission only
-      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
-      if (missionHistory.length > 0) {
-        const lastMission = missionHistory[0];
-        const endTime = lastMission.endTime ? new Date(lastMission.endTime) : null;
-        const duration = lastMission.duration ? Math.floor(lastMission.duration / (1000 * 60)) : 0;
+      // Check for active mission first
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (activeMission && activeMission.status === 'active') {
+        const startTime = new Date(activeMission.startTime);
         activities.push({
-          icon: '🎯',
-          title: 'Mission Completed',
-          time: endTime ? endTime.toLocaleString() : 'Recently',
-          status: 'status-complete',
-          type: 'mission',
-          data: lastMission
+          icon: '🟢',
+          title: 'Active Mission',
+          time: `Started: ${startTime.toLocaleString()}`,
+          status: 'status-active',
+          type: 'active',
+          data: activeMission
         });
+      } else {
+        // Show last completed mission only if no active mission
+        const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        if (missionHistory.length > 0) {
+          const lastMission = missionHistory[0];
+          const endTime = lastMission.endTime ? new Date(lastMission.endTime) : null;
+          const duration = lastMission.duration ? Math.floor(lastMission.duration / (1000 * 60)) : 0;
+          activities.push({
+            icon: '🎯',
+            title: 'Mission Completed',
+            time: endTime ? endTime.toLocaleString() : 'Recently',
+            status: 'status-complete',
+            type: 'mission',
+            data: lastMission
+          });
+        }
       }
       
       if (activities.length === 0) {
@@ -1505,19 +1521,32 @@
       const activities = [];
       
       // Rebuild activities array (same logic as updateRecentActivity)
-      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
-      if (missionHistory.length > 0) {
-        const lastMission = missionHistory[0];
-        const endTime = lastMission.endTime ? new Date(lastMission.endTime) : null;
-        const duration = lastMission.duration ? Math.floor(lastMission.duration / (1000 * 60)) : 0;
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (activeMission && activeMission.status === 'active') {
+        const startTime = new Date(activeMission.startTime);
         activities.push({
-          icon: '🎯',
-          title: 'Mission Completed',
-          time: endTime ? endTime.toLocaleString() : 'Recently',
-          status: 'status-complete',
-          type: 'mission',
-          data: lastMission
+          icon: '🟢',
+          title: 'Active Mission',
+          time: `Started: ${startTime.toLocaleString()}`,
+          status: 'status-active',
+          type: 'active',
+          data: activeMission
         });
+      } else {
+        const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        if (missionHistory.length > 0) {
+          const lastMission = missionHistory[0];
+          const endTime = lastMission.endTime ? new Date(lastMission.endTime) : null;
+          const duration = lastMission.duration ? Math.floor(lastMission.duration / (1000 * 60)) : 0;
+          activities.push({
+            icon: '🎯',
+            title: 'Mission Completed',
+            time: endTime ? endTime.toLocaleString() : 'Recently',
+            status: 'status-complete',
+            type: 'mission',
+            data: lastMission
+          });
+        }
       }
       
       const activity = activities[index];
@@ -1526,7 +1555,27 @@
       let content = '';
       let title = activity.title;
       
-      if (type === 'mission') {
+      if (type === 'active') {
+        const data = activity.data;
+        const startTime = data.startTime ? new Date(data.startTime) : null;
+        const now = new Date();
+        const duration = startTime ? Math.floor((now - startTime) / (1000 * 60)) : 0;
+        
+        content = `
+          <div class="space-y-3">
+            <div><strong>Status:</strong> <span style="color: var(--success)">🟢 Active</span></div>
+            <div><strong>Start Time:</strong> ${startTime ? startTime.toLocaleString() : 'Unknown'}</div>
+            <div><strong>Duration:</strong> ${duration} minutes</div>
+            ${data.originalMission ? `<div><strong>Mission:</strong> ${data.originalMission.title}</div>` : ''}
+            ${data.originalMission?.location ? `<div><strong>Location:</strong> ${data.originalMission.location}</div>` : ''}
+            <div class="mt-3">
+              <button class="touch-btn primary w-full" onclick="closeCustomPopup(); viewMissionDetails('active', '${data.id}')">
+                📄 View Full Mission Details
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (type === 'mission') {
         const data = activity.data;
         const startTime = data.startTime ? new Date(data.startTime) : null;
         const endTime = data.endTime ? new Date(data.endTime) : null;
@@ -1827,74 +1876,52 @@
       
       let content = '';
       
-      // Show active mission if there is one
-      if (activeMission && activeMission.status === 'active') {
-        const startTime = new Date(activeMission.startTime);
+      // Show only the next upcoming mission (never show active missions here)
+      const now = new Date();
+      const nextMission = scheduledMissions
+        .filter(mission => {
+          const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+          return missionDateTime > now && mission.status === 'scheduled';
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.date + 'T' + a.startTime);
+          const dateB = new Date(b.date + 'T' + b.startTime);
+          return dateA - dateB;
+        })[0];
+      
+      if (nextMission) {
+        const missionDateTime = new Date(nextMission.date + 'T' + nextMission.startTime);
+        const timeUntil = missionDateTime - now;
+        const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+        const daysUntil = Math.floor(hoursUntil / 24);
+        
+        let timeText = '';
+        if (daysUntil > 0) {
+          timeText = `in ${daysUntil} day${daysUntil > 1 ? 's' : ''}`;
+        } else if (hoursUntil > 0) {
+          timeText = `in ${hoursUntil} hour${hoursUntil > 1 ? 's' : ''}`;
+        } else {
+          timeText = 'starting soon';
+        }
+        
         content += `
           <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
-               style="background: var(--bg-secondary); border: 2px solid var(--success);"
-               onclick="viewMissionDetails('active', '${activeMission.id}')">
+               style="background: var(--bg-tertiary);"
+               onclick="viewMissionDetails('scheduled', '${nextMission.id}')">
             <div class="flex items-center gap-3">
-              <div class="text-2xl">🟢</div>
+              <div class="text-2xl">📅</div>
               <div>
-                <div class="font-medium">Current Mission</div>
-                <div class="text-sm" style="color: var(--text-secondary)">Started: ${startTime.toLocaleString()}</div>
+                <div class="font-medium">${nextMission.title}</div>
+                <div class="text-sm" style="color: var(--text-secondary)">${missionDateTime.toLocaleDateString()} ${nextMission.startTime} • ${timeText}</div>
+                ${nextMission.location ? `<div class="text-xs" style="color: var(--text-muted)">📍 ${nextMission.location}</div>` : ''}
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <div class="status-indicator status-active"></div>
+              <div class="status-indicator status-pending"></div>
               <div class="text-sm" style="color: var(--text-muted)">👁️</div>
             </div>
           </div>
         `;
-      } else {
-        // Show only the next upcoming mission
-        const now = new Date();
-        const nextMission = scheduledMissions
-          .filter(mission => {
-            const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
-            return missionDateTime > now && mission.status === 'scheduled';
-          })
-          .sort((a, b) => {
-            const dateA = new Date(a.date + 'T' + a.startTime);
-            const dateB = new Date(b.date + 'T' + b.startTime);
-            return dateA - dateB;
-          })[0];
-        
-        if (nextMission) {
-          const missionDateTime = new Date(nextMission.date + 'T' + nextMission.startTime);
-          const timeUntil = missionDateTime - now;
-          const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
-          const daysUntil = Math.floor(hoursUntil / 24);
-          
-          let timeText = '';
-          if (daysUntil > 0) {
-            timeText = `in ${daysUntil} day${daysUntil > 1 ? 's' : ''}`;
-          } else if (hoursUntil > 0) {
-            timeText = `in ${hoursUntil} hour${hoursUntil > 1 ? 's' : ''}`;
-          } else {
-            timeText = 'starting soon';
-          }
-          
-          content += `
-            <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
-                 style="background: var(--bg-tertiary);"
-                 onclick="viewMissionDetails('scheduled', '${nextMission.id}')">
-              <div class="flex items-center gap-3">
-                <div class="text-2xl">📅</div>
-                <div>
-                  <div class="font-medium">${nextMission.title}</div>
-                  <div class="text-sm" style="color: var(--text-secondary)">${missionDateTime.toLocaleDateString()} ${nextMission.startTime} • ${timeText}</div>
-                  ${nextMission.location ? `<div class="text-xs" style="color: var(--text-muted)">📍 ${nextMission.location}</div>` : ''}
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <div class="status-indicator status-pending"></div>
-                <div class="text-sm" style="color: var(--text-muted)">👁️</div>
-              </div>
-            </div>
-          `;
-        }
       }
       
       if (!content) {
@@ -2175,6 +2202,7 @@
             
             updateMissionUI();
             updateMyMissions();
+            updateRecentActivity();
             
             if (window.securityNotifications) {
               window.securityNotifications.showLocalNotification(

@@ -242,16 +242,22 @@
     <div class="mobile-card max-w-sm mx-4">
       <h3 class="text-xl font-bold mb-4">📍 Add Checkpoint</h3>
       <div class="mb-4">
-        <label class="block text-sm font-medium mb-2">Location/Area</label>
+        <label class="block text-sm font-medium mb-2">Location/Area <span style="color: var(--error);">*</span></label>
         <input type="text" id="checkpointLocation" class="w-full p-3 rounded-lg border" 
                style="background: var(--bg-secondary); border-color: var(--border-primary); color: var(--text-primary);"
-               placeholder="e.g., Main entrance, Parking lot A">
+               placeholder="e.g., Main entrance, Parking lot A, Building 2 north side"
+               required>
+        <div class="text-xs mt-1" style="color: var(--text-secondary);">Minimum 3 characters required</div>
       </div>
       <div class="mb-4">
         <label class="block text-sm font-medium mb-2">Notes (optional)</label>
         <textarea id="checkpointNotes" rows="3" class="w-full p-3 rounded-lg border"
                   style="background: var(--bg-secondary); border-color: var(--border-primary); color: var(--text-primary);"
-                  placeholder="Any observations or notes..."></textarea>
+                  placeholder="Any observations, security concerns, maintenance issues, or other relevant details..."></textarea>
+        <div class="text-xs mt-1" style="color: var(--text-secondary);">Include any security observations, maintenance issues, or unusual activity</div>
+      </div>
+      <div class="text-xs mb-3 text-center" style="color: var(--text-muted);">
+        Press Ctrl+Enter to save quickly, or Escape to cancel
       </div>
       <div class="flex gap-3">
         <button class="touch-btn flex-1" onclick="cancelCheckpoint()">Cancel</button>
@@ -531,6 +537,24 @@
       
       document.getElementById('checkpointModal').classList.remove('hidden');
       document.getElementById('checkpointModal').classList.add('flex');
+      
+      // Focus on location input for better UX
+      setTimeout(() => {
+        document.getElementById('checkpointLocation').focus();
+      }, 100);
+      
+      // Add keyboard event listeners
+      const modal = document.getElementById('checkpointModal');
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          cancelCheckpoint();
+          modal.removeEventListener('keydown', handleKeyDown);
+        } else if (e.key === 'Enter' && e.ctrlKey) {
+          saveCheckpoint();
+          modal.removeEventListener('keydown', handleKeyDown);
+        }
+      };
+      modal.addEventListener('keydown', handleKeyDown);
     }
 
     function cancelCheckpoint() {
@@ -542,22 +566,41 @@
 
     function saveCheckpoint() {
       const location = document.getElementById('checkpointLocation').value.trim();
+      const notes = document.getElementById('checkpointNotes').value.trim();
+      
+      // Thorough validation - require location text
       if (!location) {
-        alert('Please enter a location');
+        alert('Please enter a location/area for this checkpoint');
+        document.getElementById('checkpointLocation').focus();
+        return;
+      }
+      
+      // Additional validation for thoroughness
+      if (location.length < 3) {
+        alert('Location description must be at least 3 characters long');
+        document.getElementById('checkpointLocation').focus();
         return;
       }
 
       const checkpoint = {
         id: Date.now(),
         location: location,
-        notes: document.getElementById('checkpointNotes').value.trim(),
+        notes: notes,
         timestamp: new Date(),
-        coordinates: currentPatrol.lastLocation
+        coordinates: currentPatrol.lastLocation,
+        // Additional details for thoroughness
+        officer: localStorage.getItem('currentOfficer') || 'Unknown',
+        patrolId: currentPatrol.id
       };
 
       currentPatrol.checkpoints.push(checkpoint);
       savePatrolState();
       loadPatrolEntries();
+      
+      // Show success message
+      alert(`Checkpoint saved successfully at ${checkpoint.location}`);
+      
+      // Close modal after successful save
       cancelCheckpoint();
     }
 

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Schedule - Security Companion</title>
+  <link rel="stylesheet" href="app-styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <button class="back-btn" onclick="window.history.back()">
+        <span>←</span>
+      </button>
+      <div class="header-title">
+        <h1>Mission Schedule</h1>
+        <div class="header-subtitle" id="currentTime">--:--</div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+          <span>🌙</span>
+        </button>
+        <button class="icon-btn" onclick="toggleTextSize()" aria-label="Toggle text size">
+          <span>A+</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Schedule Overview -->
+    <section class="mobile-card mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Schedule Overview</h2>
+        <button class="touch-btn primary" onclick="openMissionScheduler()">
+          <span class="mr-1">➕</span> Add Mission
+        </button>
+      </div>
+      <div id="scheduleStats" class="grid grid-cols-3 gap-4 text-center">
+        <div class="p-3 rounded-lg" style="background: var(--bg-tertiary);">
+          <div class="text-2xl font-bold text-blue-500" id="upcomingCount">0</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Upcoming</div>
+        </div>
+        <div class="p-3 rounded-lg" style="background: var(--bg-tertiary);">
+          <div class="text-2xl font-bold text-green-500" id="completedCount">0</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Completed</div>
+        </div>
+        <div class="p-3 rounded-lg" style="background: var(--bg-tertiary);">
+          <div class="text-2xl font-bold text-orange-500" id="totalHours">0</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Total Hours</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Mission -->
+    <section class="mobile-card mb-6" id="activeMissionSection" style="display: none;">
+      <h3 class="text-lg font-semibold mb-3">🟢 Current Mission</h3>
+      <div id="activeMissionDetails">
+        <!-- Active mission details will be populated here -->
+      </div>
+    </section>
+
+    <!-- Upcoming Missions -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-3">📅 Upcoming Missions</h3>
+      <div id="upcomingMissions" class="space-y-3">
+        <!-- Upcoming missions will be populated here -->
+      </div>
+    </section>
+
+    <!-- Past Missions & Reports -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-3">📋 Past Missions & Reports</h3>
+      <div class="mb-3 text-sm" style="color: var(--text-secondary);">
+        <span class="inline-flex items-center gap-1">
+          <span>🔒</span> Past missions and reports are locked and cannot be edited
+        </span>
+      </div>
+      <div id="pastMissions" class="space-y-3">
+        <!-- Past missions will be populated here -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-grid">
+      <a href="index.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="codes.html" class="nav-item">
+        <div class="nav-icon">📟</div>
+        <span>Codes</span>
+      </a>
+      <a href="reports.html" class="nav-item">
+        <div class="nav-icon">📝</div>
+        <span>Reports</span>
+      </a>
+      <a href="patrol.html" class="nav-item">
+        <div class="nav-icon">🚶</div>
+        <span>Patrol</span>
+      </a>
+      <a href="shift.html" class="nav-item">
+        <div class="nav-icon">⏰</div>
+        <span>Shift</span>
+      </a>
+      <a href="schedule.html" class="nav-item active">
+        <div class="nav-icon">📋</div>
+        <span>Schedule</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Mission Scheduler Modal -->
+  <div id="missionSchedulerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 w-full max-w-md" style="background: var(--bg-primary); border: 1px solid var(--border);">
+      <h3 class="text-xl font-bold mb-4">📅 Schedule Mission</h3>
+      
+      <form id="missionSchedulerForm" class="space-y-4">
+        <!-- Mission Title -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Mission Title</label>
+          <input type="text" id="missionTitle" class="w-full px-3 py-2 rounded-lg" 
+                 style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);"
+                 placeholder="Enter mission title" required>
+        </div>
+
+        <!-- Date -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Date</label>
+          <input type="date" id="missionDate" class="w-full px-3 py-2 rounded-lg" 
+                 style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);" required>
+        </div>
+
+        <!-- Time Range -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-2">Start Time</label>
+            <input type="time" id="missionStartTime" class="w-full px-3 py-2 rounded-lg" 
+                   style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">End Time</label>
+            <input type="time" id="missionEndTime" class="w-full px-3 py-2 rounded-lg" 
+                   style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);" required>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Location</label>
+          <input type="text" id="missionLocation" class="w-full px-3 py-2 rounded-lg"
+                 style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);"
+                 placeholder="Mission location (optional)">
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Description</label>
+          <textarea id="missionDescription" rows="3" class="w-full px-3 py-2 rounded-lg"
+                    style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);"
+                    placeholder="Mission description (optional)"></textarea>
+        </div>
+
+        <!-- Priority -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Priority</label>
+          <select id="missionPriority" class="w-full px-3 py-2 rounded-lg"
+                  style="background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);">
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 pt-4">
+          <button type="button" class="touch-btn flex-1" onclick="closeMissionScheduler()">
+            Cancel
+          </button>
+          <button type="submit" class="touch-btn primary flex-1">
+            Schedule Mission
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mission Details Modal -->
+  <div id="missionDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 w-full max-w-md" style="background: var(--bg-primary); border: 1px solid var(--border);">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold" id="modalTitle">Mission Details</h3>
+        <button class="icon-btn" onclick="closeMissionDetails()">✕</button>
+      </div>
+      
+      <div id="missionDetailsContent">
+        <!-- Mission details content will be populated here -->
+      </div>
+
+      <div class="flex gap-3 pt-4" id="missionActions">
+        <!-- Action buttons will be populated based on mission status -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app-common.js"></script>
+  <script src="push-notifications.js"></script>
+  <script>
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      loadScheduleData();
+      setActiveNavItem('schedule');
+      
+      // Set minimum date to today for new missions
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('missionDate').min = today;
+      
+      // Auto-refresh schedule every minute
+      setInterval(loadScheduleData, 60000);
+    });
+
+    // Load and display schedule data
+    function loadScheduleData() {
+      loadActiveMission();
+      loadUpcomingMissions();
+      loadPastMissions();
+      updateScheduleStats();
+    }
+
+    // Load active mission
+    function loadActiveMission() {
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      const section = document.getElementById('activeMissionSection');
+      const container = document.getElementById('activeMissionDetails');
+      
+      if (activeMission && activeMission.status === 'active') {
+        const startTime = new Date(activeMission.startTime);
+        const duration = Math.floor((new Date() - startTime) / (1000 * 60 * 60));
+        
+        container.innerHTML = `
+          <div class="p-3 rounded-lg" style="background: var(--bg-secondary); border: 2px solid var(--success);">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-medium">${activeMission.originalMission?.title || 'Manual Mission'}</div>
+              <div class="text-sm px-2 py-1 rounded" style="background: var(--success); color: white;">Active</div>
+            </div>
+            <div class="text-sm" style="color: var(--text-secondary);">
+              <div>Started: ${startTime.toLocaleString()}</div>
+              <div>Duration: ${duration}h ${Math.floor(((new Date() - startTime) % (1000 * 60 * 60)) / (1000 * 60))}m</div>
+              ${activeMission.originalMission?.location ? `<div>📍 ${activeMission.originalMission.location}</div>` : ''}
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button class="touch-btn danger flex-1" onclick="endCurrentMission()">
+                End Mission
+              </button>
+              <button class="touch-btn" onclick="viewMissionDetails('active', '${activeMission.id}')">
+                View Details
+              </button>
+            </div>
+          </div>
+        `;
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    }
+
+    // Load upcoming missions
+    function loadUpcomingMissions() {
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      const container = document.getElementById('upcomingMissions');
+      const now = new Date();
+      
+      const upcomingMissions = scheduledMissions
+        .filter(mission => {
+          const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+          return missionDateTime > now && mission.status === 'scheduled';
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.date + 'T' + a.startTime);
+          const dateB = new Date(b.date + 'T' + b.startTime);
+          return dateA - dateB;
+        });
+      
+      if (upcomingMissions.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8" style="color: var(--text-muted);">
+            <div class="text-3xl mb-2">📅</div>
+            <div>No upcoming missions</div>
+            <div class="text-sm mt-1">Schedule your next mission to get started</div>
+          </div>
+        `;
+        return;
+      }
+      
+      let content = '';
+      upcomingMissions.forEach(mission => {
+        const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+        const timeUntil = missionDateTime - now;
+        const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+        const daysUntil = Math.floor(hoursUntil / 24);
+        
+        let timeText = '';
+        if (daysUntil > 0) {
+          timeText = `in ${daysUntil} day${daysUntil > 1 ? 's' : ''}`;
+        } else if (hoursUntil > 0) {
+          timeText = `in ${hoursUntil} hour${hoursUntil > 1 ? 's' : ''}`;
+        } else {
+          timeText = 'starting soon';
+        }
+        
+        const priorityColor = mission.priority === 'urgent' ? 'var(--error)' : 
+                            mission.priority === 'high' ? 'var(--warning)' : 'var(--info)';
+        
+        content += `
+          <div class="p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
+               style="background: var(--bg-tertiary); border-left: 4px solid ${priorityColor};"
+               onclick="viewMissionDetails('scheduled', '${mission.id}')">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-medium">${mission.title}</div>
+              <div class="text-xs px-2 py-1 rounded" style="background: ${priorityColor}; color: white;">
+                ${mission.priority.toUpperCase()}
+              </div>
+            </div>
+            <div class="text-sm" style="color: var(--text-secondary);">
+              <div>${missionDateTime.toLocaleDateString()} ${mission.startTime} - ${mission.endTime}</div>
+              <div class="text-blue-500">${timeText}</div>
+              ${mission.location ? `<div>📍 ${mission.location}</div>` : ''}
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button class="touch-btn primary flex-1" onclick="event.stopPropagation(); startScheduledMission('${mission.id}')">
+                Start Mission
+              </button>
+              <button class="touch-btn" onclick="event.stopPropagation(); editMission('${mission.id}')">
+                Edit
+              </button>
+              <button class="touch-btn danger" onclick="event.stopPropagation(); deleteMission('${mission.id}')">
+                Delete
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = content;
+    }
+
+    // Load past missions and reports
+    function loadPastMissions() {
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      const container = document.getElementById('pastMissions');
+      const now = new Date();
+      
+      // Get past scheduled missions (that haven't been started)
+      const pastScheduled = scheduledMissions.filter(mission => {
+        const missionDateTime = new Date(mission.date + 'T' + mission.endTime);
+        return missionDateTime < now && mission.status === 'scheduled';
+      });
+      
+      // Combine and sort by date (most recent first)
+      const allPastMissions = [...missionHistory, ...pastScheduled]
+        .sort((a, b) => {
+          const dateA = new Date(a.endTime || a.date + 'T' + a.endTime);
+          const dateB = new Date(b.endTime || b.date + 'T' + b.endTime);
+          return dateB - dateA;
+        });
+      
+      if (allPastMissions.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8" style="color: var(--text-muted);">
+            <div class="text-3xl mb-2">📋</div>
+            <div>No past missions yet</div>
+            <div class="text-sm mt-1">Complete your first mission to see history</div>
+          </div>
+        `;
+        return;
+      }
+      
+      let content = '';
+      allPastMissions.slice(0, 20).forEach(mission => { // Show last 20 missions
+        const isCompleted = mission.status === 'completed';
+        const startTime = new Date(mission.startTime || mission.date + 'T' + mission.startTime);
+        const endTime = mission.endTime ? new Date(mission.endTime) : null;
+        
+        let statusIcon = '🔒';
+        let statusText = 'Locked';
+        let statusColor = 'var(--text-muted)';
+        
+        if (isCompleted) {
+          statusIcon = '✅';
+          statusText = 'Completed';
+          statusColor = 'var(--success)';
+        } else {
+          statusIcon = '⏰';
+          statusText = 'Expired';
+          statusColor = 'var(--warning)';
+        }
+        
+        content += `
+          <div class="p-3 rounded-lg" style="background: var(--bg-tertiary); opacity: 0.8;">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-medium">${mission.originalMission?.title || mission.title || 'Mission'}</div>
+              <div class="flex items-center gap-2">
+                <span>${statusIcon}</span>
+                <div class="text-xs px-2 py-1 rounded" style="background: ${statusColor}; color: white;">
+                  ${statusText}
+                </div>
+              </div>
+            </div>
+            <div class="text-sm" style="color: var(--text-secondary);">
+              <div>${startTime.toLocaleDateString()} ${startTime.toLocaleTimeString()}</div>
+              ${endTime ? `<div>Ended: ${endTime.toLocaleTimeString()}</div>` : ''}
+              ${mission.location || mission.originalMission?.location ? `<div>📍 ${mission.location || mission.originalMission?.location}</div>` : ''}
+            </div>
+            <div class="mt-3">
+              <button class="touch-btn w-full" onclick="viewMissionDetails('${isCompleted ? 'completed' : 'past'}', '${mission.id}')" disabled style="opacity: 0.6;">
+                <span class="mr-1">🔒</span> View Only (Locked)
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = content;
+    }
+
+    // Update schedule statistics
+    function updateScheduleStats() {
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+      const now = new Date();
+      
+      // Count upcoming missions
+      const upcomingCount = scheduledMissions.filter(mission => {
+        const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+        return missionDateTime > now && mission.status === 'scheduled';
+      }).length;
+      
+      // Count completed missions
+      const completedCount = missionHistory.length;
+      
+      // Calculate total hours from completed missions
+      const totalHours = missionHistory.reduce((total, mission) => {
+        if (mission.startTime && mission.endTime) {
+          const start = new Date(mission.startTime);
+          const end = new Date(mission.endTime);
+          const hours = (end - start) / (1000 * 60 * 60);
+          return total + hours;
+        }
+        return total;
+      }, 0);
+      
+      document.getElementById('upcomingCount').textContent = upcomingCount;
+      document.getElementById('completedCount').textContent = completedCount;
+      document.getElementById('totalHours').textContent = Math.round(totalHours);
+    }
+
+    // Mission Scheduler Functions
+    function openMissionScheduler() {
+      document.getElementById('missionSchedulerModal').classList.remove('hidden');
+      document.getElementById('missionSchedulerModal').classList.add('flex');
+      
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('missionDate').value = today;
+    }
+
+    function closeMissionScheduler() {
+      document.getElementById('missionSchedulerModal').classList.add('hidden');
+      document.getElementById('missionSchedulerModal').classList.remove('flex');
+      document.getElementById('missionSchedulerForm').reset();
+    }
+
+    // Handle mission form submission
+    document.getElementById('missionSchedulerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      saveMission();
+    });
+
+    function saveMission() {
+      const title = document.getElementById('missionTitle').value;
+      const date = document.getElementById('missionDate').value;
+      const startTime = document.getElementById('missionStartTime').value;
+      const endTime = document.getElementById('missionEndTime').value;
+      const location = document.getElementById('missionLocation').value;
+      const description = document.getElementById('missionDescription').value;
+      const priority = document.getElementById('missionPriority').value;
+
+      // Validate inputs
+      if (!title || !date || !startTime || !endTime) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+
+      // Validate time range
+      if (startTime >= endTime) {
+        showNotification('End time must be after start time', 'error');
+        return;
+      }
+
+      // Create mission object
+      const mission = {
+        id: Date.now().toString(),
+        title,
+        date,
+        startTime,
+        endTime,
+        location,
+        description,
+        priority,
+        status: 'scheduled',
+        createdAt: new Date().toISOString()
+      };
+
+      // Save to localStorage
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      scheduledMissions.push(mission);
+      localStorage.setItem('scheduledMissions', JSON.stringify(scheduledMissions));
+
+      // Close modal and refresh
+      closeMissionScheduler();
+      loadScheduleData();
+      showNotification('Mission scheduled successfully!', 'success');
+    }
+
+    // Mission action functions
+    function startScheduledMission(missionId) {
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      const mission = scheduledMissions.find(m => m.id === missionId);
+      
+      if (!mission) {
+        showNotification('Mission not found', 'error');
+        return;
+      }
+
+      // Check if there's already an active mission
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (activeMission && activeMission.status === 'active') {
+        showNotification('Please end the current mission before starting a new one', 'warning');
+        return;
+      }
+
+      // Start the mission
+      const newActiveMission = {
+        id: Date.now().toString(),
+        startTime: new Date().toISOString(),
+        status: 'active',
+        type: 'scheduled',
+        originalMission: mission
+      };
+
+      localStorage.setItem('activeMission', JSON.stringify(newActiveMission));
+      
+      // Update mission status
+      mission.status = 'started';
+      localStorage.setItem('scheduledMissions', JSON.stringify(scheduledMissions));
+      
+      loadScheduleData();
+      showNotification('Mission started successfully!', 'success');
+    }
+
+    function editMission(missionId) {
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      const mission = scheduledMissions.find(m => m.id === missionId);
+      
+      if (!mission) {
+        showNotification('Mission not found', 'error');
+        return;
+      }
+
+      // Check if mission is in the past
+      const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+      if (missionDateTime < new Date()) {
+        showNotification('Cannot edit past missions', 'warning');
+        return;
+      }
+
+      // Populate form with mission data
+      document.getElementById('missionTitle').value = mission.title;
+      document.getElementById('missionDate').value = mission.date;
+      document.getElementById('missionStartTime').value = mission.startTime;
+      document.getElementById('missionEndTime').value = mission.endTime;
+      document.getElementById('missionLocation').value = mission.location || '';
+      document.getElementById('missionDescription').value = mission.description || '';
+      document.getElementById('missionPriority').value = mission.priority;
+
+      // Store mission ID for updating
+      document.getElementById('missionSchedulerForm').dataset.editingId = missionId;
+      
+      openMissionScheduler();
+    }
+
+    function deleteMission(missionId) {
+      if (!confirm('Are you sure you want to delete this mission?')) {
+        return;
+      }
+
+      const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+      const updatedMissions = scheduledMissions.filter(m => m.id !== missionId);
+      
+      localStorage.setItem('scheduledMissions', JSON.stringify(updatedMissions));
+      loadScheduleData();
+      showNotification('Mission deleted successfully', 'success');
+    }
+
+    function endCurrentMission() {
+      if (!confirm('Are you sure you want to end the current mission?')) {
+        return;
+      }
+
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (!activeMission) {
+        showNotification('No active mission found', 'error');
+        return;
+      }
+
+      // Create completed mission record
+      const completedMission = {
+        ...activeMission,
+        endTime: new Date().toISOString(),
+        status: 'completed'
+      };
+
+      // Add to mission history
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+      missionHistory.unshift(completedMission);
+      localStorage.setItem('missionHistory', JSON.stringify(missionHistory.slice(0, 50)));
+
+      // Remove active mission
+      localStorage.removeItem('activeMission');
+
+      loadScheduleData();
+      showNotification('Mission ended successfully', 'success');
+    }
+
+    // View mission details
+    function viewMissionDetails(type, missionId) {
+      // This function would open a detailed view of the mission
+      // For now, just show a simple alert with mission info
+      let mission = null;
+      
+      if (type === 'active') {
+        mission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      } else if (type === 'scheduled') {
+        const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
+        mission = scheduledMissions.find(m => m.id === missionId);
+      } else if (type === 'completed' || type === 'past') {
+        const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+        mission = missionHistory.find(m => m.id === missionId);
+      }
+
+      if (mission) {
+        const details = type === 'active' 
+          ? `Active Mission\nStarted: ${new Date(mission.startTime).toLocaleString()}`
+          : type === 'scheduled'
+          ? `Scheduled Mission: ${mission.title}\nDate: ${mission.date}\nTime: ${mission.startTime} - ${mission.endTime}`
+          : `Completed Mission\nStarted: ${new Date(mission.startTime).toLocaleString()}\nEnded: ${new Date(mission.endTime).toLocaleString()}`;
+        
+        alert(details);
+      }
+    }
+
+    // Notification helper
+    function showNotification(message, type = 'info') {
+      if (window.showNotification) {
+        window.showNotification(message, type);
+      } else {
+        alert(message);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -192,9 +192,9 @@
         <div class="nav-icon">📟</div>
         <span>Codes</span>
       </a>
-      <a href="incident.html" class="nav-item">
+      <a href="reports.html" class="nav-item">
         <div class="nav-icon">📝</div>
-        <span>Report</span>
+        <span>Reports</span>
       </a>
       <a href="patrol.html" class="nav-item">
         <div class="nav-icon">🚶</div>
@@ -525,8 +525,35 @@
         }
       }
       
-      // Navigate to patrol page to start patrol
-      window.location.href = 'patrol.html';
+      // Start patrol directly (same logic as patrol.html startPatrol function)
+      const currentPatrol = {
+        id: Date.now(),
+        startTime: new Date(),
+        missionId: activeMission ? activeMission.id : null,
+        checkpoints: [],
+        notes: [],
+        details: {
+          area: '',
+          weather: '',
+          purpose: '',
+          observations: '',
+          securityConcerns: ''
+        }
+      };
+
+      // Save patrol state to localStorage
+      localStorage.setItem('currentPatrol', JSON.stringify(currentPatrol));
+      
+      // Show success notification
+      if (window.securityNotifications) {
+        window.securityNotifications.showLocalNotification(
+          '🚶 Patrol Started',
+          'Patrol has been started. Go to Patrol page to manage.',
+          { tag: 'patrol-start', requireInteraction: false }
+        );
+      } else {
+        alert('Patrol started successfully! Go to Patrol page to manage your patrol.');
+      }
     }
 
     // Mission management functions

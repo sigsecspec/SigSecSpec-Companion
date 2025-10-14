@@ -83,7 +83,7 @@
         </div>
         <div>
           <div class="text-sm" style="color: var(--text-secondary)">Duration</div>
-          <div class="font-semibold" id="patrolDuration">00:00</div>
+          <div class="font-semibold" id="patrolDuration">00:00:00</div>
         </div>
         <div>
           <div class="text-sm" style="color: var(--text-secondary)">Current Time</div>
@@ -201,18 +201,7 @@
     <section class="mobile-card">
       <h3 class="text-lg font-semibold mb-3">Recent Patrols</h3>
       <div id="patrolHistory">
-        <div class="patrol-entry">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <div class="font-semibold">Yesterday's Patrol</div>
-              <div class="text-sm" style="color: var(--text-secondary)">2h 30m duration</div>
-            </div>
-            <div class="status-indicator status-complete"></div>
-          </div>
-          <div class="text-sm" style="color: var(--text-secondary)">
-            5 checkpoints • 1 incident reported
-          </div>
-        </div>
+        <!-- Recent patrols will be populated here from localStorage -->
       </div>
     </section>
   </main>
@@ -228,9 +217,9 @@
         <div class="nav-icon">📟</div>
         <span>Codes</span>
       </a>
-      <a href="incident.html" class="nav-item">
+      <a href="reports.html" class="nav-item">
         <div class="nav-icon">📝</div>
-        <span>Report</span>
+        <span>Reports</span>
       </a>
       <a href="patrol.html" class="nav-item active">
         <div class="nav-icon">🚶</div>
@@ -420,7 +409,7 @@
       document.getElementById('patrolStatus').className = 'status-indicator status-pending';
       document.getElementById('patrolStatusText').textContent = 'Ready to patrol';
       document.getElementById('patrolStartTime').textContent = '--:--';
-      document.getElementById('patrolDuration').textContent = '00:00';
+      document.getElementById('patrolDuration').textContent = '00:00:00';
       
       document.getElementById('startPatrolBtn').classList.remove('hidden');
       document.getElementById('endPatrolBtn').classList.add('hidden');
@@ -431,6 +420,7 @@
       currentPatrol = null;
       savePatrolState();
       loadPatrolEntries();
+      loadRecentPatrols(); // Refresh the recent patrols list
 
       alert('Patrol completed and saved!');
     }
@@ -442,9 +432,10 @@
       const duration = now - currentPatrol.startTime;
       const hours = Math.floor(duration / (1000 * 60 * 60));
       const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((duration % (1000 * 60)) / 1000);
       
       document.getElementById('patrolDuration').textContent = 
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
     // Checkpoint management
@@ -644,11 +635,63 @@
       }
     }
 
+    // Load recent patrols from localStorage
+    function loadRecentPatrols() {
+      const container = document.getElementById('patrolHistory');
+      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      
+      if (completedPatrols.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8" style="color: var(--text-muted)">
+            <div class="text-3xl mb-2">🚶</div>
+            <div>No completed patrols yet</div>
+            <div class="text-sm mt-1">Complete your first patrol to see it here</div>
+          </div>
+        `;
+        return;
+      }
+      
+      // Show last 5 completed patrols
+      const recentPatrols = completedPatrols.slice(0, 5);
+      
+      container.innerHTML = recentPatrols.map(patrol => {
+        const startTime = patrol.startTime ? new Date(patrol.startTime) : null;
+        const endTime = patrol.endTime ? new Date(patrol.endTime) : null;
+        const duration = (startTime && endTime) ? endTime - startTime : 0;
+        
+        const hours = Math.floor(duration / (1000 * 60 * 60));
+        const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+        const durationText = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        
+        const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
+        const noteCount = patrol.notes ? patrol.notes.length : 0;
+        
+        const patrolDate = startTime ? startTime.toLocaleDateString() : 'Unknown date';
+        const patrolTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        
+        return `
+          <div class="patrol-entry">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <div class="font-semibold">Patrol - ${patrolDate}</div>
+                <div class="text-sm" style="color: var(--text-secondary)">${durationText} duration • Started ${patrolTime}</div>
+              </div>
+              <div class="status-indicator status-complete"></div>
+            </div>
+            <div class="text-sm" style="color: var(--text-secondary)">
+              ${checkpointCount} checkpoint${checkpointCount !== 1 ? 's' : ''} • ${noteCount} note${noteCount !== 1 ? 's' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       initTheme();
       loadPatrolState();
       loadPatrolEntries();
+      loadRecentPatrols();
       updateLocation();
       updateCurrentTime();
       setInterval(updateLocation, 30000); // Update location every 30 seconds

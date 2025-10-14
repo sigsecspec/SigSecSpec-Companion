@@ -563,7 +563,7 @@ html, body {
 /* Grid layouts - Enhanced Professional */
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   padding: 1rem 0;
   width: 100%;
@@ -1474,7 +1474,7 @@ html, body {
   .grid-md-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   
   .feature-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 1rem !important;
   }
   
@@ -1526,7 +1526,7 @@ html, body {
 
 @media (min-width: 1280px) {
   .feature-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 1.5rem !important;
   }
   

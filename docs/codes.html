@@ -246,7 +246,10 @@
   <div class="modal-card">
     <div class="flex items-center justify-between border-b px-4 py-3" style="border-color: var(--border-primary)">
       <h3 id="modalTitle" class="text-lg font-semibold"></h3>
-      <button id="modalClose" class="touch-btn">Close</button>
+      <div class="flex items-center gap-2">
+        <button id="modalCopy" class="touch-btn" title="Copy code details">📋</button>
+        <button id="modalClose" class="touch-btn">Close</button>
+      </div>
     </div>
     <div id="modalBody" class="px-4 py-3"></div>
   </div>
@@ -355,6 +358,9 @@ const modalEl = document.getElementById('codeModal');
 const modalTitle = document.getElementById('modalTitle');
 const modalBody = document.getElementById('modalBody');
 const modalClose = document.getElementById('modalClose');
+const modalCopy = document.getElementById('modalCopy');
+
+let currentModalContent = '';
 
 // Data set — common 10-codes with helpful keywords
 const TEN_CODES = [
@@ -506,11 +512,18 @@ function openModal(item) {
          </div>
        </div>`
     : '';
+  
   modalBody.innerHTML = `
     <div style="color: var(--text-secondary)">${item.details}</div>
     ${examplesHtml}
     ${synonymsHtml}
   `;
+  
+  // Store content for copying
+  currentModalContent = `${item.code} — ${item.title}\n\n${item.details}\n\n` +
+    (item.examples && item.examples.length ? `Examples:\n${item.examples.map(e => `• ${e}`).join('\n')}\n\n` : '') +
+    (item.synonyms && item.synonyms.length ? `Keywords: ${item.synonyms.join(', ')}` : '');
+  
   modalEl.classList.add('show');
   modalEl.setAttribute('aria-hidden', 'false');
 }
@@ -518,6 +531,42 @@ function openModal(item) {
 function closeModal() {
   modalEl.classList.remove('show');
   modalEl.setAttribute('aria-hidden', 'true');
+}
+
+async function copyModalContent() {
+  try {
+    await navigator.clipboard.writeText(currentModalContent);
+    
+    // Show success notification using custom notification system
+    if (window.showNotification) {
+      window.showNotification('Code details copied to clipboard!', 'success');
+    } else {
+      // Fallback alert
+      alert('Code details copied to clipboard!');
+    }
+  } catch (error) {
+    // Fallback for older browsers
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = currentModalContent;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (window.showNotification) {
+        window.showNotification('Code details copied to clipboard!', 'success');
+      } else {
+        alert('Code details copied to clipboard!');
+      }
+    } catch (fallbackError) {
+      if (window.showNotification) {
+        window.showNotification('Failed to copy to clipboard', 'error');
+      } else {
+        alert('Failed to copy to clipboard');
+      }
+    }
+  }
 }
 
 codesGrid.addEventListener('click', (e) => {
@@ -529,6 +578,7 @@ codesGrid.addEventListener('click', (e) => {
 });
 
 modalClose.addEventListener('click', closeModal);
+modalCopy.addEventListener('click', copyModalContent);
 modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 

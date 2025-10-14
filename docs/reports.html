@@ -398,21 +398,65 @@
     let currentBody = '';
 
     function openModal(title, body){
+      if (!title || !body) {
+        console.error('Modal opened with empty title or body', { title, body });
+        if (window.showNotification) {
+          window.showNotification('No content available to display', 'warning');
+        }
+        return;
+      }
+      
       modalTitle.textContent = title;
       modalBody.textContent = body;
       currentBody = body;
+      modalEl.classList.remove('hidden');
       modalEl.classList.add('show');
       modalEl.setAttribute('aria-hidden','false');
+      
+      // Ensure modal is visible
+      modalEl.style.display = 'flex';
+      
+      console.log('Modal opened with:', { title, bodyLength: body.length });
     }
     function closeModal(){
       modalEl.classList.remove('show');
+      modalEl.classList.add('hidden');
       modalEl.setAttribute('aria-hidden','true');
+      modalEl.style.display = 'none';
+      currentBody = '';
     }
     async function copyCurrent(){
-      try{ await navigator.clipboard.writeText(currentBody || ''); }
+      try{ 
+        await navigator.clipboard.writeText(currentBody || ''); 
+        // Show success notification using custom notification system
+        if (window.showNotification) {
+          window.showNotification('Report copied to clipboard!', 'success');
+        } else {
+          alert('Report copied to clipboard!');
+        }
+      }
       catch{
-        try{ const ta=document.createElement('textarea'); ta.value=currentBody||''; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
-        catch{}
+        try{ 
+          const ta=document.createElement('textarea'); 
+          ta.value=currentBody||''; 
+          document.body.appendChild(ta); 
+          ta.select(); 
+          document.execCommand('copy'); 
+          document.body.removeChild(ta); 
+          
+          if (window.showNotification) {
+            window.showNotification('Report copied to clipboard!', 'success');
+          } else {
+            alert('Report copied to clipboard!');
+          }
+        }
+        catch{
+          if (window.showNotification) {
+            window.showNotification('Failed to copy to clipboard', 'error');
+          } else {
+            alert('Failed to copy to clipboard');
+          }
+        }
       }
     }
 
@@ -428,6 +472,7 @@
             <div class="empty-icon">📄</div>
             <div class="empty-title">No incident reports</div>
             <div class="empty-subtitle">Create your first incident report to get started</div>
+            <button class="touch-btn mt-3" onclick="createSampleIncident()">Create Sample Report</button>
           </div>
         `; 
         return; 
@@ -466,6 +511,7 @@
             <div class="empty-icon">📊</div>
             <div class="empty-title">No shift reports</div>
             <div class="empty-subtitle">Complete your first shift report</div>
+            <button class="touch-btn mt-3" onclick="createSampleShift()">Create Sample Report</button>
           </div>
         `; 
         return; 
@@ -525,6 +571,134 @@
       navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
       alert('Emergency alert sent to dispatch!');
       cancelEmergency();
+    }
+
+    // Sample data creation functions for testing
+    function createSampleIncident() {
+      const sampleIncident = {
+        id: 'sample-' + Date.now(),
+        at: new Date().toISOString(),
+        meta: {
+          type: 'Security Breach',
+          post: 'Building A - Main Entrance',
+          dateTime: new Date().toLocaleString(),
+          priority: 'High'
+        },
+        body: `INCIDENT REPORT - SECURITY BREACH
+
+Date/Time: ${new Date().toLocaleString()}
+Location: Building A - Main Entrance
+Reported By: Officer Smith
+Priority: High
+
+SUMMARY:
+Unauthorized individual attempted to gain access to restricted area through main entrance. Subject was detained and questioned.
+
+DETAILS:
+At approximately ${new Date().toLocaleTimeString()}, security cameras detected an individual attempting to bypass the main entrance security checkpoint. The subject was wearing dark clothing and appeared to be carrying a backpack.
+
+ACTIONS TAKEN:
+1. Immediately responded to the scene
+2. Detained the individual for questioning
+3. Contacted local law enforcement
+4. Reviewed security footage
+5. Completed incident documentation
+
+WITNESSES:
+- Jane Doe (Receptionist)
+- John Smith (Maintenance Staff)
+
+EVIDENCE:
+- Security camera footage (timestamps: ${new Date().toLocaleTimeString()})
+- Photo identification of subject
+- Inventory of subject's belongings
+
+FOLLOW-UP REQUIRED:
+- Review and update security protocols
+- Additional training for front desk staff
+- Install additional security measures
+
+OFFICER SIGNATURE: Officer Smith
+REPORT COMPLETED: ${new Date().toLocaleString()}`
+      };
+
+      const incidents = loadJson(STORE_KEYS.savedIncidentReports, []);
+      incidents.unshift(sampleIncident);
+      localStorage.setItem(STORE_KEYS.savedIncidentReports, JSON.stringify(incidents));
+      
+      renderIncidents();
+      
+      if (window.showNotification) {
+        window.showNotification('Sample incident report created!', 'success');
+      }
+    }
+
+    function createSampleShift() {
+      const sampleShift = {
+        id: 'sample-shift-' + Date.now(),
+        at: new Date().toISOString(),
+        meta: {
+          post: 'Night Security',
+          date: new Date().toLocaleDateString(),
+          attachedIncidentIds: []
+        },
+        body: `SHIFT REPORT - NIGHT SECURITY
+
+Date: ${new Date().toLocaleDateString()}
+Shift: Night (22:00 - 06:00)
+Officer: Officer Johnson
+Post: Main Building Security
+
+SHIFT SUMMARY:
+Completed routine security patrol of all designated areas. All systems operational. No major incidents reported.
+
+PATROL LOG:
+22:30 - Perimeter check completed - All secure
+23:45 - Building interior patrol - All clear
+01:00 - Parking lot inspection - No issues
+02:30 - Equipment check - All functional
+04:00 - Final perimeter sweep - Secure
+05:30 - Shift handover preparation
+
+INCIDENTS:
+None reported during this shift.
+
+MAINTENANCE ISSUES:
+- Light bulb out in stairwell B (reported to maintenance)
+- Minor leak in basement restroom (maintenance notified)
+
+VISITORS/DELIVERIES:
+- No after-hours visitors
+- No scheduled deliveries
+
+SECURITY SYSTEMS:
+- All cameras operational
+- Access control systems functional
+- Alarm systems tested and operational
+- Communication equipment working properly
+
+WEATHER CONDITIONS:
+Clear skies, temperature 65°F
+
+NOTES:
+Quiet night with no security concerns. All protocols followed. Building secured for the night.
+
+SHIFT END TIME: 06:00
+NEXT OFFICER: Officer Davis (Day Shift)
+
+SIGNATURE: Officer Johnson
+REPORT COMPLETED: ${new Date().toLocaleString()}`
+      };
+
+      const shifts = loadJson(STORE_KEYS.savedShiftReports, []);
+      shifts.unshift(sampleShift);
+      localStorage.setItem(STORE_KEYS.savedShiftReports, JSON.stringify(shifts));
+      
+      renderShifts();
+      
+      if (window.showNotification) {
+        window.showNotification('Sample shift report created!', 'success');
+      }
     }
 
     document.addEventListener('DOMContentLoaded', ()=>{

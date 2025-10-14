@@ -570,6 +570,25 @@
 
       const TEMPLATES = [
         {
+          id: 'narrative_4w',
+          name: 'Narrative — Who/What/When/Where',
+          fields: [
+            { key: 'dateTime', label: 'When — Date / Time', type: 'datetime-local' },
+            { key: 'location', label: 'Where — Location', type: 'text' },
+            { key: 'locationDetails', label: 'Where — Specific details', type: 'textarea', rows: 2, placeholder: 'Building, floor, area, nearest landmark' },
+            { key: 'participants', label: 'Who — Suspects / Victims / Witnesses', type: 'participants', roles: ['Suspect','Victim','Witness'] },
+            { key: 'what', label: 'What — Brief summary', type: 'textarea', rows: 3, placeholder: 'Concise description of the event' },
+            { key: 'details', label: 'Details — Narrative (use tokens like suspect1, victim2)', type: 'textarea', rows: 6, placeholder: 'Example: I contacted suspect1 near the lobby. Victim1 stated ...' }
+          ],
+          body: (
+            'WHO:\n{whoSection}\n\n' +
+            'WHAT:\n{whatExpanded}\n\n' +
+            'WHEN:\n{when}\n\n' +
+            'WHERE:\n{where}\n\n' +
+            'DETAILS:\n{detailsExpanded}'
+          )
+        },
+        {
           id: 'incident_basic',
           name: 'Incident Report (Basic)',
           fields: [
@@ -713,8 +732,74 @@
         } catch { return ''; }
       }
 
+      // Helpers for participants and dynamic token expansion
+      function ensureArray(v){ return Array.isArray(v) ? v : []; }
+      function normalizeRole(role){
+        const r = String(role||'').toLowerCase();
+        if (r.startsWith('sus')) return 'suspect';
+        if (r.startsWith('vic')) return 'victim';
+        if (r.startsWith('wit')) return 'witness';
+        if (r.startsWith('subj')) return 'suspect';
+        return r || 'other';
+      }
+      function groupParticipants(list){
+        const groups = { suspect: [], victim: [], witness: [], other: [] };
+        ensureArray(list).forEach(p => {
+          const name = (p && p.name) ? String(p.name).trim() : '';
+          const role = normalizeRole(p && p.role);
+          groups[role] = groups[role] || [];
+          groups[role].push(name);
+        });
+        // Strip empties
+        Object.keys(groups).forEach(k => { groups[k] = groups[k].filter(Boolean); });
+        return groups;
+      }
+      function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+      function buildTokenMap(groups){
+        const map = {};
+        const add = (base, names) => {
+          names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = nm; });
+        };
+        add('suspect', groups.suspect||[]);
+        add('subject', groups.suspect||[]); // synonym
+        add('victim', groups.victim||[]);
+        add('witness', groups.witness||[]);
+        return map;
+      }
+      function expandTokens(text, tokenMap){
+        const keys = Object.keys(tokenMap);
+        if (!text || keys.length === 0) return text || '';
+        const pattern = new RegExp('\\b(' + keys.map(escapeRegExp).join('|') + ')\\b', 'gi');
+        return text.replace(pattern, (m) => tokenMap[m.toLowerCase()] || m);
+      }
+      function buildWhoSection(groups){
+        const lines = [];
+        const pushLines = (label, arr) => {
+          arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${nm}`); });
+        };
+        if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
+        if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
+        if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
+        return lines.length ? lines.join('\n') : 'N/A';
+      }
+
       function compileBody(template){
-        return template.body.replace(/\{(.*?)\}/g, (_, key) => toDisplay(fieldValues[key]));
+        const participants = ensureArray(fieldValues.participants);
+        const groups = groupParticipants(participants);
+        const tokenMap = buildTokenMap(groups);
+        const whenText = toDisplay(fieldValues.dateTime);
+        const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
+        const computed = {
+          whoSection: buildWhoSection(groups),
+          when: whenText,
+          where: whereText,
+          whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
+          detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
+        };
+        return template.body.replace(/\{(.*?)\}/g, (_, key) => {
+          if (key in computed) return toDisplay(computed[key]);
+          return toDisplay(fieldValues[key]);
+        });
       }
 
       function createInput(field){
@@ -727,6 +812,97 @@
           if (field.placeholder) inputEl.placeholder = field.placeholder;
           inputEl.value = fieldValues[field.key] || '';
           inputEl.addEventListener('input', onChange);
+        } else if (field.type === 'participants') {
+          const container = document.createElement('div');
+          container.className = 'space-y-2';
+          const roles = Array.isArray(field.roles) && field.roles.length ? field.roles : ['Suspect','Victim','Witness'];
+          if (!Array.isArray(fieldValues[field.key])) fieldValues[field.key] = [];
+
+          function renderRows(){
+            container.innerHTML = '';
+            const list = ensureArray(fieldValues[field.key]);
+            // Compute per-role index for numbering
+            const counters = {};
+            list.forEach((p) => { const r = normalizeRole(p.role||''); counters[r] = (counters[r]||0) + 1; p._idx = counters[r]; });
+            list.forEach((p, idx) => {
+              const row = document.createElement('div');
+              row.className = 'flex items-center gap-2';
+
+              const roleSel = document.createElement('select');
+              roleSel.className = 'bg-[#111] border border-white/10 rounded-md px-2 py-2';
+              roles.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; roleSel.appendChild(o); });
+              roleSel.value = p.role || roles[0];
+
+              const label = document.createElement('div');
+              label.className = 'text-xs text-gray-400 w-24';
+              const norm = normalizeRole(roleSel.value);
+              label.textContent = `${roleSel.value} ${p._idx || 1}`;
+
+              const nameInput = document.createElement('input');
+              nameInput.type = 'text';
+              nameInput.placeholder = 'Name';
+              nameInput.className = 'flex-1 ' + commonCls;
+              nameInput.value = p.name || '';
+
+              const delBtn = document.createElement('button');
+              delBtn.type = 'button';
+              delBtn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
+              delBtn.textContent = 'Remove';
+
+              roleSel.addEventListener('change', () => {
+                const arr = ensureArray(fieldValues[field.key]);
+                if (!arr[idx]) return;
+                arr[idx].role = roleSel.value;
+                renderRows();
+                updatePreview();
+              });
+              nameInput.addEventListener('input', () => {
+                const arr = ensureArray(fieldValues[field.key]);
+                if (!arr[idx]) return;
+                arr[idx].name = nameInput.value;
+                updatePreview();
+              });
+              delBtn.addEventListener('click', () => {
+                const arr = ensureArray(fieldValues[field.key]);
+                arr.splice(idx, 1);
+                fieldValues[field.key] = arr;
+                renderRows();
+                updatePreview();
+              });
+
+              row.appendChild(roleSel);
+              row.appendChild(label);
+              row.appendChild(nameInput);
+              row.appendChild(delBtn);
+              container.appendChild(row);
+            });
+
+            const btnRow = document.createElement('div');
+            btnRow.className = 'flex flex-wrap gap-2';
+            roles.forEach(r => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'px-2 py-2 bg-[#111] border border-white/10 rounded-md';
+              btn.textContent = `Add ${r}`;
+              btn.addEventListener('click', () => {
+                const arr = ensureArray(fieldValues[field.key]);
+                arr.push({ role: r, name: '' });
+                fieldValues[field.key] = arr;
+                renderRows();
+                updatePreview();
+              });
+              btnRow.appendChild(btn);
+            });
+            // Helper hint
+            const hint = document.createElement('div');
+            hint.className = 'text-xs text-gray-400';
+            hint.textContent = 'Tip: In your Details, use tokens like "suspect1", "victim2" to auto-fill names.';
+            container.appendChild(btnRow);
+            container.appendChild(hint);
+          }
+
+          renderRows();
+          inputEl = container;
         } else if (field.type === 'select'){
           inputEl = document.createElement('select');
           inputEl.className = commonCls;

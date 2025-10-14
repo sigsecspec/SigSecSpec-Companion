@@ -242,7 +242,7 @@
   </section>
 </main>
 
-<div id="codeModal" class="modal-backdrop" aria-hidden="true">
+<div id="codeModal" class="modal-backdrop hidden" aria-hidden="true" style="display: none;">
   <div class="modal-card">
     <div class="flex items-center justify-between border-b px-4 py-3" style="border-color: var(--border-primary)">
       <h3 id="modalTitle" class="text-lg font-semibold"></h3>
@@ -524,13 +524,19 @@ function openModal(item) {
     (item.examples && item.examples.length ? `Examples:\n${item.examples.map(e => `• ${e}`).join('\n')}\n\n` : '') +
     (item.synonyms && item.synonyms.length ? `Keywords: ${item.synonyms.join(', ')}` : '');
   
+  // Show modal with proper state management
+  modalEl.classList.remove('hidden');
   modalEl.classList.add('show');
   modalEl.setAttribute('aria-hidden', 'false');
+  modalEl.style.display = 'flex';
 }
 
 function closeModal() {
+  // Hide modal with proper state management
   modalEl.classList.remove('show');
+  modalEl.classList.add('hidden');
   modalEl.setAttribute('aria-hidden', 'true');
+  modalEl.style.display = 'none';
 }
 
 async function copyModalContent() {
@@ -580,7 +586,13 @@ codesGrid.addEventListener('click', (e) => {
 modalClose.addEventListener('click', closeModal);
 modalCopy.addEventListener('click', copyModalContent);
 modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeModal(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+// Add keyboard escape handling
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !modalEl.classList.contains('hidden')) {
+    closeModal();
+  }
+});
 
 function applySearch(value) {
   localStorage.setItem('sss_codes_query', value);
@@ -590,6 +602,14 @@ function applySearch(value) {
 const savedQuery = localStorage.getItem('sss_codes_query') || '';
 searchInput.value = savedQuery;
 applySearch(savedQuery);
+
+// Ensure modal is properly closed on page load
+closeModal();
+
+// Additional safety check on window load
+window.addEventListener('load', () => {
+  closeModal();
+});
 
 let debounceTimer;
 searchInput.addEventListener('input', () => {

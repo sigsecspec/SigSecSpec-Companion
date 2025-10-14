@@ -366,7 +366,7 @@
     </div>
   </div>
 
-  <div id="reportModal" class="modal-backdrop" aria-hidden="true">
+  <div id="reportModal" class="modal-backdrop hidden" aria-hidden="true" style="display: none;">
     <div class="modal-card">
       <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
         <h3 id="modalTitle" class="text-lg font-semibold"></h3>
@@ -409,19 +409,21 @@
       modalTitle.textContent = title;
       modalBody.textContent = body;
       currentBody = body;
+      
+      // Show modal with proper state management
       modalEl.classList.remove('hidden');
       modalEl.classList.add('show');
-      modalEl.setAttribute('aria-hidden','false');
-      
-      // Ensure modal is visible
+      modalEl.setAttribute('aria-hidden', 'false');
       modalEl.style.display = 'flex';
       
       console.log('Modal opened with:', { title, bodyLength: body.length });
     }
+    
     function closeModal(){
+      // Hide modal with proper state management
       modalEl.classList.remove('show');
       modalEl.classList.add('hidden');
-      modalEl.setAttribute('aria-hidden','true');
+      modalEl.setAttribute('aria-hidden', 'true');
       modalEl.style.display = 'none';
       currentBody = '';
     }
@@ -463,6 +465,13 @@
     modalClose.addEventListener('click', closeModal);
     modalEl.addEventListener('click', (e)=>{ if(e.target===modalEl) closeModal(); });
     modalCopy.addEventListener('click', copyCurrent);
+    
+    // Add keyboard escape handling
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modalEl.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
 
     function renderIncidents(){
       const arr = loadJson(STORE_KEYS.savedIncidentReports, []);
@@ -705,6 +714,14 @@ REPORT COMPLETED: ${new Date().toLocaleString()}`
       initTheme();
       renderIncidents();
       renderShifts();
+      
+      // Ensure modal is properly closed on page load
+      closeModal();
+    });
+    
+    // Additional safety check on window load
+    window.addEventListener('load', () => {
+      closeModal();
     });
   </script>
 </body>

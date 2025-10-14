@@ -31,35 +31,15 @@ html,body{background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat
 
 <main class="flex-1 overflow-auto p-5" id="mainContent">
   <section class="fade-enter">
-    <h2 class="text-xl font-bold accent mb-4">Phonetic Alphabet (NATO)</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-6">
-      <div class="app-card">A — Alpha</div>
-      <div class="app-card">B — Bravo</div>
-      <div class="app-card">C — Charlie</div>
-      <div class="app-card">D — Delta</div>
-      <div class="app-card">E — Echo</div>
-      <div class="app-card">F — Foxtrot</div>
-      <div class="app-card">G — Golf</div>
-      <div class="app-card">H — Hotel</div>
-      <div class="app-card">I — India</div>
-      <div class="app-card">J — Juliett</div>
-      <div class="app-card">K — Kilo</div>
-      <div class="app-card">L — Lima</div>
-      <div class="app-card">M — Mike</div>
-      <div class="app-card">N — November</div>
-      <div class="app-card">O — Oscar</div>
-      <div class="app-card">P — Papa</div>
-      <div class="app-card">Q — Quebec</div>
-      <div class="app-card">R — Romeo</div>
-      <div class="app-card">S — Sierra</div>
-      <div class="app-card">T — Tango</div>
-      <div class="app-card">U — Uniform</div>
-      <div class="app-card">V — Victor</div>
-      <div class="app-card">W — Whiskey</div>
-      <div class="app-card">X — X-ray</div>
-      <div class="app-card">Y — Yankee</div>
-      <div class="app-card">Z — Zulu</div>
+    <h2 class="text-xl font-bold accent mb-2">Phonetic Alphabet (NATO)</h2>
+    <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+      <input id="phoneticSearch" class="w-full md:max-w-lg bg-[#111] border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[--accent]" placeholder="Search letters or words (e.g., 'alpha', 'sierra')" />
+      <div class="flex items-center gap-2 md:ml-auto">
+        <button id="phoneticClear" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">Clear</button>
+        <span id="phoneticCount" class="text-sm text-gray-400"></span>
+      </div>
     </div>
+    <div id="phoneticGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-6"></div>
 
     <div class="app-card">
       <div class="font-semibold mb-1">📻 Radio Best Practices</div>
@@ -68,6 +48,25 @@ html,body{background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat
         <li>Use 10-codes and phonetics to reduce confusion.</li>
         <li>Wait for a clear channel; avoid stepping on traffic.</li>
       </ul>
+    </div>
+
+    <div class="mt-6 app-card">
+      <div class="font-semibold mb-2">🅰️ Spell Text to Phonetics</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+        <label class="block">
+          <div class="text-sm text-gray-300 mb-1">Input Text</div>
+          <textarea id="spellInput" rows="4" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Type a plate, name, or code (e.g., 'SECURITY 21')"></textarea>
+        </label>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm text-gray-300">Output</div>
+            <div class="flex gap-2">
+              <button id="spellCopy" class="px-3 py-1 rounded-md bg-[#111] border border-white/10">Copy</button>
+            </div>
+          </div>
+          <pre id="spellOutput" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -83,6 +82,91 @@ html,body{background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat
 function toggleLarge(){document.body.classList.toggle('text-lg');localStorage.setItem('sss_large',document.body.classList.contains('text-lg'));}
 const mainContent=document.getElementById('mainContent');const bottomNav=document.getElementById('bottomNav');
 mainContent.addEventListener('scroll',()=>{if(mainContent.scrollTop+mainContent.clientHeight>=mainContent.scrollHeight-5){bottomNav.classList.add('footer');}else{bottomNav.classList.remove('footer');}});
+
+// Phonetic data and UI logic
+const PHONETICS = [
+  { letter: 'A', word: 'Alpha' }, { letter: 'B', word: 'Bravo' }, { letter: 'C', word: 'Charlie' },
+  { letter: 'D', word: 'Delta' }, { letter: 'E', word: 'Echo' }, { letter: 'F', word: 'Foxtrot' },
+  { letter: 'G', word: 'Golf' }, { letter: 'H', word: 'Hotel' }, { letter: 'I', word: 'India' },
+  { letter: 'J', word: 'Juliett' }, { letter: 'K', word: 'Kilo' }, { letter: 'L', word: 'Lima' },
+  { letter: 'M', word: 'Mike' }, { letter: 'N', word: 'November' }, { letter: 'O', word: 'Oscar' },
+  { letter: 'P', word: 'Papa' }, { letter: 'Q', word: 'Quebec' }, { letter: 'R', word: 'Romeo' },
+  { letter: 'S', word: 'Sierra' }, { letter: 'T', word: 'Tango' }, { letter: 'U', word: 'Uniform' },
+  { letter: 'V', word: 'Victor' }, { letter: 'W', word: 'Whiskey' }, { letter: 'X', word: 'X-ray' },
+  { letter: 'Y', word: 'Yankee' }, { letter: 'Z', word: 'Zulu' }
+];
+
+const DIGITS = [
+  { digit: '0', word: 'Zero' }, { digit: '1', word: 'One' }, { digit: '2', word: 'Two' },
+  { digit: '3', word: 'Three' }, { digit: '4', word: 'Four' }, { digit: '5', word: 'Five' },
+  { digit: '6', word: 'Six' }, { digit: '7', word: 'Seven' }, { digit: '8', word: 'Eight' },
+  { digit: '9', word: 'Nine' }
+];
+
+const phoneticGrid = document.getElementById('phoneticGrid');
+const phoneticSearch = document.getElementById('phoneticSearch');
+const phoneticClear = document.getElementById('phoneticClear');
+const phoneticCount = document.getElementById('phoneticCount');
+
+function normalize(s){ return (s||'').toLowerCase(); }
+
+function renderPhonetics(query){
+  const q = normalize(query);
+  const list = PHONETICS.filter(item => {
+    if (!q) return true;
+    return item.letter.toLowerCase().includes(q) || item.word.toLowerCase().includes(q);
+  });
+  phoneticCount.textContent = `${list.length} item${list.length!==1?'s':''}`;
+  phoneticGrid.innerHTML = list.map(item => `
+    <div class="app-card"><div class="text-sm text-gray-400">${item.letter}</div><div class="font-semibold">${item.word}</div></div>
+  `).join('');
+}
+
+let phoneticDebounce;
+phoneticSearch.addEventListener('input', () => {
+  clearTimeout(phoneticDebounce);
+  phoneticDebounce = setTimeout(() => renderPhonetics(phoneticSearch.value), 120);
+});
+phoneticClear.addEventListener('click', () => { phoneticSearch.value=''; renderPhonetics(''); });
+
+// Spell helper
+const spellInput = document.getElementById('spellInput');
+const spellOutput = document.getElementById('spellOutput');
+const spellCopy = document.getElementById('spellCopy');
+
+const letterToWord = Object.fromEntries(PHONETICS.map(x=>[x.letter, x.word]));
+const digitToWord = Object.fromEntries(DIGITS.map(x=>[x.digit, x.word]));
+
+function spellToPhonetics(text){
+  const parts = [];
+  for (const ch of text){
+    const upper = ch.toUpperCase();
+    if (/[A-Z]/.test(upper)) parts.push(letterToWord[upper]);
+    else if (/[0-9]/.test(ch)) parts.push(digitToWord[ch]);
+    else if (/\s/.test(ch)) parts.push('/');
+    else parts.push(ch);
+  }
+  // Collapse repeated separators
+  return parts.join(' ').replace(/(\s*\/\s*)+/g,' / ');
+}
+
+function updateSpell(){
+  spellOutput.textContent = spellToPhonetics(spellInput.value || '');
+}
+
+spellInput.addEventListener('input', updateSpell);
+spellCopy.addEventListener('click', async ()=>{
+  try { await navigator.clipboard.writeText(spellOutput.textContent || ''); }
+  catch {
+    const ta = document.createElement('textarea');
+    ta.value = spellOutput.textContent || '';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  }
+});
+
+// Initial renders
+renderPhonetics('');
+updateSpell();
 </script>
 </body>
 </html>

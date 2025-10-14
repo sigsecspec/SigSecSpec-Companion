@@ -106,45 +106,32 @@
   </header>
 
   <main class="main-content">
-    <section class="max-w-7xl mx-auto">
-      <!-- TOP HALF: Generated Report & Narrative with Enhanced Layout -->
-      <div class="mobile-card report-section mb-6" style="position: sticky; top: 1rem; z-index: 50;">
-        <div class="flex justify-between items-start mb-4 flex-wrap gap-3">
-          <div class="flex-1">
-            <h2 class="text-2xl font-bold mb-2">📊 Professional Security Report</h2>
-            <div id="reportStatus" class="text-sm font-medium" style="color: var(--text-secondary)">
-              Fill in the fields below to generate a comprehensive, detailed report
-            </div>
-          </div>
-          <div class="report-actions">
-            <button id="btnSaveDraft" class="touch-btn" title="Save as draft">
-              <span class="mr-1">💾</span> Draft
-            </button>
-            <button id="btnLoadDraft" class="touch-btn" title="Load draft">
-              <span class="mr-1">📂</span> Load
-            </button>
-            <button id="btnExport" class="touch-btn" title="Print/Export PDF">
-              <span class="mr-1">🖨️</span> Print
-            </button>
-            <button id="btnEmail" class="touch-btn" title="Email report">
-              <span class="mr-1">📧</span> Email
-            </button>
-            <button id="btnSaveReport" class="touch-btn success" title="Save to reports">
-              <span class="mr-1">✅</span> Save Report
-            </button>
-            <button id="btnCopy" class="touch-btn primary" title="Copy to clipboard">
-              <span class="mr-1">📋</span> Copy Text
-            </button>
+    <section class="max-w-4xl mx-auto space-y-4">
+      <!-- Actions Section -->
+      <div class="mobile-card">
+        <div class="flex flex-wrap gap-2 items-center justify-between">
+          <div class="text-sm" style="color: var(--text-secondary)">Actions</div>
+          <div class="flex flex-wrap gap-2">
+            <button id="btnSaveDraft" class="touch-btn">💾 Save Draft</button>
+            <button id="btnLoadDraft" class="touch-btn">📂 Load Draft</button>
+            <button id="btnExport" class="touch-btn">🖨️ Print</button>
+            <button id="btnEmail" class="touch-btn">📧 Email</button>
+            <button id="btnSaveReport" class="touch-btn primary">✅ Save Report</button>
+            <button id="btnCopy" class="touch-btn primary">📋 Copy</button>
           </div>
         </div>
-        
-        <!-- Enhanced Narrative Display -->
-        <div class="narrative-container" style="position: relative;">
-          <div id="incidentTypeBadge" class="mb-3 hidden">
-            <span class="incident-type-badge"></span>
-          </div>
-          <div class="narrative-display enhanced" style="min-height: 300px; max-height: 50vh; overflow-y: auto;">
-            <div id="reportNarrative" style="color: var(--text-secondary); font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace; line-height: 1.6;">
+        <div id="reportStatus" class="text-sm mt-2" style="color: var(--text-secondary)">
+          Fill in the fields below to generate a comprehensive, detailed report
+        </div>
+      </div>
+
+      <!-- Generated Report Preview -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">📊 Professional Security Report Preview</div>
+        <div id="incidentTypeBadge" class="mb-3 hidden">
+          <span class="incident-type-badge"></span>
+        </div>
+        <pre id="reportNarrative" class="whitespace-pre-wrap text-sm" style="color: var(--text-secondary); min-height: 300px;">
 ═══════════════════════════════════════════════════════════════════════════════
                      🛡️ SECURITY INCIDENT REPORT SYSTEM 🛡️
 ═══════════════════════════════════════════════════════════════════════════════
@@ -163,200 +150,168 @@ The system will automatically generate a comprehensive, detailed security report
 📝 Start by filling in the incident details below to generate your report...
 
 ═══════════════════════════════════════════════════════════════════════════════
-            </div>
-          </div>
-          
-          <!-- Narrative Editing Toggle -->
-          <div class="narrative-controls mt-3 flex gap-2 items-center">
-            <button type="button" class="touch-btn" onclick="toggleNarrativeEditMode()" id="narrativeEditBtn">
-              <span class="mr-1">✏️</span> Edit Narrative
-            </button>
-            <button type="button" class="touch-btn" onclick="regenerateNarrative()" id="regenerateBtn">
-              <span class="mr-1">🔄</span> Regenerate
-            </button>
-            <div class="flex-1"></div>
-            <span class="text-xs" style="color: var(--text-muted);">Auto-updates as you type</span>
-          </div>
+        </pre>
+        
+        <!-- Narrative Controls -->
+        <div class="flex gap-2 items-center mt-3">
+          <button type="button" class="touch-btn" onclick="toggleNarrativeEditMode()" id="narrativeEditBtn">
+            <span class="mr-1">✏️</span> Edit Narrative
+          </button>
+          <button type="button" class="touch-btn" onclick="regenerateNarrative()" id="regenerateBtn">
+            <span class="mr-1">🔄</span> Regenerate
+          </button>
+          <div class="flex-1"></div>
+          <span class="text-xs" style="color: var(--text-muted);">Auto-updates as you type</span>
         </div>
       </div>
 
-      <!-- BOTTOM HALF: Enhanced Input Forms -->
-
-      <div class="mobile-card form-container">
-        <div class="mb-6 pb-4" style="border-bottom: 2px solid var(--border-accent);">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold">
-              📝
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold">Incident Report Form</h3>
-              <p class="text-sm font-medium" style="color: var(--text-secondary)">Fill in the blanks - System generates professional report automatically</p>
-            </div>
-          </div>
-          <div class="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
-            <div class="flex items-start gap-3">
-              <div class="text-2xl">🔒</div>
-              <div>
-                <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-1">Privacy Protection Active</h4>
-                <p class="text-sm text-blue-800 dark:text-blue-200">All personal names are automatically anonymized (Victim1, Suspect1, Witness1, etc.) for security and legal compliance.</p>
-              </div>
-            </div>
-          </div>
+      <!-- Basic Information -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">⏰ When & Where</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Date & Time of Incident</div>
+            <input type="datetime-local" id="dateTime" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Report Filed Date & Time</div>
+            <input type="datetime-local" id="reportDateTime" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Location/Property Name</div>
+            <input type="text" id="location" placeholder="e.g., ABC Shopping Mall" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Specific Area/Address</div>
+            <input type="text" id="specificLocation" placeholder="e.g., North Parking Lot, Level 2" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
         </div>
+      </div>
 
+      <!-- Incident Type -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">🚨 Incident Classification</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Incident Type</div>
+            <select id="incidentType" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+              <option value="">Select Type...</option>
+              <option value="Trespassing">Trespassing</option>
+              <option value="Theft">Theft</option>
+              <option value="Vandalism">Vandalism/Property Damage</option>
+              <option value="Assault">Assault</option>
+              <option value="Disturbance">Disturbance</option>
+              <option value="Suspicious Activity">Suspicious Activity</option>
+              <option value="Medical Emergency">Medical Emergency</option>
+              <option value="Fire/Smoke">Fire/Smoke</option>
+              <option value="Alarm Response">Alarm Response</option>
+              <option value="Vehicle Incident">Vehicle Incident</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Severity Level</div>
+            <select id="severity" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+              <option value="Low">Low - Minor Incident</option>
+              <option value="Medium">Medium - Moderate Concern</option>
+              <option value="High">High - Serious Incident</option>
+              <option value="Critical">Critical - Emergency Response</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- People Involved -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">👥 People Involved</div>
+        <div id="peopleContainer" class="space-y-2">
+          <!-- Dynamic people entries will be added here -->
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button onclick="addPerson('Victim')" class="touch-btn">+ Add Victim</button>
+          <button onclick="addPerson('Suspect')" class="touch-btn">+ Add Suspect</button>
+          <button onclick="addPerson('Witness')" class="touch-btn">+ Add Witness</button>
+        </div>
+      </div>
+
+      <!-- Incident Details -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">📋 What Happened</div>
         <div class="space-y-3">
-          <!-- Basic Information -->
-          <div class="field-group">
-            <h4 class="font-semibold mb-3">⏰ When & Where</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Date & Time of Incident</span>
-                <input type="datetime-local" id="dateTime" class="form-input mt-1">
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Report Filed Date & Time</span>
-                <input type="datetime-local" id="reportDateTime" class="form-input mt-1">
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Location/Property Name</span>
-                <input type="text" id="location" placeholder="e.g., ABC Shopping Mall" class="form-input mt-1">
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Specific Area/Address</span>
-                <input type="text" id="specificLocation" placeholder="e.g., North Parking Lot, Level 2" class="form-input mt-1">
-              </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">How did the incident begin? (Initial Contact/Discovery)</div>
+            <textarea id="initialContact" rows="2" placeholder="e.g., While conducting routine patrol at 1430 hours, I observed..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea>
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Describe what happened (Sequence of Events)</div>
+            <textarea id="incidentDescription" rows="6" placeholder="Describe the incident in detail - what you saw, heard, and did..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea>
+            <div class="flex gap-2 mt-2">
+              <button type="button" class="touch-btn" onclick="insertPersonReference('Victim')">+ Insert Victim</button>
+              <button type="button" class="touch-btn" onclick="insertPersonReference('Suspect')">+ Insert Suspect</button>
+              <button type="button" class="touch-btn" onclick="insertPersonReference('Witness')">+ Insert Witness</button>
+              <button type="button" class="touch-btn" onclick="insertPersonReference('Officer')">+ Insert Officer</button>
             </div>
-          </div>
-
-          <!-- Incident Type -->
-          <div class="field-group">
-            <h4 class="font-semibold mb-3">🚨 Incident Classification</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Incident Type</span>
-                <select id="incidentType" class="form-select mt-1">
-                  <option value="">Select Type...</option>
-                  <option value="Trespassing">Trespassing</option>
-                  <option value="Theft">Theft</option>
-                  <option value="Vandalism">Vandalism/Property Damage</option>
-                  <option value="Assault">Assault</option>
-                  <option value="Disturbance">Disturbance</option>
-                  <option value="Suspicious Activity">Suspicious Activity</option>
-                  <option value="Medical Emergency">Medical Emergency</option>
-                  <option value="Fire/Smoke">Fire/Smoke</option>
-                  <option value="Alarm Response">Alarm Response</option>
-                  <option value="Vehicle Incident">Vehicle Incident</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Severity Level</span>
-                <select id="severity" class="form-select mt-1">
-                  <option value="Low">Low - Minor Incident</option>
-                  <option value="Medium">Medium - Moderate Concern</option>
-                  <option value="High">High - Serious Incident</option>
-                  <option value="Critical">Critical - Emergency Response</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <!-- People Involved -->
-          <div class="field-group">
-            <h4 class="font-semibold mb-3">👥 People Involved</h4>
-            <div id="peopleContainer" class="space-y-2">
-              <!-- Dynamic people entries will be added here -->
-            </div>
-            <div class="flex gap-2 mt-3">
-              <button onclick="addPerson('Victim')" class="touch-btn">+ Add Victim</button>
-              <button onclick="addPerson('Suspect')" class="touch-btn">+ Add Suspect</button>
-              <button onclick="addPerson('Witness')" class="touch-btn">+ Add Witness</button>
-            </div>
-          </div>
-
-          <!-- Incident Details -->
-          <div class="field-group">
-            <h4 class="font-semibold mb-3">📋 What Happened</h4>
-            <label class="block mb-3">
-              <span class="text-sm" style="color: var(--text-secondary)">How did the incident begin? (Initial Contact/Discovery)</span>
-              <textarea id="initialContact" rows="2" placeholder="e.g., While conducting routine patrol at 1430 hours, I observed..." class="form-textarea mt-1"></textarea>
-            </label>
-            <label class="block mb-3">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-sm" style="color: var(--text-secondary)">Describe what happened (Sequence of Events)</span>
-                <button type="button" class="touch-btn" style="min-height: 32px; padding: 0.25rem 0.75rem; font-size: 0.875rem;" onclick="toggleNarrativeMode()">
-                  <span id="narrativeModeIcon">📝</span> <span id="narrativeModeText">Type Freely</span>
-                </button>
-              </div>
-              <textarea id="incidentDescription" rows="6" placeholder="Describe the incident in detail - what you saw, heard, and did..." class="form-textarea mt-1"></textarea>
-              <div class="narrative-tools">
-                <button type="button" class="touch-btn" onclick="insertPersonReference('Victim')">+ Insert Victim</button>
-                <button type="button" class="touch-btn" onclick="insertPersonReference('Suspect')">+ Insert Suspect</button>
-                <button type="button" class="touch-btn" onclick="insertPersonReference('Witness')">+ Insert Witness</button>
-                <button type="button" class="touch-btn" onclick="insertPersonReference('Officer')">+ Insert Officer</button>
-              </div>
-            </label>
-            <label class="block mb-3">
-              <span class="text-sm" style="color: var(--text-secondary)">What action did you take?</span>
-              <textarea id="actionTaken" rows="3" placeholder="e.g., Approached the individual, called for backup, secured the area..." class="form-textarea mt-1"></textarea>
-            </label>
-            <label class="block">
-              <span class="text-sm" style="color: var(--text-secondary)">How was the incident resolved?</span>
-              <textarea id="resolution" rows="2" placeholder="e.g., Subject left property, police arrived and took over, medical transported patient..." class="form-textarea mt-1"></textarea>
-            </label>
-          </div>
-
-          <!-- Evidence and Documentation -->
-          <div class="field-group">
-            <h4 class="font-semibold mb-3">📸 Evidence & Documentation</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Property Damage/Loss</span>
-                <textarea id="propertyDamage" rows="2" placeholder="Describe any damage or stolen items..." class="form-textarea mt-1"></textarea>
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Injuries Sustained</span>
-                <textarea id="injuries" rows="2" placeholder="Describe any injuries to persons..." class="form-textarea mt-1"></textarea>
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Evidence Collected</span>
-                <input type="text" id="evidence" placeholder="e.g., CCTV footage, photos, physical items..." class="form-input mt-1">
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Police Report #</span>
-                <input type="text" id="policeReport" placeholder="If applicable" class="form-input mt-1">
-              </label>
-            </div>
-          </div>
-
-          <!-- Officer Information -->
-          <div class="field-group">
-            <h4 class="font-semibold mb-3">👮 Reporting Officer</h4>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Officer Name</span>
-                <input type="text" id="officerName" placeholder="Your name" class="form-input mt-1">
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Badge/ID Number</span>
-                <input type="text" id="badgeNumber" placeholder="Badge #" class="form-input mt-1">
-              </label>
-              <label class="block">
-                <span class="text-sm" style="color: var(--text-secondary)">Post/Assignment</span>
-                <input type="text" id="post" placeholder="e.g., Main Gate, Patrol Unit 3" class="form-input mt-1">
-              </label>
-            </div>
-          </div>
-
-          <!-- Additional Notes -->
-          <div class="field-group">
-            <h4 class="font-semibold mb-3">📝 Additional Information</h4>
-            <label class="block">
-              <span class="text-sm" style="color: var(--text-secondary)">Other Relevant Details / Follow-up Required</span>
-              <textarea id="additionalNotes" rows="3" placeholder="Any other important information, recommendations, or follow-up actions needed..." class="form-textarea mt-1"></textarea>
-            </label>
-          </div>
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">What action did you take?</div>
+            <textarea id="actionTaken" rows="3" placeholder="e.g., Approached the individual, called for backup, secured the area..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea>
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">How was the incident resolved?</div>
+            <textarea id="resolution" rows="2" placeholder="e.g., Subject left property, police arrived and took over, medical transported patient..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea>
+          </label>
         </div>
+      </div>
+
+      <!-- Evidence and Documentation -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">📸 Evidence & Documentation</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Property Damage/Loss</div>
+            <textarea id="propertyDamage" rows="2" placeholder="Describe any damage or stolen items..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea>
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Injuries Sustained</div>
+            <textarea id="injuries" rows="2" placeholder="Describe any injuries to persons..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea>
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Evidence Collected</div>
+            <input type="text" id="evidence" placeholder="e.g., CCTV footage, photos, physical items..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Police Report #</div>
+            <input type="text" id="policeReport" placeholder="If applicable" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+        </div>
+      </div>
+
+      <!-- Officer Information -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">👮 Reporting Officer</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Officer Name</div>
+            <input type="text" id="officerName" placeholder="Your name" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Badge/ID Number</div>
+            <input type="text" id="badgeNumber" placeholder="Badge #" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Post/Assignment</div>
+            <input type="text" id="post" placeholder="e.g., Main Gate, Patrol Unit 3" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
+          </label>
+        </div>
+      </div>
+
+      <!-- Additional Notes -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-2">📝 Additional Information</div>
+        <label class="block">
+          <div class="text-sm text-gray-300 mb-1">Other Relevant Details / Follow-up Required</div>
+          <textarea id="additionalNotes" rows="3" placeholder="Any other important information, recommendations, or follow-up actions needed..." class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2"></textarea>
+        </label>
       </div>
     </section>
   </main>
@@ -365,7 +320,7 @@ The system will automatically generate a comprehensive, detailed security report
     <div class="nav-grid">
       <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>Home</span></a>
       <a href="codes.html" class="nav-item"><div class="nav-icon">📟</div><span>Codes</span></a>
-      <a href="incident.html" class="nav-item active"><div class="nav-icon">📝</div><span>Report</span></a>
+      <a href="reports.html" class="nav-item"><div class="nav-icon">📝</div><span>Reports</span></a>
       <a href="patrol.html" class="nav-item"><div class="nav-icon">🚶</div><span>Patrol</span></a>
       <a href="profile.html" class="nav-item"><div class="nav-icon">👤</div><span>Profile</span></a>
     </div>
@@ -449,16 +404,16 @@ The system will automatically generate a comprehensive, detailed security report
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input type="text" placeholder="Name (will be anonymized)" value="${person.name}" 
                      onchange="updatePerson(${person.id}, 'name', this.value)"
-                     class="form-input">
+                     class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
               <input type="text" placeholder="Description (age, gender, build)" value="${person.description}"
                      onchange="updatePerson(${person.id}, 'description', this.value)"
-                     class="form-input">
+                     class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
               <input type="text" placeholder="Clothing description" value="${person.clothing}"
                      onchange="updatePerson(${person.id}, 'clothing', this.value)"
-                     class="form-input">
+                     class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
               <input type="text" placeholder="ID/License (if obtained)" value="${person.identification}"
                      onchange="updatePerson(${person.id}, 'identification', this.value)"
-                     class="form-input">
+                     class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2">
             </div>
           </div>
         `;

@@ -28,7 +28,25 @@
   </header>
 
   <main class="main-content">
-    <section class="max-w-5xl mx-auto space-y-4">
+    <section class="max-w-4xl mx-auto space-y-4">
+      <!-- Report Options -->
+      <div class="mobile-card">
+        <div class="font-semibold mb-3">📝 Create New Report</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <a href="incident.html" class="mobile-card interactive text-center">
+            <div class="text-3xl mb-2">🚨</div>
+            <div class="font-semibold">Incident Report</div>
+            <div class="text-sm mt-1" style="color: var(--text-secondary)">Document security incidents</div>
+          </a>
+          <a href="shift.html" class="mobile-card interactive text-center">
+            <div class="text-3xl mb-2">📋</div>
+            <div class="font-semibold">Shift Report</div>
+            <div class="text-sm mt-1" style="color: var(--text-secondary)">End of shift summary</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Saved Reports -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="mobile-card">
           <div class="font-semibold mb-2">Saved Incident Reports</div>
@@ -46,9 +64,9 @@
     <div class="nav-grid">
       <a href="index.html" class="nav-item"><div class="nav-icon">🏠</div><span>Home</span></a>
       <a href="codes.html" class="nav-item"><div class="nav-icon">📟</div><span>Codes</span></a>
-      <a href="incident.html" class="nav-item"><div class="nav-icon">📝</div><span>Report</span></a>
+      <a href="reports.html" class="nav-item active"><div class="nav-icon">📝</div><span>Reports</span></a>
       <a href="patrol.html" class="nav-item"><div class="nav-icon">🚶</div><span>Patrol</span></a>
-      <a href="profile.html" class="nav-item active"><div class="nav-icon">👤</div><span>Profile</span></a>
+      <a href="profile.html" class="nav-item"><div class="nav-icon">👤</div><span>Profile</span></a>
     </div>
   </nav>
 

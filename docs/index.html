@@ -305,7 +305,7 @@
 
   <!-- Custom Popup System -->
   <div id="customPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
-    <div class="mobile-card max-w-md mx-4 my-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+    <div class="mobile-card max-w-md mx-4 my-4" >
       <div class="flex justify-between items-center mb-4">
         <h3 id="popupTitle" class="text-xl font-bold"></h3>
         <button class="touch-btn" onclick="closeCustomPopup()" style="min-width: auto; padding: 0.5rem;">✕</button>
@@ -320,8 +320,8 @@
   </div>
 
   <!-- Mission Confirmation Popup -->
-  <div id="missionConfirmPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="mobile-card max-w-md mx-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+  <div id="missionConfirmPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
+    <div class="mobile-card max-w-md mx-4 my-4">
       <h3 class="text-xl font-bold mb-4">⚠️ Start Unscheduled Mission</h3>
       <p class="mb-4" style="color: var(--text-secondary)">This mission is not scheduled. Are you sure you want to start it? Please provide mission information:</p>
       
@@ -354,8 +354,8 @@
   </div>
 
   <!-- End Mission Confirmation Popup -->
-  <div id="endMissionConfirmPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="mobile-card max-w-md mx-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+  <div id="endMissionConfirmPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
+    <div class="mobile-card max-w-md mx-4 my-4">
       <h3 class="text-xl font-bold mb-4">⚠️ End Mission</h3>
       <p class="mb-4" style="color: var(--text-secondary)">Are you sure you want to end the current mission? This action cannot be undone.</p>
       
@@ -367,8 +367,8 @@
   </div>
 
   <!-- Tardy Excuse Popup -->
-  <div id="tardyExcusePopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="mobile-card max-w-md mx-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+  <div id="tardyExcusePopup" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
+    <div class="mobile-card max-w-md mx-4 my-4">
       <h3 class="text-xl font-bold mb-4">⏰ Late Mission Start</h3>
       <p class="mb-4" style="color: var(--text-secondary)">You are starting this mission after the scheduled start time. Please provide a reason for the delay:</p>
       
@@ -426,7 +426,7 @@
   </div>
 
   <div id="equipmentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="overflow-y: auto;">
-    <div class="mobile-card max-w-md mx-4 my-4" style="position: relative; top: 50%; transform: translateY(-50%);">
+    <div class="mobile-card max-w-md mx-4 my-4" >
       <h3 class="text-xl font-bold mb-4">🎒 Equipment Check</h3>
       <p class="text-sm mb-4" style="color: var(--text-secondary)">Complete your daily equipment inspection</p>
       

@@ -163,16 +163,21 @@
       </div>
     </section>
 
-      <!-- My Missions -->
+      <!-- Next Mission -->
     <section class="mobile-card mb-6">
       <div class="flex justify-between items-center mb-3">
-        <h3 class="text-lg font-semibold">My Missions</h3>
-        <button class="touch-btn" onclick="openMissionScheduler()">
-          <span class="mr-1">➕</span> Schedule
-        </button>
+        <h3 class="text-lg font-semibold">Next Mission</h3>
+        <div class="flex gap-2">
+          <button class="touch-btn" onclick="window.location.href='schedule.html'">
+            <span class="mr-1">📋</span> Schedule
+          </button>
+          <button class="touch-btn" onclick="openMissionScheduler()">
+            <span class="mr-1">➕</span> Add
+          </button>
+        </div>
       </div>
       <div id="myMissions" class="space-y-3">
-        <!-- Mission items will be populated here -->
+        <!-- Next mission will be populated here -->
       </div>
     </section>
 
@@ -1820,12 +1825,11 @@
     function updateMyMissions() {
       const container = document.getElementById('myMissions');
       const scheduledMissions = JSON.parse(localStorage.getItem('scheduledMissions') || '[]');
-      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       
       let content = '';
       
-      // Show active mission
+      // Show active mission if there is one
       if (activeMission && activeMission.status === 'active') {
         const startTime = new Date(activeMission.startTime);
         content += `
@@ -1835,7 +1839,7 @@
             <div class="flex items-center gap-3">
               <div class="text-2xl">🟢</div>
               <div>
-                <div class="font-medium">Active Mission</div>
+                <div class="font-medium">Current Mission</div>
                 <div class="text-sm" style="color: var(--text-secondary)">Started: ${startTime.toLocaleString()}</div>
               </div>
             </div>
@@ -1845,77 +1849,55 @@
             </div>
           </div>
         `;
-      }
-      
-      // Show upcoming scheduled missions (next 3)
-      const now = new Date();
-      const upcomingMissions = scheduledMissions
-        .filter(mission => {
-          const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
-          return missionDateTime > now && mission.status === 'scheduled';
-        })
-        .slice(0, 3);
-      
-      upcomingMissions.forEach(mission => {
-        const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
-        const timeUntil = missionDateTime - now;
-        const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
-        const daysUntil = Math.floor(hoursUntil / 24);
+      } else {
+        // Show only the next upcoming mission
+        const now = new Date();
+        const nextMission = scheduledMissions
+          .filter(mission => {
+            const missionDateTime = new Date(mission.date + 'T' + mission.startTime);
+            return missionDateTime > now && mission.status === 'scheduled';
+          })
+          .sort((a, b) => {
+            const dateA = new Date(a.date + 'T' + a.startTime);
+            const dateB = new Date(b.date + 'T' + b.startTime);
+            return dateA - dateB;
+          })[0];
         
-        let timeText = '';
-        if (daysUntil > 0) {
-          timeText = `in ${daysUntil} day${daysUntil > 1 ? 's' : ''}`;
-        } else if (hoursUntil > 0) {
-          timeText = `in ${hoursUntil} hour${hoursUntil > 1 ? 's' : ''}`;
-        } else {
-          timeText = 'starting soon';
+        if (nextMission) {
+          const missionDateTime = new Date(nextMission.date + 'T' + nextMission.startTime);
+          const timeUntil = missionDateTime - now;
+          const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+          const daysUntil = Math.floor(hoursUntil / 24);
+          
+          let timeText = '';
+          if (daysUntil > 0) {
+            timeText = `in ${daysUntil} day${daysUntil > 1 ? 's' : ''}`;
+          } else if (hoursUntil > 0) {
+            timeText = `in ${hoursUntil} hour${hoursUntil > 1 ? 's' : ''}`;
+          } else {
+            timeText = 'starting soon';
+          }
+          
+          content += `
+            <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
+                 style="background: var(--bg-tertiary);"
+                 onclick="viewMissionDetails('scheduled', '${nextMission.id}')">
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">📅</div>
+                <div>
+                  <div class="font-medium">${nextMission.title}</div>
+                  <div class="text-sm" style="color: var(--text-secondary)">${missionDateTime.toLocaleDateString()} ${nextMission.startTime} • ${timeText}</div>
+                  ${nextMission.location ? `<div class="text-xs" style="color: var(--text-muted)">📍 ${nextMission.location}</div>` : ''}
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="status-indicator status-pending"></div>
+                <div class="text-sm" style="color: var(--text-muted)">👁️</div>
+              </div>
+            </div>
+          `;
         }
-        
-        content += `
-          <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
-               style="background: var(--bg-tertiary);"
-               onclick="viewMissionDetails('scheduled', '${mission.id}')">
-            <div class="flex items-center gap-3">
-              <div class="text-2xl">📅</div>
-              <div>
-                <div class="font-medium">${mission.title}</div>
-                <div class="text-sm" style="color: var(--text-secondary)">${missionDateTime.toLocaleDateString()} ${mission.startTime} • ${timeText}</div>
-                ${mission.location ? `<div class="text-xs" style="color: var(--text-muted)">📍 ${mission.location}</div>` : ''}
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="status-indicator status-pending"></div>
-              <div class="text-sm" style="color: var(--text-muted)">👁️</div>
-            </div>
-          </div>
-        `;
-      });
-      
-      // Show recent completed missions (last 2)
-      const recentCompleted = missionHistory.slice(0, 2);
-      recentCompleted.forEach(mission => {
-        const startTime = new Date(mission.startTime);
-        const endTime = new Date(mission.endTime);
-        const duration = Math.floor((endTime - startTime) / (1000 * 60 * 60));
-        
-        content += `
-          <div class="flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-all" 
-               style="background: var(--bg-tertiary);"
-               onclick="viewMissionDetails('completed', '${mission.id}')">
-            <div class="flex items-center gap-3">
-              <div class="text-2xl">✅</div>
-              <div>
-                <div class="font-medium">${mission.originalMission?.title || (mission.type === 'manual' ? 'Manual Mission' : 'Mission')}</div>
-                <div class="text-sm" style="color: var(--text-secondary)">${startTime.toLocaleDateString()} • ${duration}h duration</div>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="status-indicator status-complete"></div>
-              <div class="text-sm" style="color: var(--text-muted)">👁️</div>
-            </div>
-          </div>
-        `;
-      });
+      }
       
       if (!content) {
         content = `

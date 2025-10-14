@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Popup System Test — Security Companion</title>
+  <link rel="stylesheet" href="app-styles.css">
+  <script src="popup-system.js"></script>
+</head>
+<body class="bg-pattern">
+  <header class="app-header">
+    <div class="flex items-center gap-3">
+      <div class="app-logo">
+        <img src="patch-bg.png" alt="Security Logo">
+      </div>
+      <div class="header-content">
+        <h1>Popup System Test</h1>
+        <p>Test all popup types</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="mobile-card mb-6">
+      <h2 class="text-xl font-bold mb-4">Test Custom Popup System</h2>
+      <div class="space-y-3">
+        <button class="touch-btn w-full" onclick="testAlert()">
+          ⚠️ Test Alert
+        </button>
+        <button class="touch-btn w-full" onclick="testConfirm()">
+          ❓ Test Confirm
+        </button>
+        <button class="touch-btn w-full" onclick="testPrompt()">
+          ✏️ Test Prompt
+        </button>
+        <button class="touch-btn success w-full" onclick="testSuccess()">
+          ✅ Test Success
+        </button>
+        <button class="touch-btn danger w-full" onclick="testError()">
+          ❌ Test Error
+        </button>
+        <button class="touch-btn warning w-full" onclick="testWarning()">
+          ⚠️ Test Warning
+        </button>
+        <button class="touch-btn primary w-full" onclick="testInfo()">
+          ℹ️ Test Info
+        </button>
+        <button class="touch-btn danger w-full" onclick="testEmergency()">
+          🚨 Test Emergency Confirm
+        </button>
+        <button class="touch-btn w-full" onclick="testNotification()">
+          🔔 Test Notification
+        </button>
+        <button class="touch-btn w-full" onclick="testCustomPopup()">
+          🎨 Test Custom Popup
+        </button>
+      </div>
+    </section>
+
+    <section class="mobile-card">
+      <h3 class="text-lg font-semibold mb-3">Test Results</h3>
+      <div id="testResults" class="space-y-2 text-sm">
+        <div>Click buttons above to test popup system...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function addResult(message) {
+      const container = document.getElementById('testResults');
+      const div = document.createElement('div');
+      div.className = 'p-2 rounded text-sm bg-green-900 text-green-100';
+      div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+      container.insertBefore(div, container.firstChild);
+    }
+
+    function testAlert() {
+      alert('This is a test alert message!');
+      addResult('Alert popup displayed');
+    }
+
+    async function testConfirm() {
+      const result = await confirm('Do you want to continue with this test?');
+      addResult(`Confirm popup result: ${result}`);
+    }
+
+    async function testPrompt() {
+      const result = await prompt('Enter your name:', 'Officer Smith');
+      addResult(`Prompt popup result: ${result || 'cancelled'}`);
+    }
+
+    function testSuccess() {
+      showSuccess('Operation completed successfully!');
+      addResult('Success popup displayed');
+    }
+
+    function testError() {
+      showError('An error occurred during the operation!');
+      addResult('Error popup displayed');
+    }
+
+    function testWarning() {
+      showWarning('Please check your input before continuing!');
+      addResult('Warning popup displayed');
+    }
+
+    function testInfo() {
+      showInfo('Here is some important information for you.');
+      addResult('Info popup displayed');
+    }
+
+    async function testEmergency() {
+      const result = await showEmergencyConfirm('This will send an emergency alert to dispatch and your supervisor. Continue?');
+      addResult(`Emergency confirm result: ${result}`);
+    }
+
+    function testNotification() {
+      showNotification('This is a test notification!', 'success');
+      addResult('Notification displayed');
+    }
+
+    async function testCustomPopup() {
+      const result = await showCustomPopup(
+        '🎨 Custom Popup Test',
+        '<p>This is a custom popup with multiple action buttons.</p><p>Choose an option below:</p>',
+        [
+          { text: 'Option 1', class: 'touch-btn primary', value: 'option1' },
+          { text: 'Option 2', class: 'touch-btn success', value: 'option2' },
+          { text: 'Cancel', class: 'touch-btn', value: 'cancel' }
+        ]
+      );
+      addResult(`Custom popup result: ${result}`);
+    }
+
+    // Initialize theme
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+    });
+  </script>
+</body>
+</html>

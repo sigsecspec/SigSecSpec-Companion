@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="push-notifications.js"></script>
+  <script src="popup-system.js"></script>
   <style>
     .reports-header {
       text-align: center;
@@ -434,7 +435,7 @@
         if (window.showNotification) {
           window.showNotification('Report copied to clipboard!', 'success');
         } else {
-          alert('Report copied to clipboard!');
+          showSuccess('Report copied to clipboard!');
         }
       }
       catch{
@@ -449,14 +450,14 @@
           if (window.showNotification) {
             window.showNotification('Report copied to clipboard!', 'success');
           } else {
-            alert('Report copied to clipboard!');
+            showSuccess('Report copied to clipboard!');
           }
         }
         catch{
           if (window.showNotification) {
             window.showNotification('Failed to copy to clipboard', 'error');
           } else {
-            alert('Failed to copy to clipboard');
+            showError('Failed to copy to clipboard');
           }
         }
       }
@@ -578,7 +579,7 @@
       );
       
       navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
-      alert('Emergency alert sent to dispatch!');
+      showSuccess('Emergency alert sent to dispatch!');
       cancelEmergency();
     }
 

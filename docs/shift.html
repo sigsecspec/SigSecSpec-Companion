@@ -9,8 +9,9 @@
     :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
     html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
     .app-card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:1rem; }
-    #bottomNav{ position:fixed; bottom:1rem; left:50%; transform:translateX(-50%); backdrop-filter:blur(6px); border-radius:9999px; background:#111; display:flex; gap:.5rem; transition:all .3s ease; z-index:50; }
-    #bottomNav.footer{ position:static; transform:none; border-radius:0; width:100%; justify-content:space-around; padding:.75rem 0; margin-top:1rem; }
+    #bottomNav{ position:fixed; left:0; right:0; bottom:0; width:100%; height:var(--bottom-nav-height,56px); display:flex; justify-content:space-around; align-items:center; gap:.25rem; background:rgba(17,17,17,0.9); backdrop-filter:saturate(180%) blur(10px); border-top:1px solid rgba(255,255,255,0.06); z-index:60; padding:0 .5rem calc(env(safe-area-inset-bottom,0px)); }
+    #bottomNav a{ flex:1 1 0; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
     .accent{ color:var(--accent); }
     @media print{
       html,body{ background:#fff !important; color:#000 !important; }
@@ -63,8 +64,7 @@
   <script>
     function toggleLarge(){ document.body.classList.toggle('text-lg'); localStorage.setItem('sss_large', document.body.classList.contains('text-lg')); }
     document.addEventListener('DOMContentLoaded',()=>{ if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); });
-    const mainContent=document.getElementById('mainContent'); const bottomNav=document.getElementById('bottomNav');
-    mainContent.addEventListener('scroll',()=>{ if(mainContent.scrollTop + mainContent.clientHeight >= mainContent.scrollHeight - 5){ bottomNav.classList.add('footer'); } else { bottomNav.classList.remove('footer'); } });
+    // Fixed bottom nav; no scroll toggling required
 
     const STORE_KEYS = { profile:'sss_profile', templateDrafts:'sss_template_drafts' };
     function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }

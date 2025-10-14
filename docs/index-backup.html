@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signature Security Specialist — Mobile Companion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root {
+      /* Dark theme (default) */
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #121212;
+      --bg-tertiary: #1a1a1a;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666666;
+      --accent-primary: #a7b99e;
+      --accent-secondary: #43534a;
+      --border-primary: rgba(255, 255, 255, 0.1);
+      --border-secondary: rgba(255, 255, 255, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --shadow: rgba(0, 0, 0, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    [data-theme="light"] {
+      /* Light theme */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-primary: #059669;
+      --accent-secondary: #065f46;
+      --border-primary: rgba(0, 0, 0, 0.1);
+      --border-secondary: rgba(0, 0, 0, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --shadow: rgba(0, 0, 0, 0.1);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100%;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .bg-pattern {
+      background-image: 
+        radial-gradient(circle at 25% 25%, var(--accent-primary) 10%, transparent 50%),
+        radial-gradient(circle at 75% 75%, var(--accent-secondary) 10%, transparent 50%);
+      background-size: 100px 100px;
+      background-position: 0 0, 50px 50px;
+    }
+
+    /* Mobile-first card design */
+    .mobile-card {
+      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-primary);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mobile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+      opacity: 0.5;
+    }
+
+    .mobile-card:active {
+      transform: scale(0.98);
+      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.04));
+    }
+
+    .mobile-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px var(--shadow);
+      border-color: var(--accent-primary);
+    }
+
+    /* Touch-friendly buttons */
+    .touch-btn {
+      min-height: 48px;
+      min-width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .touch-btn:active {
+      transform: scale(0.95);
+      background: var(--bg-tertiary);
+    }
+
+    .touch-btn.primary {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+
+    .touch-btn.danger {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+
+    /* Grid layouts */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      padding: 1rem 0;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    /* Status indicators */
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+
+    .status-online { background: var(--success); }
+    .status-offline { background: var(--text-muted); }
+    .status-alert { background: var(--error); animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Bottom navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-primary);
+      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.25rem;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 0.25rem;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 60px;
+      justify-content: center;
+    }
+
+    .nav-item.active {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .nav-item:not(.active):hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: relative;
+      width: 60px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border-radius: 16px;
+      border: 1px solid var(--border-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle::before {
+      content: '🌙';
+      position: absolute;
+      top: 50%;
+      left: 4px;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] .theme-toggle::before {
+      content: '☀️';
+      left: 32px;
+    }
+
+    .theme-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 26px;
+      height: 26px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    [data-theme="light"] .theme-toggle::after {
+      left: 30px;
+    }
+
+    /* Emergency button */
+    .emergency-btn {
+      position: fixed;
+      top: 50%;
+      right: 1rem;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      background: var(--error);
+      border: 3px solid white;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 90;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .emergency-btn:active {
+      transform: translateY(-50%) scale(0.9);
+    }
+
+    .emergency-btn.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Main content spacing */
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      padding-bottom: calc(80px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .mobile-card {
+        padding: 1rem;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      .bottom-nav, .emergency-btn, .theme-toggle { display: none !important; }
+      .main-content { padding-bottom: 0 !important; }
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Focus styles */
+    .touch-btn:focus,
+    .nav-item:focus,
+    .theme-toggle:focus {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body class="bg-pattern">
+  <!-- Header -->
+  <header class="p-4 pb-6 flex justify-between items-center relative z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
+        🛡️
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold">Security Companion</h1>
+        <p class="text-sm" style="color: var(--text-secondary)">
+          <span class="status-indicator status-online"></span>
+          <span id="statusText">On Duty</span> • <span id="currentTime"></span>
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
+    </div>
+  </header>
+
+  <!-- Emergency Button -->
+  <button class="emergency-btn" onclick="triggerEmergency()" aria-label="Emergency alert">
+    🚨
+  </button>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Welcome Section -->
+    <section class="mobile-card fade-in mb-6">
+      <h2 class="text-xl font-bold mb-2">Welcome, <span id="officerName">Officer</span></h2>
+      <p style="color: var(--text-secondary)" class="mb-4">Quick access to your essential security tools and resources.</p>
+      
+      <!-- Quick Status -->
+      <div class="quick-actions">
+        <button class="touch-btn primary" onclick="checkIn()">
+          <span class="mr-2">📍</span> Check In
+        </button>
+        <button class="touch-btn" onclick="startPatrol()">
+          <span class="mr-2">🚶</span> Start Patrol
+        </button>
+      </div>
+    </section>
+
+    <!-- Core Features -->
+    <section class="mb-6">
+      <h3 class="text-lg font-semibold mb-3">Core Tools</h3>
+      <div class="feature-grid">
+        <a href="codes.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📟</div>
+          <div class="font-semibold">10-Codes</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Quick reference</div>
+        </a>
+        
+        <a href="radio.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📻</div>
+          <div class="font-semibold">Phonetics</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">NATO alphabet</div>
+        </a>
+        
+        <a href="incident.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📝</div>
+          <div class="font-semibold">Incident Report</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Document events</div>
+        </a>
+        
+        <a href="shift.html" class="mobile-card text-center">
+          <div class="text-3xl mb-2">📋</div>
+          <div class="font-semibold">Shift Report</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">End of shift</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Security Features -->
+    <section class="mb-6">
+      <h3 class="text-lg font-semibold mb-3">Security Tools</h3>
+      <div class="feature-grid">
+        <button class="mobile-card text-center" onclick="toggleFlashlight()">
+          <div class="text-3xl mb-2" id="flashlightIcon">🔦</div>
+          <div class="font-semibold">Flashlight</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)" id="flashlightStatus">Tap to activate</div>
+        </button>
+        
+        <button class="mobile-card text-center" onclick="openContacts()">
+          <div class="text-3xl mb-2">📞</div>
+          <div class="font-semibold">Emergency Contacts</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Quick dial</div>
+        </button>
+        
+        <button class="mobile-card text-center" onclick="viewPatrolLog()">
+          <div class="text-3xl mb-2">🗺️</div>
+          <div class="font-semibold">Patrol Log</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Track routes</div>
+        </button>
+        
+        <button class="mobile-card text-center" onclick="openSettings()">
+          <div class="text-3xl mb-2">⚙️</div>
+          <div class="font-semibold">Settings</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Preferences</div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Recent Activity -->
+    <section class="mobile-card">
+      <h3 class="text-lg font-semibold mb-3">Recent Activity</h3>
+      <div id="recentActivity" class="space-y-3">
+        <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-tertiary)">
+          <div>
+            <div class="font-medium">Shift Started</div>
+            <div class="text-sm" style="color: var(--text-secondary)">Today at 8:00 AM</div>
+          </div>
+          <div class="status-indicator status-online"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-grid">
+      <a href="index.html" class="nav-item active">
+        <div class="nav-icon">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="codes.html" class="nav-item">
+        <div class="nav-icon">📟</div>
+        <span>Codes</span>
+      </a>
+      <a href="incident.html" class="nav-item">
+        <div class="nav-icon">📝</div>
+        <span>Report</span>
+      </a>
+      <a href="patrol.html" class="nav-item">
+        <div class="nav-icon">🚶</div>
+        <span>Patrol</span>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Modals and Overlays -->
+  <div id="emergencyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold text-red-500 mb-4">🚨 Emergency Alert</h3>
+      <p class="mb-6">This will send an emergency alert to dispatch and your supervisor. Continue?</p>
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="cancelEmergency()">Cancel</button>
+        <button class="touch-btn danger flex-1" onclick="confirmEmergency()">Send Alert</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="contactsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold mb-4">📞 Emergency Contacts</h3>
+      <div class="space-y-3">
+        <a href="tel:911" class="touch-btn danger w-full">🚨 911 Emergency</a>
+        <a href="tel:555-0123" class="touch-btn w-full">👮 Supervisor</a>
+        <a href="tel:555-0124" class="touch-btn w-full">🏢 Dispatch</a>
+        <a href="tel:555-0125" class="touch-btn w-full">🚑 Medical</a>
+      </div>
+      <button class="touch-btn w-full mt-4" onclick="closeContacts()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Theme management
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    // Initialize theme
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    // Text size toggle
+    function toggleTextSize() {
+      document.body.classList.toggle('text-lg');
+      localStorage.setItem('largeText', document.body.classList.contains('text-lg'));
+    }
+
+    // Initialize text size
+    function initTextSize() {
+      if (localStorage.getItem('largeText') === 'true') {
+        document.body.classList.add('text-lg');
+      }
+    }
+
+    // Time display
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('currentTime').textContent = now.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Officer name
+    function loadOfficerName() {
+      const name = localStorage.getItem('officerName') || 'Officer';
+      document.getElementById('officerName').textContent = name;
+    }
+
+    // Flashlight functionality
+    let flashlightStream = null;
+    let flashlightTrack = null;
+
+    async function toggleFlashlight() {
+      const icon = document.getElementById('flashlightIcon');
+      const status = document.getElementById('flashlightStatus');
+      
+      if (!flashlightStream) {
+        try {
+          flashlightStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
+          });
+          flashlightTrack = flashlightStream.getVideoTracks()[0];
+          
+          if (flashlightTrack.getCapabilities().torch) {
+            await flashlightTrack.applyConstraints({ advanced: [{ torch: true }] });
+            icon.textContent = '💡';
+            status.textContent = 'Flashlight ON';
+            status.style.color = 'var(--success)';
+          } else {
+            throw new Error('Torch not supported');
+          }
+        } catch (error) {
+          // Fallback to screen flash
+          document.body.style.background = 'white';
+          icon.textContent = '💡';
+          status.textContent = 'Screen flash ON';
+          status.style.color = 'var(--success)';
+        }
+      } else {
+        // Turn off
+        if (flashlightTrack) {
+          await flashlightTrack.applyConstraints({ advanced: [{ torch: false }] });
+          flashlightStream.getTracks().forEach(track => track.stop());
+        }
+        document.body.style.background = '';
+        flashlightStream = null;
+        flashlightTrack = null;
+        icon.textContent = '🔦';
+        status.textContent = 'Tap to activate';
+        status.style.color = 'var(--text-secondary)';
+      }
+    }
+
+    // Emergency functions
+    function triggerEmergency() {
+      document.getElementById('emergencyModal').classList.remove('hidden');
+      document.getElementById('emergencyModal').classList.add('flex');
+    }
+
+    function cancelEmergency() {
+      document.getElementById('emergencyModal').classList.add('hidden');
+      document.getElementById('emergencyModal').classList.remove('flex');
+    }
+
+    function confirmEmergency() {
+      // Send emergency alert
+      navigator.vibrate && navigator.vibrate([200, 100, 200]);
+      alert('Emergency alert sent to dispatch!');
+      cancelEmergency();
+    }
+
+    // Contact functions
+    function openContacts() {
+      document.getElementById('contactsModal').classList.remove('hidden');
+      document.getElementById('contactsModal').classList.add('flex');
+    }
+
+    function closeContacts() {
+      document.getElementById('contactsModal').classList.add('hidden');
+      document.getElementById('contactsModal').classList.remove('flex');
+    }
+
+    // Security functions
+    function checkIn() {
+      const time = new Date().toLocaleTimeString();
+      navigator.geolocation?.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+          alert(`Checked in at ${time}\nLocation: ${lat}, ${lng}`);
+          document.getElementById('statusText').textContent = 'On Duty';
+        },
+        () => {
+          alert(`Checked in at ${time}\nLocation: Not available`);
+        }
+      );
+    }
+
+    function startPatrol() {
+      alert('Patrol started. Location tracking enabled.');
+      // In a real app, this would start GPS tracking
+    }
+
+    function viewPatrolLog() {
+      // Navigate to patrol log page
+      window.location.href = 'patrol.html';
+    }
+
+    function openSettings() {
+      // Navigate to profile & settings page
+      window.location.href = 'profile.html';
+    }
+
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      initTextSize();
+      loadOfficerName();
+      updateTime();
+      setInterval(updateTime, 1000);
+
+      // Add touch feedback to all interactive elements
+      document.querySelectorAll('.mobile-card, .touch-btn').forEach(element => {
+        element.addEventListener('touchstart', function() {
+          this.style.transform = 'scale(0.98)';
+        });
+        
+        element.addEventListener('touchend', function() {
+          setTimeout(() => {
+            this.style.transform = '';
+          }, 150);
+        });
+      });
+
+      // Service worker registration for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(console.error);
+      }
+    });
+
+    // Handle back button for modals
+    window.addEventListener('popstate', function() {
+      document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+        if (!modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

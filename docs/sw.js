@@ -113,53 +113,126 @@ async function doBackgroundSync() {
   // For example, send any pending incident reports or patrol logs
 }
 
-// Push notifications
+// Push notifications - Enhanced Professional Handler
 self.addEventListener('push', event => {
+  let notificationData = {};
+  
+  try {
+    notificationData = event.data ? event.data.json() : {};
+  } catch (e) {
+    notificationData = {
+      title: '🛡️ Security Companion',
+      body: event.data ? event.data.text() : 'New security alert'
+    };
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'New notification from Security Companion',
-    icon: '/icon-192.png',
-    badge: '/icon-96.png',
-    vibrate: [200, 100, 200],
+    body: notificationData.body || 'New notification from Security Companion',
+    icon: notificationData.icon || '/patch-bg.png',
+    badge: notificationData.badge || '/patch-bg.png',
+    image: notificationData.image,
+    vibrate: notificationData.vibrate || [200, 100, 200],
+    tag: notificationData.tag || 'security-alert',
+    requireInteraction: notificationData.requireInteraction || false,
+    renotify: notificationData.renotify || false,
+    silent: notificationData.silent || false,
+    timestamp: notificationData.timestamp || Date.now(),
     data: {
+      ...notificationData.data,
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      url: notificationData.url || '/'
     },
-    actions: [
+    actions: notificationData.actions || [
       {
-        action: 'explore',
-        title: 'Open App',
-        icon: '/icon-96.png'
+        action: 'view',
+        title: '👁️ View',
+        icon: '/patch-bg.png'
       },
       {
-        action: 'close',
-        title: 'Close',
-        icon: '/icon-96.png'
+        action: 'dismiss',
+        title: '✕ Dismiss',
+        icon: '/patch-bg.png'
       }
     ]
   };
 
+  // Special handling for emergency notifications
+  if (notificationData.type === 'emergency') {
+    options.requireInteraction = true;
+    options.vibrate = [500, 200, 500, 200, 500];
+    options.actions = [
+      {
+        action: 'respond',
+        title: '🚨 Respond',
+        icon: '/patch-bg.png'
+      },
+      {
+        action: 'location',
+        title: '📍 View Location',
+        icon: '/patch-bg.png'
+      }
+    ];
+  }
+
   event.waitUntil(
-    self.registration.showNotification('Security Companion', options)
+    self.registration.showNotification(
+      notificationData.title || '🛡️ Security Companion',
+      options
+    )
   );
 });
 
-// Notification click handler
+// Notification click handler - Enhanced Professional
 self.addEventListener('notificationclick', event => {
   event.notification.close();
+  
+  const notification = event.notification;
+  const action = event.action;
+  const data = notification.data || {};
+  
+  let targetUrl = data.url || '/';
 
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  } else if (event.action === 'close') {
-    // Just close the notification
-    return;
-  } else {
-    // Default action - open the app
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+  // Handle different action types
+  switch (action) {
+    case 'view':
+      targetUrl = data.url || '/';
+      break;
+    case 'respond':
+      targetUrl = `/emergency.html?id=${data.id || ''}`;
+      break;
+    case 'location':
+      if (data.location) {
+        targetUrl = `/patrol.html?lat=${data.location.lat}&lng=${data.location.lng}`;
+      }
+      break;
+    case 'dismiss':
+      // Just close, no action needed
+      return;
+    default:
+      // Default to opening the main URL
+      targetUrl = data.url || '/';
   }
+
+  event.waitUntil(
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then(windowClients => {
+      // Check if app is already open
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          // Navigate existing client to target URL
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      
+      // If no existing window, open a new one
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
 
 // Message handler for communication with main thread

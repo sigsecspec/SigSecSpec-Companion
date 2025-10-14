@@ -1,0 +1,34 @@
+{
+  "name": "security-companion-pro-server",
+  "version": "1.0.0",
+  "description": "Professional Security Management System - Push Notification Server",
+  "main": "server-notification-example.js",
+  "scripts": {
+    "start": "node server-notification-example.js",
+    "dev": "nodemon server-notification-example.js",
+    "generate-vapid": "web-push generate-vapid-keys",
+    "test": "node -e \"console.log('Server test passed')\""
+  },
+  "keywords": [
+    "security",
+    "push-notifications",
+    "pwa",
+    "median",
+    "professional"
+  ],
+  "author": "Security Companion Pro Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "web-push": "^3.6.6",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

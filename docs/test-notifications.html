@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Push Notification Test Suite | Security Companion Pro</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="push-notifications.js" defer></script>
+  <style>
+    .test-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .test-status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .status-pending { background: var(--bg-tertiary); color: var(--text-secondary); }
+    .status-success { background: rgba(0, 255, 136, 0.1); color: var(--accent-success); }
+    .status-error { background: rgba(255, 68, 68, 0.1); color: var(--accent-danger); }
+    .status-warning { background: rgba(255, 170, 0, 0.1); color: var(--accent-warning); }
+    
+    .log-entry {
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+    }
+    
+    .log-success { border-left: 3px solid var(--accent-success); }
+    .log-error { border-left: 3px solid var(--accent-danger); }
+    .log-info { border-left: 3px solid var(--accent-info); }
+  </style>
+</head>
+<body>
+  <div class="app-background"></div>
+  
+  <div class="container mx-auto p-4 max-w-4xl">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold mb-2">🧪 Push Notification Test Suite</h1>
+      <p style="color: var(--text-secondary);">Test and debug push notifications for Security Companion Pro</p>
+    </header>
+    
+    <!-- Environment Check -->
+    <div class="test-card">
+      <h2 class="text-xl font-bold mb-4">Environment Check</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <div class="text-sm" style="color: var(--text-muted);">Browser Support</div>
+          <div id="browserSupport" class="test-status status-pending">Checking...</div>
+        </div>
+        <div>
+          <div class="text-sm" style="color: var(--text-muted);">Service Worker</div>
+          <div id="swStatus" class="test-status status-pending">Checking...</div>
+        </div>
+        <div>
+          <div class="text-sm" style="color: var(--text-muted);">Permission</div>
+          <div id="permissionStatus" class="test-status status-pending">Checking...</div>
+        </div>
+        <div>
+          <div class="text-sm" style="color: var(--text-muted);">Median App</div>
+          <div id="medianStatus" class="test-status status-pending">Checking...</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Quick Tests -->
+    <div class="test-card">
+      <h2 class="text-xl font-bold mb-4">Quick Tests</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button class="pro-btn pro-btn-primary" onclick="testPermission()">
+          🔐 Request Permission
+        </button>
+        <button class="pro-btn pro-btn-primary" onclick="testSubscribe()">
+          ✅ Subscribe to Notifications
+        </button>
+        <button class="pro-btn pro-btn-secondary" onclick="testBasicNotification()">
+          📬 Basic Notification
+        </button>
+        <button class="pro-btn pro-btn-secondary" onclick="testRichNotification()">
+          🎨 Rich Notification
+        </button>
+        <button class="pro-btn pro-btn-danger" onclick="testEmergencyNotification()">
+          🚨 Emergency Alert
+        </button>
+        <button class="pro-btn pro-btn-secondary" onclick="testBatchNotifications()">
+          📦 Batch Notifications
+        </button>
+      </div>
+    </div>
+    
+    <!-- Custom Notification Builder -->
+    <div class="test-card">
+      <h2 class="text-xl font-bold mb-4">Custom Notification Builder</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="pro-label">Title</label>
+          <input type="text" id="notifTitle" class="pro-input" value="🛡️ Security Alert">
+        </div>
+        <div>
+          <label class="pro-label">Body</label>
+          <input type="text" id="notifBody" class="pro-input" value="Test notification from Security Companion">
+        </div>
+        <div>
+          <label class="pro-label">Icon URL</label>
+          <input type="text" id="notifIcon" class="pro-input" value="/patch-bg.png">
+        </div>
+        <div>
+          <label class="pro-label">Badge URL</label>
+          <input type="text" id="notifBadge" class="pro-input" value="/patch-bg.png">
+        </div>
+        <div>
+          <label class="pro-label">Vibration Pattern</label>
+          <input type="text" id="notifVibrate" class="pro-input" value="200,100,200" placeholder="e.g., 200,100,200">
+        </div>
+        <div>
+          <label class="pro-label">Tag</label>
+          <input type="text" id="notifTag" class="pro-input" value="test-notification">
+        </div>
+        <div class="md:col-span-2">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" id="notifRequireInteraction">
+            <span>Require Interaction (Keep notification visible)</span>
+          </label>
+        </div>
+        <div class="md:col-span-2">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" id="notifSilent">
+            <span>Silent (No sound/vibration)</span>
+          </label>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button class="pro-btn pro-btn-primary w-full" onclick="sendCustomNotification()">
+          🚀 Send Custom Notification
+        </button>
+      </div>
+    </div>
+    
+    <!-- Server Connection Test -->
+    <div class="test-card">
+      <h2 class="text-xl font-bold mb-4">Server Connection</h2>
+      <div class="mb-4">
+        <label class="pro-label">Server Endpoint</label>
+        <input type="text" id="serverEndpoint" class="pro-input" value="http://localhost:3000/api/notifications" placeholder="https://your-server.com/api/notifications">
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button class="pro-btn pro-btn-secondary" onclick="testServerConnection()">
+          🔌 Test Connection
+        </button>
+        <button class="pro-btn pro-btn-secondary" onclick="testServerSubscribe()">
+          📡 Test Subscribe
+        </button>
+        <button class="pro-btn pro-btn-secondary" onclick="testServerBroadcast()">
+          📢 Test Broadcast
+        </button>
+      </div>
+    </div>
+    
+    <!-- Debug Log -->
+    <div class="test-card">
+      <h2 class="text-xl font-bold mb-4">Debug Log</h2>
+      <div class="mb-4">
+        <button class="pro-btn pro-btn-secondary" onclick="clearLog()">🗑️ Clear Log</button>
+        <button class="pro-btn pro-btn-secondary" onclick="exportLog()">📥 Export Log</button>
+      </div>
+      <div id="debugLog" style="max-height: 400px; overflow-y: auto;">
+        <div class="log-entry log-info">Test suite initialized</div>
+      </div>
+    </div>
+    
+    <!-- Subscription Info -->
+    <div class="test-card">
+      <h2 class="text-xl font-bold mb-4">Subscription Details</h2>
+      <pre id="subscriptionInfo" style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); overflow-x: auto; font-size: 0.875rem;">
+No active subscription
+      </pre>
+    </div>
+  </div>
+  
+  <script>
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      checkEnvironment();
+      updateSubscriptionInfo();
+    });
+    
+    // Check environment
+    function checkEnvironment() {
+      // Browser support
+      const browserSupport = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+      updateStatus('browserSupport', browserSupport ? 'Supported' : 'Not Supported', browserSupport ? 'success' : 'error');
+      
+      // Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(reg => {
+          updateStatus('swStatus', 'Registered', 'success');
+        }).catch(() => {
+          updateStatus('swStatus', 'Not Registered', 'error');
+        });
+      }
+      
+      // Permission
+      if ('Notification' in window) {
+        const permission = Notification.permission;
+        updateStatus('permissionStatus', permission, permission === 'granted' ? 'success' : (permission === 'denied' ? 'error' : 'warning'));
+      }
+      
+      // Median
+      const isMedian = window.MedianCo || window.webkit?.messageHandlers?.median || window.median;
+      updateStatus('medianStatus', isMedian ? 'Detected' : 'Not Detected', isMedian ? 'success' : 'warning');
+      
+      logMessage('Environment check completed', 'info');
+    }
+    
+    // Update status display
+    function updateStatus(id, text, status) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = text;
+        element.className = `test-status status-${status}`;
+      }
+    }
+    
+    // Log message
+    function logMessage(message, type = 'info') {
+      const log = document.getElementById('debugLog');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.insertBefore(entry, log.firstChild);
+      
+      // Keep only last 50 entries
+      while (log.children.length > 50) {
+        log.removeChild(log.lastChild);
+      }
+    }
+    
+    // Test permission
+    async function testPermission() {
+      logMessage('Testing permission request...', 'info');
+      try {
+        const permission = await Notification.requestPermission();
+        logMessage(`Permission result: ${permission}`, permission === 'granted' ? 'success' : 'error');
+        checkEnvironment();
+      } catch (error) {
+        logMessage(`Permission error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test subscribe
+    async function testSubscribe() {
+      logMessage('Testing subscription...', 'info');
+      try {
+        if (typeof pushManager !== 'undefined') {
+          const result = await pushManager.subscribeUser();
+          if (result) {
+            logMessage('Successfully subscribed to push notifications', 'success');
+            updateSubscriptionInfo();
+          } else {
+            logMessage('Failed to subscribe', 'error');
+          }
+        }
+      } catch (error) {
+        logMessage(`Subscription error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test basic notification
+    async function testBasicNotification() {
+      logMessage('Sending basic notification...', 'info');
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification('Basic Test Notification', {
+          body: 'This is a basic test notification',
+          icon: '/patch-bg.png'
+        });
+        logMessage('Basic notification sent', 'success');
+      } catch (error) {
+        logMessage(`Basic notification error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test rich notification
+    async function testRichNotification() {
+      logMessage('Sending rich notification...', 'info');
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification('🎨 Rich Notification Test', {
+          body: 'This notification includes actions, image, and more!',
+          icon: '/patch-bg.png',
+          badge: '/patch-bg.png',
+          image: '/patch-bg.png',
+          vibrate: [200, 100, 200, 100, 200],
+          tag: 'rich-test',
+          requireInteraction: true,
+          actions: [
+            { action: 'view', title: '👁️ View Details', icon: '/patch-bg.png' },
+            { action: 'dismiss', title: '✕ Dismiss', icon: '/patch-bg.png' }
+          ],
+          data: {
+            type: 'rich-test',
+            timestamp: new Date().toISOString()
+          }
+        });
+        logMessage('Rich notification sent', 'success');
+      } catch (error) {
+        logMessage(`Rich notification error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test emergency notification
+    async function testEmergencyNotification() {
+      logMessage('Sending emergency notification...', 'info');
+      try {
+        if (typeof pushManager !== 'undefined') {
+          await pushManager.sendEmergencyNotification({
+            message: 'TEST EMERGENCY - This is only a test',
+            location: { lat: 40.7128, lng: -74.0060 },
+            officer: 'Test Officer'
+          });
+          logMessage('Emergency notification sent', 'success');
+        }
+      } catch (error) {
+        logMessage(`Emergency notification error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test batch notifications
+    async function testBatchNotifications() {
+      logMessage('Sending batch notifications...', 'info');
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        
+        for (let i = 1; i <= 3; i++) {
+          setTimeout(async () => {
+            await registration.showNotification(`Batch Notification ${i}`, {
+              body: `This is notification ${i} of 3`,
+              icon: '/patch-bg.png',
+              tag: `batch-${i}`,
+              data: { batchNumber: i }
+            });
+            logMessage(`Batch notification ${i} sent`, 'success');
+          }, i * 1000);
+        }
+      } catch (error) {
+        logMessage(`Batch notification error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Send custom notification
+    async function sendCustomNotification() {
+      logMessage('Sending custom notification...', 'info');
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        
+        const vibrate = document.getElementById('notifVibrate').value
+          .split(',')
+          .map(v => parseInt(v.trim()))
+          .filter(v => !isNaN(v));
+        
+        await registration.showNotification(
+          document.getElementById('notifTitle').value,
+          {
+            body: document.getElementById('notifBody').value,
+            icon: document.getElementById('notifIcon').value,
+            badge: document.getElementById('notifBadge').value,
+            vibrate: vibrate,
+            tag: document.getElementById('notifTag').value,
+            requireInteraction: document.getElementById('notifRequireInteraction').checked,
+            silent: document.getElementById('notifSilent').checked,
+            data: {
+              type: 'custom',
+              timestamp: new Date().toISOString()
+            }
+          }
+        );
+        logMessage('Custom notification sent', 'success');
+      } catch (error) {
+        logMessage(`Custom notification error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test server connection
+    async function testServerConnection() {
+      const endpoint = document.getElementById('serverEndpoint').value;
+      logMessage(`Testing server connection to ${endpoint}...`, 'info');
+      
+      try {
+        const response = await fetch(`${endpoint}/test`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ test: true })
+        });
+        
+        if (response.ok) {
+          logMessage('Server connection successful', 'success');
+        } else {
+          logMessage(`Server returned status ${response.status}`, 'error');
+        }
+      } catch (error) {
+        logMessage(`Server connection error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test server subscribe
+    async function testServerSubscribe() {
+      const endpoint = document.getElementById('serverEndpoint').value;
+      logMessage('Testing server subscription...', 'info');
+      
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        
+        if (!subscription) {
+          logMessage('No active subscription found', 'error');
+          return;
+        }
+        
+        const response = await fetch(`${endpoint}/subscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subscription: subscription.toJSON(),
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          logMessage(`Server subscription successful: ${JSON.stringify(data)}`, 'success');
+        } else {
+          logMessage(`Server subscription failed: ${response.status}`, 'error');
+        }
+      } catch (error) {
+        logMessage(`Server subscription error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Test server broadcast
+    async function testServerBroadcast() {
+      const endpoint = document.getElementById('serverEndpoint').value;
+      logMessage('Testing server broadcast...', 'info');
+      
+      try {
+        const response = await fetch(`${endpoint}/broadcast`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            notification: {
+              title: '📢 Broadcast Test',
+              body: 'This is a test broadcast from the server',
+              icon: '/patch-bg.png'
+            }
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          logMessage(`Broadcast sent: ${JSON.stringify(data)}`, 'success');
+        } else {
+          logMessage(`Broadcast failed: ${response.status}`, 'error');
+        }
+      } catch (error) {
+        logMessage(`Broadcast error: ${error.message}`, 'error');
+      }
+    }
+    
+    // Update subscription info
+    async function updateSubscriptionInfo() {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        
+        const info = document.getElementById('subscriptionInfo');
+        if (subscription) {
+          info.textContent = JSON.stringify(subscription.toJSON(), null, 2);
+        } else {
+          info.textContent = 'No active subscription';
+        }
+      } catch (error) {
+        document.getElementById('subscriptionInfo').textContent = `Error: ${error.message}`;
+      }
+    }
+    
+    // Clear log
+    function clearLog() {
+      const log = document.getElementById('debugLog');
+      log.innerHTML = '<div class="log-entry log-info">Log cleared</div>';
+    }
+    
+    // Export log
+    function exportLog() {
+      const log = document.getElementById('debugLog');
+      const entries = Array.from(log.children).map(child => child.textContent).join('\n');
+      
+      const blob = new Blob([entries], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `notification-test-log-${new Date().getTime()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      logMessage('Log exported', 'success');
+    }
+  </script>
+</body>
+</html>

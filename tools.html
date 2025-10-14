@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Tools — Signature Security Specialist</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--bg:#0f0f0f;--card:#121212;--muted:#bfc0b0;--accent:#aeae5a;}
+html,body{background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat;color:#fff;height:100%;margin:0;font-family:sans-serif;display:flex;flex-direction:column;}
+.fade-enter{opacity:0;transform:scale(0.97);animation:fadeIn 0.4s forwards;}
+.fade-leave{animation:fadeOut 0.3s forwards;}
+@keyframes fadeIn{to{opacity:1;transform:scale(1);}}@keyframes fadeOut{to{opacity:0;transform:scale(0.97);}}
+.app-card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:1.5rem;cursor:pointer;transition:transform 0.25s ease, box-shadow 0.25s ease;}
+.app-card:hover{transform:scale(1.05);box-shadow:0 8px 20px rgba(0,0,0,0.4);}
+#bottomNav{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);backdrop-filter:blur(6px);border-radius:9999px;background:#111;display:flex;gap:.5rem;transition:all 0.3s ease;z-index:50;}
+#bottomNav.footer{position:static;transform:none;border-radius:0;width:100%;justify-content:space-around;padding:.75rem 0;margin-top:1rem;}
+</style>
+</head>
+<body>
+
+<header class="p-4 pb-6 flex justify-between items-center">
+  <div>
+    <h1 class="text-2xl font-extrabold glow">Signature Security Specialist</h1>
+    <p class="text-sm text-gray-400">Field Tools — quick references</p>
+  </div>
+  <div class="flex space-x-2">
+    <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md">A+</button>
+  </div>
+</header>
+
+<main class="flex-1 overflow-auto p-5" id="mainContent">
+  <section class="fade-enter">
+    <h2 class="text-xl font-bold accent mb-4">Field Tools Placeholder</h2>
+    <p class="text-gray-400 mb-6">This page is for field tools such as stopwatch, maps, and flashlight guidance.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="app-card">⏱ Stopwatch</div>
+      <div class="app-card">🗺 Map Quick Links</div>
+      <div class="app-card">🔦 Flashlight Guide</div>
+    </div>
+  </section>
+</main>
+
+<nav id="bottomNav">
+  <a href="index.html" class="px-3 py-1 rounded-md">Home</a>
+  <a href="codes.html" class="px-3 py-1 rounded-md">Codes</a>
+  <a href="radio.html" class="px-3 py-1 rounded-md">Radio</a>
+  <a href="emergency.html" class="px-3 py-1 rounded-md">Emergency</a>
+  <a href="game.html" class="px-3 py-1 rounded-md">Game</a>
+</nav>
+
+<script>
+function toggleLarge(){document.body.classList.toggle('text-lg');localStorage.setItem('sss_large',document.body.classList.contains('text-lg'));}
+const mainContent=document.getElementById('mainContent');const bottomNav=document.getElementById('bottomNav');
+mainContent.addEventListener('scroll',()=>{if(mainContent.scrollTop+mainContent.clientHeight>=mainContent.scrollHeight-5){bottomNav.classList.add('footer');}else{bottomNav.classList.remove('footer');}});
+</script>
+</body>
+</html>

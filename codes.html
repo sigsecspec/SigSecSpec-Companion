@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signature Security Specialist — Resource Companion</title>
+<title>10-Codes — Signature Security Specialist</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   :root{
@@ -25,13 +25,11 @@
     flex-direction: column;
   }
 
-  /* Smooth transitions */
   .fade-enter { opacity: 0; transform: scale(0.97); animation: fadeIn 0.4s forwards; }
   .fade-leave { animation: fadeOut 0.3s forwards; }
   @keyframes fadeIn { to { opacity:1; transform: scale(1); } }
   @keyframes fadeOut { to { opacity:0; transform: scale(0.97); } }
 
-  /* Card style */
   .app-card {
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     backdrop-filter: blur(6px);
@@ -46,17 +44,6 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
   }
 
-  /* Header glow */
-  .glow { text-shadow:0 0 18px rgba(174,174,90,0.22),0 0 40px rgba(92,98,73,0.06); }
-
-  /* Responsive grid for apps */
-  .app-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
-    gap: 16px;
-  }
-
-  /* Bottom nav / footer */
   #bottomNav {
     position: fixed;
     bottom: 1rem;
@@ -65,7 +52,6 @@
     backdrop-filter: blur(6px);
     border-radius: 9999px;
     background: #111;
-    px:4 py-2;
     display: flex;
     gap: 0.5rem;
     transition: all 0.3s ease;
@@ -88,27 +74,23 @@
 <header class="p-4 pb-6 flex justify-between items-center">
   <div>
     <h1 class="text-2xl font-extrabold glow">Signature Security Specialist</h1>
-    <p class="text-sm text-gray-400">Resource Companion — quick references & field tools</p>
+    <p class="text-sm text-gray-400">10-Codes — quick references</p>
   </div>
   <div class="flex space-x-2">
     <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md">A+</button>
-    <button onclick="playSiren()" class="bg-[#111] px-3 py-2 rounded-md">Siren</button>
-    <audio id="siren"><source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="/></audio>
   </div>
 </header>
 
 <main class="flex-1 overflow-auto p-5" id="mainContent">
-  <section id="home" class="fade-enter">
-    <h2 class="text-xl font-bold accent mb-4">Welcome, Officer</h2>
-    <p class="text-gray-400 mb-6">Tap tiles to open resources. This app caches your custom codes and preferences.</p>
+  <section class="fade-enter">
+    <h2 class="text-xl font-bold accent mb-4">10-Codes Placeholder</h2>
+    <p class="text-gray-400 mb-6">This is a placeholder page for 10-Codes. You can edit and add your actual codes here.</p>
 
     <div class="app-grid">
-      <a href="codes.html" class="app-card">🔢<div class="font-semibold mt-2">10-Codes</div></a>
-      <a href="radio.html" class="app-card">📻<div class="font-semibold mt-2">Radio & Phonetic</div></a>
-      <a href="emergency.html" class="app-card">🚨<div class="font-semibold mt-2">Emergency</div></a>
-      <a href="tools.html" class="app-card">🧰<div class="font-semibold mt-2">Field Tools</div></a>
-      <a href="training.html" class="app-card">🎓<div class="font-semibold mt-2">Training & Quiz</div></a>
-      <a href="game.html" class="app-card">🎮<div class="font-semibold mt-2">Boredom Breaker</div></a>
+      <div class="app-card">10-1 — Unable to Copy</div>
+      <div class="app-card">10-4 — Acknowledged</div>
+      <div class="app-card">10-8 — In Service</div>
+      <div class="app-card">10-20 — Location</div>
     </div>
   </section>
 </main>
@@ -126,16 +108,7 @@ function toggleLarge(){
   document.body.classList.toggle('text-lg');
   localStorage.setItem('sss_large', document.body.classList.contains('text-lg'));
 }
-function playSiren(){
-  const audio=document.getElementById('siren');
-  audio.currentTime=0;
-  audio.play();
-}
-document.addEventListener('DOMContentLoaded', ()=>{
-  if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg');
-});
 
-// Transform nav into footer on scroll
 const mainContent = document.getElementById('mainContent');
 const bottomNav = document.getElementById('bottomNav');
 mainContent.addEventListener('scroll', ()=>{

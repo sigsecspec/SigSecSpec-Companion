@@ -66,11 +66,19 @@
     }
 
     .bg-pattern {
-      background-image: 
-        radial-gradient(circle at 25% 25%, var(--accent-primary) 10%, transparent 50%),
-        radial-gradient(circle at 75% 75%, var(--accent-secondary) 10%, transparent 50%);
-      background-size: 100px 100px;
-      background-position: 0 0, 50px 50px;
+      background: 
+        linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%),
+        radial-gradient(circle at 25% 25%, var(--accent-primary) 8%, transparent 40%),
+        radial-gradient(circle at 75% 75%, var(--accent-secondary) 8%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(167, 185, 158, 0.05) 20%, transparent 60%);
+      background-size: 100% 100%, 120px 120px, 80px 80px, 200px 200px;
+      background-position: 0 0, 0 0, 60px 60px, 100px 100px;
+      animation: backgroundShift 20s ease-in-out infinite;
+    }
+
+    @keyframes backgroundShift {
+      0%, 100% { background-position: 0 0, 0 0, 60px 60px, 100px 100px; }
+      50% { background-position: 0 0, 20px 20px, 80px 80px, 120px 120px; }
     }
 
     /* Mobile-first card design */
@@ -83,6 +91,10 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
+      box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .mobile-card::before {
@@ -102,9 +114,17 @@
     }
 
     .mobile-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 40px var(--shadow);
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        0 10px 20px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
       border-color: var(--accent-primary);
+    }
+
+    .mobile-card:hover::before {
+      opacity: 1;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
     }
 
     /* Touch-friendly buttons */
@@ -115,14 +135,19 @@
       align-items: center;
       justify-content: center;
       border-radius: 12px;
-      background: var(--bg-secondary);
+      background: linear-gradient(145deg, var(--bg-secondary), var(--bg-tertiary));
       border: 1px solid var(--border-primary);
       color: var(--text-primary);
       font-weight: 500;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .touch-btn:active {
@@ -131,15 +156,35 @@
     }
 
     .touch-btn.primary {
-      background: var(--accent-primary);
+      background: linear-gradient(145deg, var(--accent-primary), var(--accent-secondary));
       color: white;
       border-color: var(--accent-primary);
+      box-shadow: 
+        0 6px 20px rgba(167, 185, 158, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .touch-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 8px 25px rgba(167, 185, 158, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 
     .touch-btn.danger {
-      background: var(--error);
+      background: linear-gradient(145deg, var(--error), #dc2626);
       color: white;
       border-color: var(--error);
+      box-shadow: 
+        0 6px 20px rgba(239, 68, 68, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .touch-btn.danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 8px 25px rgba(239, 68, 68, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 
     /* Grid layouts */
@@ -279,7 +324,7 @@
       transform: translateY(-50%);
       width: 60px;
       height: 60px;
-      background: var(--error);
+      background: linear-gradient(145deg, var(--error), #dc2626);
       border: 3px solid white;
       border-radius: 50%;
       color: white;
@@ -287,11 +332,31 @@
       font-weight: bold;
       cursor: pointer;
       z-index: 90;
-      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-      transition: all 0.2s ease;
+      box-shadow: 
+        0 8px 25px rgba(239, 68, 68, 0.4),
+        0 4px 10px rgba(239, 68, 68, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
       justify-content: center;
+      animation: emergencyPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes emergencyPulse {
+      0%, 100% { 
+        box-shadow: 
+          0 8px 25px rgba(239, 68, 68, 0.4),
+          0 4px 10px rgba(239, 68, 68, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+      50% { 
+        box-shadow: 
+          0 12px 35px rgba(239, 68, 68, 0.6),
+          0 6px 15px rgba(239, 68, 68, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        transform: translateY(-50%) scale(1.05);
+      }
     }
 
     .emergency-btn:active {
@@ -355,17 +420,113 @@
       outline: 2px solid var(--accent-primary);
       outline-offset: 2px;
     }
+    /* Professional Loading Screen */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .loading-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, var(--bg-secondary), var(--bg-tertiary));
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    .loading-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: brightness(1.1);
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .loading-text {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      background: linear-gradient(45deg, var(--text-primary), var(--accent-primary));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .loading-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .loading-progress {
+      width: 200px;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-progress::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      animation: progressBar 2s ease-in-out infinite;
+    }
+
+    @keyframes progressBar {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
   </style>
 </head>
 <body class="bg-pattern">
+  <!-- Professional Loading Screen -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-logo">
+      <img src="patch-bg.png" alt="Security Logo">
+    </div>
+    <div class="loading-text">Security Companion</div>
+    <div class="loading-subtitle">Professional Security Management</div>
+    <div class="loading-progress"></div>
+  </div>
   <!-- Header -->
   <header class="p-4 pb-6 flex justify-between items-center relative z-10">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
-        🛡️
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-2 shadow-lg border border-white/10">
+        <img src="patch-bg.png" alt="Security Logo" class="w-full h-full object-contain filter brightness-110">
       </div>
       <div>
-        <h1 class="text-2xl font-bold">Security Companion</h1>
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Security Companion</h1>
         <p class="text-sm" style="color: var(--text-secondary)">
           <span class="status-indicator status-online"></span>
           <span id="statusText">On Duty</span> • <span id="currentTime"></span>
@@ -389,6 +550,17 @@
     <section class="mobile-card fade-in mb-6">
       <h2 class="text-xl font-bold mb-2">Welcome, <span id="officerName">Officer</span></h2>
       <p style="color: var(--text-secondary)" class="mb-4">Quick access to your essential security tools and resources.</p>
+      
+      <!-- Notification Status -->
+      <div class="flex items-center justify-between mb-4 p-3 rounded-lg" style="background: var(--bg-tertiary)">
+        <div>
+          <div class="font-medium" id="notificationStatus">Notifications: Checking...</div>
+          <div class="text-sm" style="color: var(--text-secondary)">Real-time security alerts</div>
+        </div>
+        <button class="touch-btn" onclick="sendTestNotification()" title="Test Notification">
+          🔔
+        </button>
+      </div>
       
       <!-- Quick Status -->
       <div class="quick-actions">
@@ -675,31 +847,242 @@
       window.location.href = 'profile.html';
     }
 
+    // Push Notification System
+    let pushSubscription = null;
+    
+    async function initializePushNotifications() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.log('Push messaging is not supported');
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.register('sw.js');
+        console.log('ServiceWorker registered successfully');
+        
+        // Check if already subscribed
+        pushSubscription = await registration.pushManager.getSubscription();
+        
+        if (!pushSubscription) {
+          // Request notification permission
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            await subscribeToPush(registration);
+          }
+        } else {
+          console.log('Already subscribed to push notifications');
+          updateNotificationUI(true);
+        }
+      } catch (error) {
+        console.error('ServiceWorker registration failed:', error);
+      }
+    }
+
+    async function subscribeToPush(registration) {
+      try {
+        // Generate VAPID keys for your server (this is a demo key)
+        const vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI0DLLuxN-RgKBWw_dUabGrLpHyHUNBEQRilh7J7-fKKRJQQiOOk1gUzSA';
+        
+        pushSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        });
+
+        console.log('Push subscription successful:', pushSubscription);
+        
+        // Send subscription to your server
+        await sendSubscriptionToServer(pushSubscription);
+        updateNotificationUI(true);
+        
+        // Show welcome notification
+        showLocalNotification('Welcome!', 'Push notifications are now enabled for Security Companion');
+        
+      } catch (error) {
+        console.error('Failed to subscribe to push notifications:', error);
+        updateNotificationUI(false);
+      }
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+
+    async function sendSubscriptionToServer(subscription) {
+      // In a real app, send this to your server
+      console.log('Subscription to send to server:', JSON.stringify(subscription));
+      
+      // Store locally for demo purposes
+      localStorage.setItem('pushSubscription', JSON.stringify(subscription));
+    }
+
+    function updateNotificationUI(enabled) {
+      // Update UI to show notification status
+      const statusElement = document.getElementById('notificationStatus');
+      if (statusElement) {
+        statusElement.textContent = enabled ? 'Notifications: ON' : 'Notifications: OFF';
+        statusElement.style.color = enabled ? 'var(--success)' : 'var(--text-muted)';
+      }
+    }
+
+    function showLocalNotification(title, body, options = {}) {
+      if (Notification.permission === 'granted') {
+        const notification = new Notification(title, {
+          body: body,
+          icon: 'patch-bg.png',
+          badge: 'patch-bg.png',
+          vibrate: [200, 100, 200],
+          ...options
+        });
+
+        notification.onclick = function() {
+          window.focus();
+          notification.close();
+        };
+
+        setTimeout(() => notification.close(), 5000);
+      }
+    }
+
+    // Test notification function
+    function sendTestNotification() {
+      if (pushSubscription) {
+        showLocalNotification(
+          'Security Alert Test', 
+          'This is a test notification from Security Companion',
+          {
+            actions: [
+              { action: 'view', title: 'View Details' },
+              { action: 'dismiss', title: 'Dismiss' }
+            ]
+          }
+        );
+      } else {
+        alert('Push notifications are not enabled. Please enable them in settings.');
+      }
+    }
+
+    // Enhanced loading and animations
+    function showLoadingState(element) {
+      if (element) {
+        element.style.opacity = '0.6';
+        element.style.pointerEvents = 'none';
+        element.innerHTML += '<div class="loading-spinner"></div>';
+      }
+    }
+
+    function hideLoadingState(element, originalContent) {
+      if (element) {
+        element.style.opacity = '1';
+        element.style.pointerEvents = 'auto';
+        const spinner = element.querySelector('.loading-spinner');
+        if (spinner) spinner.remove();
+      }
+    }
+
+    // Loading screen management
+    function hideLoadingScreen() {
+      const loadingScreen = document.getElementById('loadingScreen');
+      if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => {
+          loadingScreen.remove();
+        }, 500);
+      }
+    }
+
     // Initialize app
     document.addEventListener('DOMContentLoaded', function() {
+      // Initialize core features
       initTheme();
       initTextSize();
       loadOfficerName();
       updateTime();
       setInterval(updateTime, 1000);
 
-      // Add touch feedback to all interactive elements
+      // Initialize push notifications
+      initializePushNotifications();
+
+      // Hide loading screen after initialization
+      setTimeout(hideLoadingScreen, 1500);
+
+      // Add enhanced touch feedback to all interactive elements
       document.querySelectorAll('.mobile-card, .touch-btn').forEach(element => {
-        element.addEventListener('touchstart', function() {
+        element.addEventListener('touchstart', function(e) {
           this.style.transform = 'scale(0.98)';
+          this.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
         });
         
-        element.addEventListener('touchend', function() {
+        element.addEventListener('touchend', function(e) {
           setTimeout(() => {
             this.style.transform = '';
+            this.style.boxShadow = '';
           }, 150);
+        });
+
+        // Add ripple effect
+        element.addEventListener('click', function(e) {
+          const ripple = document.createElement('span');
+          const rect = this.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+          
+          ripple.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+            z-index: 1000;
+          `;
+          
+          this.style.position = 'relative';
+          this.appendChild(ripple);
+          
+          setTimeout(() => ripple.remove(), 600);
         });
       });
 
-      // Service worker registration for PWA
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(console.error);
-      }
+      // Add CSS for ripple animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes ripple {
+          to {
+            transform: scale(4);
+            opacity: 0;
+          }
+        }
+        .loading-spinner {
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          border: 2px solid var(--text-muted);
+          border-radius: 50%;
+          border-top-color: var(--accent-primary);
+          animation: spin 1s ease-in-out infinite;
+          margin-left: 8px;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
     });
 
     // Handle back button for modals

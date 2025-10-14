@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shift Report — Signature Security Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
+    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+    .app-card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:1rem; }
+    #bottomNav{ position:fixed; bottom:1rem; left:50%; transform:translateX(-50%); backdrop-filter:blur(6px); border-radius:9999px; background:#111; display:flex; gap:.5rem; transition:all .3s ease; z-index:50; }
+    #bottomNav.footer{ position:static; transform:none; border-radius:0; width:100%; justify-content:space-around; padding:.75rem 0; margin-top:1rem; }
+    .accent{ color:var(--accent); }
+    @media print{
+      html,body{ background:#fff !important; color:#000 !important; }
+      header,#bottomNav{ display:none !important; }
+      #mainContent{ padding:0 !important; }
+      #formControls,#statusLine,.controls-bar{ display:none !important; }
+      #templatePreview{ border:0 !important; padding:0 !important; color:#000 !important; font-size:12pt; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+    }
+  </style>
+</head>
+<body>
+  <header class="p-4 pb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
+      <p class="text-sm text-gray-400">Shift Report — fill, preview, copy</p>
+    </div>
+    <div class="flex space-x-2">
+      <button onclick="toggleLarge()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="flex-1 overflow-auto p-5">
+    <section class="max-w-4xl mx-auto space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end controls-bar">
+        <div class="text-sm text-gray-300">Shift Report</div>
+        <div class="flex flex-wrap gap-2 md:justify-end">
+          <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Draft</button>
+          <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Load Draft</button>
+          <button id="btnClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Clear</button>
+          <button id="btnCopy" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Copy</button>
+        </div>
+      </div>
+      <div id="statusLine" class="text-sm text-gray-400"></div>
+      <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="app-card">
+        <div class="font-semibold mb-2">Preview</div>
+        <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
+      </div>
+    </section>
+  </main>
+
+  <nav id="bottomNav">
+    <a href="index.html" class="px-3 py-1 rounded-md">Home</a>
+    <a href="codes.html" class="px-3 py-1 rounded-md">Codes</a>
+    <a href="radio.html" class="px-3 py-1 rounded-md">Phonetics</a>
+    <a href="incident.html" class="px-3 py-1 rounded-md">Incident</a>
+    <a href="shift.html" class="px-3 py-1 rounded-md">Shift</a>
+    <a href="index.html#fourws" class="px-3 py-1 rounded-md">4Ws</a>
+  </nav>
+
+  <script>
+    function toggleLarge(){ document.body.classList.toggle('text-lg'); localStorage.setItem('sss_large', document.body.classList.contains('text-lg')); }
+    document.addEventListener('DOMContentLoaded',()=>{ if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg'); });
+    const mainContent=document.getElementById('mainContent'); const bottomNav=document.getElementById('bottomNav');
+    mainContent.addEventListener('scroll',()=>{ if(mainContent.scrollTop + mainContent.clientHeight >= mainContent.scrollHeight - 5){ bottomNav.classList.add('footer'); } else { bottomNav.classList.remove('footer'); } });
+
+    const STORE_KEYS = { profile:'sss_profile', templateDrafts:'sss_template_drafts' };
+    function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }
+    function saveJson(key,value){ localStorage.setItem(key, JSON.stringify(value)); }
+
+    const fieldsContainer = document.getElementById('formControls');
+    const previewEl = document.getElementById('templatePreview');
+    const statusEl = document.getElementById('statusLine');
+    const btnSave = document.getElementById('btnSaveDraft');
+    const btnLoad = document.getElementById('btnLoadDraft');
+    const btnClear = document.getElementById('btnClear');
+    const btnCopy = document.getElementById('btnCopy');
+
+    const TEMPLATE = {
+      id: 'shift_report',
+      name: 'Shift Report',
+      fields: [
+        { key:'date', label:'Date', type:'date' },
+        { key:'guardName', label:'Guard Name', type:'text' },
+        { key:'post', label:'Post / Location', type:'text' },
+        { key:'startTime', label:'Shift Start', type:'time' },
+        { key:'endTime', label:'Shift End', type:'time' },
+        { key:'patrols', label:'Patrols Conducted', type:'textarea', rows:3, placeholder:'Times/areas' },
+        { key:'contacts', label:'Contacts / Interactions', type:'textarea', rows:3 },
+        { key:'incidents', label:'Incidents (if any)', type:'textarea', rows:3 },
+        { key:'notes', label:'Notes', type:'textarea', rows:3 }
+      ],
+      body: (
+        'Shift Report\n' +
+        'Date: {date}\n' +
+        'Guard: {guardName}\n' +
+        'Post: {post}\n' +
+        'Shift: {startTime} - {endTime}\n\n' +
+        'Patrols:\n{patrols}\n\n' +
+        'Contacts/Interactions:\n{contacts}\n\n' +
+        'Incidents:\n{incidents}\n\n' +
+        'Notes:\n{notes}'
+      )
+    };
+
+    let fieldValues = {};
+
+    function toDisplay(value){ return (value==null || String(value).trim()==='') ? 'N/A' : String(value); }
+    function compileBody(){ return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> toDisplay(fieldValues[k])); }
+
+    function createInput(field){
+      const commonCls = 'w-full bg-[#111] border border-white/10 rounded-md px-3 py-2';
+      let el;
+      if(field.type==='textarea'){
+        el=document.createElement('textarea'); el.className=commonCls; el.rows=field.rows||3; if(field.placeholder) el.placeholder=field.placeholder; el.value=fieldValues[field.key]||''; el.addEventListener('input',onChange);
+      } else if(field.type==='select'){
+        el=document.createElement('select'); el.className=commonCls; (field.options||[]).forEach(opt=>{ const o=document.createElement('option'); o.value=opt; o.textContent=opt; el.appendChild(o); }); el.value=fieldValues[field.key]|| (field.options?.[0]||''); el.addEventListener('change',onChange);
+      } else {
+        el=document.createElement('input'); el.type=field.type||'text'; el.className=commonCls; el.value=fieldValues[field.key]||''; el.addEventListener('input',onChange);
+      }
+      el.dataset.key = field.key; return el;
+    }
+
+    function renderFields(){
+      fieldsContainer.innerHTML='';
+      TEMPLATE.fields.forEach(field=>{
+        const wrap=document.createElement('label'); wrap.className='block';
+        const title=document.createElement('div'); title.className='text-sm text-gray-300 mb-1'; title.textContent=field.label;
+        const input=createInput(field);
+        wrap.appendChild(title); wrap.appendChild(input); fieldsContainer.appendChild(wrap);
+      });
+      updatePreview();
+    }
+
+    function updatePreview(){ previewEl.textContent = compileBody(); }
+    function onChange(e){ const key=e.target.dataset.key; if(!key) return; fieldValues[key] = (e.target.type==='checkbox') ? e.target.checked : e.target.value; updatePreview(); }
+
+    function prefillDefaults(){
+      const prof=loadJson(STORE_KEYS.profile,{});
+      if('guardName' in fieldValues && !fieldValues.guardName) fieldValues.guardName = prof.name || '';
+      const nowIso = new Date().toISOString();
+      TEMPLATE.fields.forEach(f=>{
+        if(f.type==='date' && !fieldValues[f.key]) fieldValues[f.key] = nowIso.slice(0,10);
+        if(f.type==='time' && !fieldValues[f.key]) fieldValues[f.key] = nowIso.slice(11,16);
+      });
+    }
+
+    function saveDraft(){ const drafts = loadJson(STORE_KEYS.templateDrafts, {}); drafts[TEMPLATE.id] = fieldValues; saveJson(STORE_KEYS.templateDrafts, drafts); statusEl.textContent='Draft saved.'; }
+    function loadDraft(){ const drafts = loadJson(STORE_KEYS.templateDrafts, {}); fieldValues = { ...(drafts[TEMPLATE.id] || {}) }; statusEl.textContent=drafts[TEMPLATE.id]?'Draft loaded.':'No draft saved.'; renderFields(); }
+    function clearFields(){ fieldValues={}; prefillDefaults(); statusEl.textContent='Cleared.'; renderFields(); }
+
+    async function copyToClipboard(){
+      const text = compileBody();
+      try{ await navigator.clipboard.writeText(text); statusEl.textContent='Copied to clipboard.'; }
+      catch{
+        try{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); statusEl.textContent='Copied to clipboard.'; }
+        catch{ statusEl.textContent='Copy failed. Select and copy manually.'; }
+      }
+    }
+
+    btnSave.addEventListener('click', saveDraft);
+    btnLoad.addEventListener('click', loadDraft);
+    btnClear.addEventListener('click', clearFields);
+    btnCopy.addEventListener('click', copyToClipboard);
+
+    // init
+    fieldValues = {};
+    prefillDefaults();
+    renderFields();
+  </script>
+</body>
+</html>

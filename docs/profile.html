@@ -12,6 +12,7 @@
   <script src="push-notifications.js"></script>
   <script src="emergency-common.js"></script>
   <script src="popup-system.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     .avatar {
       width: 80px;
@@ -480,26 +481,228 @@
 
     // Data management
     function exportData() {
-      const data = {
-        profile: JSON.parse(localStorage.getItem('userProfile') || '{}'),
-        contacts: JSON.parse(localStorage.getItem('emergencyContacts') || '{}'),
-        patrols: JSON.parse(localStorage.getItem('completedPatrols') || '[]'),
-        incidents: JSON.parse(localStorage.getItem('savedIncidentReports') || '[]'),
-        shifts: JSON.parse(localStorage.getItem('savedShiftReports') || '[]'),
-        settings: {
-          theme: localStorage.getItem('theme'),
-          largeText: localStorage.getItem('largeText')
-        },
-        exportDate: new Date().toISOString()
-      };
-      
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `security-companion-backup-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      try {
+        // Get all data
+        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        const contacts = JSON.parse(localStorage.getItem('emergencyContacts') || '{}');
+        const patrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+        const incidents = JSON.parse(localStorage.getItem('savedIncidentReports') || '[]');
+        const shifts = JSON.parse(localStorage.getItem('savedShiftReports') || '[]');
+        const settings = {
+          theme: localStorage.getItem('theme') || 'dark',
+          largeText: localStorage.getItem('largeText') || 'false'
+        };
+        
+        // Create PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // PDF styling
+        const primaryColor = [15, 15, 15]; // Dark theme primary
+        const accentColor = [0, 122, 255]; // Blue accent
+        const textColor = [51, 51, 51]; // Dark text
+        const lightGray = [128, 128, 128]; // Light gray for secondary text
+        
+        let yPosition = 20;
+        const leftMargin = 20;
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        
+        // Helper function to add new page if needed
+        function checkPageBreak(requiredSpace = 20) {
+          if (yPosition + requiredSpace > pageHeight - 20) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        }
+        
+        // Helper function to add section header
+        function addSectionHeader(title, icon = '') {
+          checkPageBreak(30);
+          doc.setFontSize(16);
+          doc.setTextColor(...accentColor);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${icon} ${title}`, leftMargin, yPosition);
+          yPosition += 15;
+          
+          // Add underline
+          doc.setDrawColor(...accentColor);
+          doc.setLineWidth(0.5);
+          doc.line(leftMargin, yPosition - 5, pageWidth - 20, yPosition - 5);
+          yPosition += 10;
+        }
+        
+        // Helper function to add field
+        function addField(label, value, isSubItem = false) {
+          checkPageBreak();
+          const indent = isSubItem ? leftMargin + 10 : leftMargin;
+          
+          doc.setFontSize(10);
+          doc.setTextColor(...textColor);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${label}:`, indent, yPosition);
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(...lightGray);
+          const labelWidth = doc.getTextWidth(`${label}: `);
+          doc.text(value || 'Not specified', indent + labelWidth, yPosition);
+          yPosition += 12;
+        }
+        
+        // Header
+        doc.setFontSize(20);
+        doc.setTextColor(...primaryColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Security Companion - Profile Data Export', leftMargin, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(...lightGray);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, leftMargin, yPosition);
+        yPosition += 20;
+        
+        // Profile Section
+        addSectionHeader('Profile Information', '👤');
+        addField('Full Name', profile.name || 'Officer Name');
+        addField('Badge Number', profile.badge || '#12345');
+        addField('Department', profile.department || 'Not specified');
+        
+        // Format shift display
+        let shiftDisplay = 'Not specified';
+        if (profile.shift) {
+          const shiftMap = {
+            'day': 'Day Shift (6 AM - 6 PM)',
+            'night': 'Night Shift (6 PM - 6 AM)',
+            'swing': 'Swing Shift (2 PM - 10 PM)',
+            'rotating': 'Rotating'
+          };
+          shiftDisplay = shiftMap[profile.shift] || profile.shift;
+        }
+        addField('Shift', shiftDisplay);
+        yPosition += 10;
+        
+        // Emergency Contacts Section
+        addSectionHeader('Emergency Contacts', '📞');
+        addField('Emergency Services', '911');
+        addField('Supervisor', contacts.supervisor || '555-0123');
+        addField('Dispatch Center', contacts.dispatch || '555-0124');
+        addField('Medical Emergency', contacts.medical || '555-0125');
+        yPosition += 10;
+        
+        // App Settings Section
+        addSectionHeader('App Settings', '⚙️');
+        addField('Theme', settings.theme === 'light' ? 'Light Mode' : 'Dark Mode');
+        addField('Large Text', settings.largeText === 'true' ? 'Enabled' : 'Disabled');
+        
+        // Check location and notification permissions
+        let locationStatus = 'Not enabled';
+        let notificationStatus = 'Not enabled';
+        
+        if (navigator.permissions) {
+          // These are async but we'll show current state
+          if (document.getElementById('locationBtn').textContent === 'Enabled') {
+            locationStatus = 'Enabled';
+          }
+        }
+        
+        if (Notification.permission === 'granted') {
+          notificationStatus = 'Enabled';
+        }
+        
+        addField('Location Services', locationStatus);
+        addField('Notifications', notificationStatus);
+        yPosition += 10;
+        
+        // Recent Activity Summary
+        addSectionHeader('Activity Summary', '📊');
+        addField('Completed Patrols', patrols.length.toString());
+        addField('Incident Reports', incidents.length.toString());
+        addField('Shift Reports', shifts.length.toString());
+        yPosition += 10;
+        
+        // Recent Patrols (if any)
+        if (patrols.length > 0) {
+          addSectionHeader('Recent Patrols', '🚶');
+          const recentPatrols = patrols.slice(-5); // Last 5 patrols
+          recentPatrols.forEach((patrol, index) => {
+            checkPageBreak(15);
+            doc.setFontSize(10);
+            doc.setTextColor(...textColor);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Patrol ${index + 1}:`, leftMargin + 10, yPosition);
+            yPosition += 8;
+            
+            if (patrol.date) addField('Date', new Date(patrol.date).toLocaleDateString(), true);
+            if (patrol.location) addField('Location', patrol.location, true);
+            if (patrol.duration) addField('Duration', patrol.duration, true);
+            if (patrol.notes) {
+              const notes = patrol.notes.length > 50 ? patrol.notes.substring(0, 50) + '...' : patrol.notes;
+              addField('Notes', notes, true);
+            }
+            yPosition += 5;
+          });
+        }
+        
+        // Recent Incidents (if any)
+        if (incidents.length > 0) {
+          addSectionHeader('Recent Incident Reports', '📝');
+          const recentIncidents = incidents.slice(-3); // Last 3 incidents
+          recentIncidents.forEach((incident, index) => {
+            checkPageBreak(20);
+            doc.setFontSize(10);
+            doc.setTextColor(...textColor);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Incident ${index + 1}:`, leftMargin + 10, yPosition);
+            yPosition += 8;
+            
+            if (incident.date) addField('Date', new Date(incident.date).toLocaleDateString(), true);
+            if (incident.type) addField('Type', incident.type, true);
+            if (incident.location) addField('Location', incident.location, true);
+            if (incident.severity) addField('Severity', incident.severity, true);
+            if (incident.description) {
+              const desc = incident.description.length > 60 ? incident.description.substring(0, 60) + '...' : incident.description;
+              addField('Description', desc, true);
+            }
+            yPosition += 5;
+          });
+        }
+        
+        // App Information
+        addSectionHeader('App Information', 'ℹ️');
+        addField('Version', '1.0.0');
+        addField('Last Updated', 'Today');
+        
+        // Calculate storage usage
+        let totalSize = 0;
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            totalSize += localStorage[key].length;
+          }
+        }
+        addField('Storage Used', `${(totalSize / 1024).toFixed(1)} KB`);
+        addField('Device', navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop');
+        
+        // Footer
+        checkPageBreak(30);
+        yPosition += 10;
+        doc.setFontSize(8);
+        doc.setTextColor(...lightGray);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Security Companion v1.0 - Built for security professionals', leftMargin, yPosition);
+        yPosition += 8;
+        doc.text('This document contains sensitive information. Handle according to your organization\'s data security policies.', leftMargin, yPosition);
+        
+        // Save the PDF
+        const fileName = `security-companion-profile-${profile.name ? profile.name.replace(/\s+/g, '-').toLowerCase() : 'officer'}-${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        
+        showSuccess('Profile data exported to PDF successfully!');
+        
+      } catch (error) {
+        console.error('PDF export error:', error);
+        showError('Failed to export PDF. Please try again.');
+      }
     }
 
     function importData() {

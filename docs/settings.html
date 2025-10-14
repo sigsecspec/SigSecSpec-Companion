@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — Signature Security Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#0f0f0f" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="app.js" defer></script>
+  <style>
+    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
+    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+  </style>
+</head>
+<body>
+  <header class="p-4 pb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
+      <p class="text-sm text-gray-400">Settings — preferences on device</p>
+    </div>
+    <div class="flex space-x-2">
+      <button id="themeToggle" onclick="window.SSS && SSS.toggleTheme()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">☾</button>
+      <button onclick="window.SSS ? SSS.toggleLarge() : null" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="flex-1 overflow-auto p-5">
+    <section class="max-w-2xl mx-auto space-y-4">
+      <div class="app-card">
+        <div class="font-semibold mb-2">Theme</div>
+        <div class="flex items-center gap-2">
+          <button id="setLight" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Light</button>
+          <button id="setDark" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Dark</button>
+          <button id="setSystem" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">System</button>
+        </div>
+      </div>
+
+      <div class="app-card">
+        <div class="font-semibold mb-2">Text Size</div>
+        <div class="flex items-center gap-2">
+          <button id="textNormal" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Normal</button>
+          <button id="textLarge" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Large</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav id="bottomNav">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="codes.html" class="nav-link">Codes</a>
+    <a href="radio.html" class="nav-link">Phonetics</a>
+    <a href="incident.html" class="nav-link">Incident</a>
+    <a href="shift.html" class="nav-link">Shift</a>
+    <a href="reports.html" class="nav-link">Reports</a>
+    <a href="tools.html" class="nav-link">Tools</a>
+  </nav>
+
+  <script>
+    const THEME_KEY = 'sss_theme';
+    document.getElementById('setLight').addEventListener('click', ()=>{ localStorage.setItem(THEME_KEY,'light'); window.SSS && SSS.initTheme(); });
+    document.getElementById('setDark').addEventListener('click', ()=>{ localStorage.setItem(THEME_KEY,'dark'); window.SSS && SSS.initTheme(); });
+    document.getElementById('setSystem').addEventListener('click', ()=>{ localStorage.removeItem(THEME_KEY); window.SSS && SSS.initTheme(); });
+    document.getElementById('textNormal').addEventListener('click', ()=>{ document.body.classList.remove('text-lg'); localStorage.setItem('sss_large','false'); });
+    document.getElementById('textLarge').addEventListener('click', ()=>{ document.body.classList.add('text-lg'); localStorage.setItem('sss_large','true'); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashlight & SOS — Signature Security Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#0f0f0f" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="app.js" defer></script>
+  <style>
+    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
+    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+  </style>
+</head>
+<body>
+  <header class="p-4 pb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
+      <p class="text-sm text-gray-400">Flashlight & SOS</p>
+    </div>
+    <div class="flex space-x-2">
+      <button id="themeToggle" onclick="window.SSS && SSS.toggleTheme()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">☾</button>
+      <button onclick="window.SSS ? SSS.toggleLarge() : null" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="flex-1 overflow-auto p-5">
+    <section class="max-w-xl mx-auto space-y-4">
+      <div class="app-card space-y-3">
+        <div class="font-semibold">Torch (camera)</div>
+        <video id="flashVideo" class="w-full rounded-md border border-white/10" playsinline></video>
+        <div id="flashOverlay" class="hidden p-6 rounded-md border border-white/10 text-center">Camera torch unavailable — using white screen mode.</div>
+        <button id="flashlightToggle" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Toggle Flashlight</button>
+      </div>
+
+      <div class="app-card space-y-3 text-center">
+        <div class="font-semibold">Screen Flashlight & SOS</div>
+        <div class="flex items-center justify-center gap-2">
+          <button id="screenWhite" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">White</button>
+          <button id="screenRed" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Red</button>
+          <button id="screenSOS" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">SOS</button>
+          <button id="screenOff" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Off</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav id="bottomNav">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="codes.html" class="nav-link">Codes</a>
+    <a href="radio.html" class="nav-link">Phonetics</a>
+    <a href="incident.html" class="nav-link">Incident</a>
+    <a href="shift.html" class="nav-link">Shift</a>
+    <a href="reports.html" class="nav-link">Reports</a>
+    <a href="tools.html" class="nav-link" aria-current="page">Tools</a>
+  </nav>
+
+  <script>
+    // Camera-based torch or overlay fallback handled by index.js helpers
+    document.addEventListener('DOMContentLoaded', ()=>{
+      if (window.setupFlashlight) {
+        window.setupFlashlight();
+      }
+    });
+
+    // Screen flashlight modes
+    let sosTimer=null;
+    function setScreen(color){
+      clearInterval(sosTimer); sosTimer=null;
+      document.body.style.background = color ? color : "var(--bg) url('patch-bg.png') center center / 300px no-repeat";
+    }
+    document.getElementById('screenWhite').addEventListener('click', ()=> setScreen('#ffffff'));
+    document.getElementById('screenRed').addEventListener('click', ()=> setScreen('#ff0000'));
+    document.getElementById('screenOff').addEventListener('click', ()=> setScreen(''));
+    document.getElementById('screenSOS').addEventListener('click', ()=>{
+      let on=false; clearInterval(sosTimer);
+      sosTimer = setInterval(()=>{ on=!on; setScreen(on?'#ffffff':'#ff0000'); }, 333);
+    });
+  </script>
+</body>
+</html>

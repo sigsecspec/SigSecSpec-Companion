@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shift Timer — Signature Security Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#0f0f0f" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="app.js" defer></script>
+  <style>
+    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
+    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+  </style>
+</head>
+<body>
+  <header class="p-4 pb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
+      <p class="text-sm text-gray-400">Shift Timer — track shift with breaks</p>
+    </div>
+    <div class="flex space-x-2">
+      <button id="themeToggle" onclick="window.SSS && SSS.toggleTheme()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">☾</button>
+      <button onclick="window.SSS ? SSS.toggleLarge() : null" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="flex-1 overflow-auto p-5">
+    <section class="max-w-xl mx-auto space-y-4">
+      <div class="app-card">
+        <div class="font-semibold mb-1">Shift Controls</div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="sStart" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Start</button>
+          <button id="sPause" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Pause</button>
+          <button id="sResume" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Resume</button>
+          <button id="sEnd" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">End</button>
+          <div id="sElapsed" class="text-sm text-gray-400 ml-auto"></div>
+        </div>
+      </div>
+
+      <div class="app-card">
+        <div class="font-semibold mb-1">Breaks</div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="bStart" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Start Break</button>
+          <button id="bEnd" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">End Break</button>
+          <div id="bStatus" class="text-sm text-gray-400 ml-auto"></div>
+        </div>
+      </div>
+
+      <div class="app-card">
+        <div class="font-semibold mb-1">Log</div>
+        <div id="log" class="space-y-1 text-sm"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav id="bottomNav">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="codes.html" class="nav-link">Codes</a>
+    <a href="radio.html" class="nav-link">Phonetics</a>
+    <a href="incident.html" class="nav-link">Incident</a>
+    <a href="shift.html" class="nav-link">Shift</a>
+    <a href="reports.html" class="nav-link">Reports</a>
+    <a href="tools.html" class="nav-link" aria-current="page">Tools</a>
+  </nav>
+
+  <script>
+    const KEY='sss_shift_timer';
+    function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) ?? {}; }catch{ return {}; } }
+    function save(v){ localStorage.setItem(KEY, JSON.stringify(v)); }
+
+    const logEl = document.getElementById('log');
+    const elapsedEl = document.getElementById('sElapsed');
+    const bStatusEl = document.getElementById('bStatus');
+
+    let state = load();
+    let tickTimer=null;
+
+    function log(line){
+      const el = document.createElement('div'); el.textContent = `${new Date().toLocaleString()} — ${line}`; logEl.prepend(el);
+    }
+
+    function updateElapsed(){
+      const s = state;
+      if (!s.start) { elapsedEl.textContent=''; return; }
+      const now = Date.now();
+      const base = (s.pausedAt || now) - s.start - (s.breakMs||0);
+      const totalSec = Math.max(0, Math.floor(base/1000));
+      const hh = String(Math.floor(totalSec/3600)).padStart(2,'0');
+      const mm = String(Math.floor((totalSec%3600)/60)).padStart(2,'0');
+      const ss = String(totalSec%60).padStart(2,'0');
+      elapsedEl.textContent = `${hh}:${mm}:${ss}`;
+    }
+
+    function start(){ if(state.start){ return; } state={ start: Date.now(), paused:false, pausedAt:null, breakMs:0, breakStart:null }; save(state); log('Shift started'); tick(); }
+    function pause(){ if(!state.start || state.paused){ return; } state.paused=true; state.pausedAt=Date.now(); save(state); log('Shift paused'); updateElapsed(); clearInterval(tickTimer); }
+    function resume(){ if(!state.start || !state.paused){ return; } const pausedDur = Date.now()-state.pausedAt; state.start += pausedDur; state.paused=false; state.pausedAt=null; save(state); log('Shift resumed'); tick(); }
+    function end(){ if(!state.start){ return; } updateElapsed(); log('Shift ended'); clearInterval(tickTimer); state={}; save(state); }
+
+    function breakStart(){ if(!state.start || state.breakStart){ return; } state.breakStart = Date.now(); save(state); bStatusEl.textContent='On Break'; log('Break started'); }
+    function breakEnd(){ if(!state.start || !state.breakStart){ return; } state.breakMs = (state.breakMs||0) + (Date.now()-state.breakStart); state.breakStart=null; save(state); bStatusEl.textContent=''; log('Break ended'); }
+
+    function tick(){ clearInterval(tickTimer); tickTimer=setInterval(updateElapsed, 1000); updateElapsed(); }
+
+    document.getElementById('sStart').addEventListener('click', start);
+    document.getElementById('sPause').addEventListener('click', pause);
+    document.getElementById('sResume').addEventListener('click', resume);
+    document.getElementById('sEnd').addEventListener('click', end);
+    document.getElementById('bStart').addEventListener('click', breakStart);
+    document.getElementById('bEnd').addEventListener('click', breakEnd);
+
+    document.addEventListener('DOMContentLoaded', ()=>{ if(state.start){ tick(); if(state.breakStart) bStatusEl.textContent='On Break'; } });
+  </script>
+</body>
+</html>

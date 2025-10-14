@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitor Log — Signature Security Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#0f0f0f" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="app.js" defer></script>
+  <style>
+    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
+    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+  </style>
+</head>
+<body>
+  <header class="p-4 pb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
+      <p class="text-sm text-gray-400">Visitor Log — quick entries and search</p>
+    </div>
+    <div class="flex space-x-2">
+      <button id="themeToggle" onclick="window.SSS && SSS.toggleTheme()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">☾</button>
+      <button onclick="window.SSS ? SSS.toggleLarge() : null" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="flex-1 overflow-auto p-5">
+    <section class="max-w-3xl mx-auto space-y-4">
+      <form id="visitorForm" class="app-card space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Name</div>
+            <input id="vName" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Visitor name" required />
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Company</div>
+            <input id="vCompany" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Company (optional)" />
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Purpose</div>
+            <input id="vPurpose" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="e.g., Delivery, Meeting" />
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Badge #</div>
+            <input id="vBadge" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Issued badge number" />
+          </label>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Time In</div>
+            <input id="vIn" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" />
+          </label>
+          <label class="block">
+            <div class="text-sm text-gray-300 mb-1">Time Out</div>
+            <input id="vOut" type="datetime-local" class="w-full bg-[#111] border border-white/10 rounded-md px-3 py-2" />
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="px-3 py-2 rounded-md bg-[#111] border border-white/10" type="submit">Save</button>
+          <button class="px-3 py-2 rounded-md bg-[#111] border border-white/10" type="button" id="vClear">Clear</button>
+        </div>
+        <div id="vStatus" class="text-sm text-gray-400"></div>
+      </form>
+
+      <div class="app-card">
+        <div class="font-semibold mb-2">Search</div>
+        <div class="flex items-center gap-2">
+          <input id="vSearch" class="flex-1 bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Search name, company, purpose" />
+          <button id="vClearSearch" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Clear</button>
+        </div>
+      </div>
+
+      <div id="vList" class="space-y-2"></div>
+    </section>
+  </main>
+
+  <nav id="bottomNav">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="codes.html" class="nav-link">Codes</a>
+    <a href="radio.html" class="nav-link">Phonetics</a>
+    <a href="incident.html" class="nav-link">Incident</a>
+    <a href="shift.html" class="nav-link">Shift</a>
+    <a href="reports.html" class="nav-link">Reports</a>
+    <a href="tools.html" class="nav-link" aria-current="page">Tools</a>
+  </nav>
+
+  <script>
+    const KEY = 'sss_visitor_log';
+    function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) ?? []; }catch{ return []; } }
+    function save(v){ localStorage.setItem(KEY, JSON.stringify(v)); }
+    function toIsoLocal(d){ try{ const t = new Date(d); if(isNaN(t)) return ''; const p=n=>String(n).padStart(2,'0'); return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}T${p(t.getHours())}:${p(t.getMinutes())}`; }catch{return '';} }
+
+    const form = document.getElementById('visitorForm');
+    const statusEl = document.getElementById('vStatus');
+    const vList = document.getElementById('vList');
+    const vSearch = document.getElementById('vSearch');
+
+    function render(list){
+      vList.innerHTML = list.map((r,i)=>{
+        const whenIn = r.in ? new Date(r.in).toLocaleString() : '—';
+        const whenOut = r.out ? new Date(r.out).toLocaleString() : '—';
+        return `<div class="p-3 rounded-md border border-white/10 bg-[#111]">
+          <div class="flex items-center justify-between">
+            <div class="font-medium">${r.name||'Unknown'} <span class="text-xs text-gray-400">${r.company||''}</span></div>
+            <button data-del="${i}" class="text-xs text-gray-400">Remove</button>
+          </div>
+          <div class="text-sm text-gray-300">Purpose: ${r.purpose||'—'} | Badge: ${r.badge||'—'}</div>
+          <div class="text-sm text-gray-400">In: ${whenIn} | Out: ${whenOut}</div>
+        </div>`;
+      }).join('') || '<div class="text-gray-400">No entries yet.</div>';
+      vList.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = Number(btn.getAttribute('data-del'));
+          const arr = load(); arr.splice(idx,1); save(arr); render(arr);
+        });
+      });
+    }
+
+    function matches(r,q){
+      if(!q) return true; q = q.toLowerCase();
+      const hay = [r.name,r.company,r.purpose,r.badge].map(x=>String(x||'').toLowerCase()).join(' ');
+      return hay.includes(q);
+    }
+
+    function applySearch(){
+      const q = vSearch.value.trim();
+      const arr = load().filter(r=>matches(r,q));
+      render(arr);
+    }
+
+    document.getElementById('vClear').addEventListener('click', ()=>{ form.reset(); statusEl.textContent=''; });
+    document.getElementById('vClearSearch').addEventListener('click', ()=>{ vSearch.value=''; applySearch(); });
+
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const rec = {
+        name: document.getElementById('vName').value.trim(),
+        company: document.getElementById('vCompany').value.trim(),
+        purpose: document.getElementById('vPurpose').value.trim(),
+        badge: document.getElementById('vBadge').value.trim(),
+        in: document.getElementById('vIn').value ? new Date(document.getElementById('vIn').value).toISOString() : new Date().toISOString(),
+        out: document.getElementById('vOut').value ? new Date(document.getElementById('vOut').value).toISOString() : ''
+      };
+      const arr = load(); arr.unshift(rec); save(arr);
+      statusEl.textContent = 'Saved.';
+      form.reset();
+      applySearch();
+    });
+
+    vSearch.addEventListener('input', ()=>{ applySearch(); });
+
+    document.addEventListener('DOMContentLoaded', ()=>{ applySearch(); });
+  </script>
+</body>
+</html>

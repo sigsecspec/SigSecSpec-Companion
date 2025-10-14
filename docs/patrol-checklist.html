@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patrol Checklist — Signature Security Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#0f0f0f" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="app.js" defer></script>
+  <style>
+    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
+    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+  </style>
+</head>
+<body>
+  <header class="p-4 pb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-extrabold">Signature Security Specialist</h1>
+      <p class="text-sm text-gray-400">Patrol Checklist — rounds and timers</p>
+    </div>
+    <div class="flex space-x-2">
+      <button id="themeToggle" onclick="window.SSS && SSS.toggleTheme()" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">☾</button>
+      <button onclick="window.SSS ? SSS.toggleLarge() : null" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">A+</button>
+    </div>
+  </header>
+
+  <main id="mainContent" class="flex-1 overflow-auto p-5">
+    <section class="max-w-3xl mx-auto space-y-4">
+      <div class="app-card">
+        <div class="font-semibold mb-1">Round Timer</div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <input id="roundDuration" type="number" min="1" value="30" class="w-24 bg-[#111] border border-white/10 rounded-md px-3 py-2" />
+          <span class="text-sm text-gray-400">minutes</span>
+          <button id="roundStart" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Start</button>
+          <button id="roundPause" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Pause</button>
+          <button id="roundReset" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Reset</button>
+          <div id="roundStatus" class="text-sm text-gray-400 ml-auto"></div>
+        </div>
+      </div>
+
+      <div class="app-card">
+        <div class="font-semibold mb-2">Checklist</div>
+        <div id="checklistItems" class="space-y-2"></div>
+        <div class="flex items-center gap-2 mt-2">
+          <input id="newItem" class="flex-1 bg-[#111] border border-white/10 rounded-md px-3 py-2" placeholder="Add checkpoint (e.g., South Gate)" />
+          <button id="addItem" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Add</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav id="bottomNav">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="codes.html" class="nav-link">Codes</a>
+    <a href="radio.html" class="nav-link">Phonetics</a>
+    <a href="incident.html" class="nav-link">Incident</a>
+    <a href="shift.html" class="nav-link">Shift</a>
+    <a href="reports.html" class="nav-link">Reports</a>
+    <a href="tools.html" class="nav-link" aria-current="page">Tools</a>
+  </nav>
+
+  <script>
+    const CLS_KEY = 'sss_patrol_checklist';
+    const RND_KEY = 'sss_patrol_round';
+    function load(key, fb){ try{ return JSON.parse(localStorage.getItem(key)) ?? fb; }catch{ return fb; } }
+    function save(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
+
+    // Checklist
+    const listEl = document.getElementById('checklistItems');
+    function renderList(){
+      const items = load(CLS_KEY, []);
+      listEl.innerHTML = items.map((it,i)=>`<label class="flex items-center gap-2 p-2 rounded-md border border-white/10">
+        <input type="checkbox" data-idx="${i}" ${it.done?'checked':''}/>
+        <span class="flex-1">${it.text}</span>
+        <button data-del="${i}" class="text-xs text-gray-400">Remove</button>
+      </label>`).join('') || '<div class="text-gray-400">No items yet.</div>';
+      listEl.querySelectorAll('[data-idx]').forEach(cb=>{
+        cb.addEventListener('change', ()=>{
+          const idx = Number(cb.getAttribute('data-idx'));
+          const arr = load(CLS_KEY, []);
+          if(arr[idx]) arr[idx].done = cb.checked; save(CLS_KEY, arr);
+        });
+      });
+      listEl.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const idx = Number(btn.getAttribute('data-del'));
+          const arr = load(CLS_KEY, []); arr.splice(idx,1); save(CLS_KEY, arr); renderList();
+        });
+      });
+    }
+    document.getElementById('addItem').addEventListener('click', ()=>{
+      const input = document.getElementById('newItem');
+      const text = input.value.trim(); if(!text) return; const arr = load(CLS_KEY, []); arr.push({ text, done:false }); save(CLS_KEY, arr); input.value=''; renderList();
+    });
+
+    // Round timer
+    let timer=null, remainingMs=0, isRunning=false;
+    const statusEl = document.getElementById('roundStatus');
+    function tick(){
+      if (remainingMs <= 0){ clearInterval(timer); timer=null; isRunning=false; statusEl.textContent='Round complete'; try{ new AudioContext().resume().then(()=>{}); }catch{} return; }
+      remainingMs -= 1000; statusEl.textContent = Math.ceil(remainingMs/1000) + 's remaining';
+      save(RND_KEY, { remainingMs, isRunning, startedAt: Date.now() });
+    }
+    function start(){
+      const mins = Math.max(1, Number(document.getElementById('roundDuration').value||30));
+      if (!isRunning && !remainingMs) remainingMs = mins*60*1000;
+      if (timer) clearInterval(timer); timer=setInterval(tick, 1000); isRunning=true; tick();
+    }
+    function pause(){ if(timer){ clearInterval(timer); timer=null; } isRunning=false; save(RND_KEY, { remainingMs, isRunning, startedAt: Date.now() }); }
+    function reset(){ if(timer){ clearInterval(timer); timer=null; } remainingMs=0; isRunning=false; statusEl.textContent=''; save(RND_KEY, { remainingMs, isRunning, startedAt: 0 }); }
+
+    document.getElementById('roundStart').addEventListener('click', start);
+    document.getElementById('roundPause').addEventListener('click', pause);
+    document.getElementById('roundReset').addEventListener('click', reset);
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const saved = load(RND_KEY, null);
+      if (saved && saved.remainingMs){ remainingMs = saved.remainingMs; isRunning = saved.isRunning; if(isRunning) start(); else tick(); }
+      renderList();
+    });
+  </script>
+</body>
+</html>

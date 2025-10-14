@@ -105,6 +105,18 @@
           <div class="font-semibold">Shift Report</div>
           <div class="text-sm mt-1" style="color: var(--text-secondary)">End of shift</div>
         </a>
+        
+        <a href="patrol.html" class="mobile-card interactive interactive-element text-center">
+          <div class="text-3xl mb-2">🚶</div>
+          <div class="font-semibold">Patrol</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Track routes</div>
+        </a>
+        
+        <a href="reports.html" class="mobile-card interactive interactive-element text-center">
+          <div class="text-3xl mb-2">📑</div>
+          <div class="font-semibold">View Reports</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Saved reports</div>
+        </a>
       </div>
     </section>
 
@@ -130,22 +142,22 @@
           <div class="text-sm mt-1" style="color: var(--text-secondary)">Quick dial</div>
         </button>
         
-        <button class="mobile-card interactive interactive-element text-center" onclick="viewPatrolLog()">
-          <div class="text-3xl mb-2">🗺️</div>
-          <div class="font-semibold">Patrol Log</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">Track routes</div>
-        </button>
-        
-        <a href="reports.html" class="mobile-card interactive interactive-element text-center">
-          <div class="text-3xl mb-2">📑</div>
-          <div class="font-semibold">View Reports</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">Saved reports</div>
-        </a>
-        
         <button class="mobile-card interactive interactive-element text-center" onclick="openSettings()">
           <div class="text-3xl mb-2">⚙️</div>
           <div class="font-semibold">Settings</div>
           <div class="text-sm mt-1" style="color: var(--text-secondary)">Preferences</div>
+        </button>
+        
+        <button class="mobile-card interactive interactive-element text-center" onclick="window.securityNotifications?.sendTestNotification()">
+          <div class="text-3xl mb-2">🔔</div>
+          <div class="font-semibold">Test Notifications</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Check alerts</div>
+        </button>
+        
+        <button class="mobile-card interactive interactive-element text-center" onclick="checkIn()">
+          <div class="text-3xl mb-2">📍</div>
+          <div class="font-semibold">Check In</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">Location check</div>
         </button>
       </div>
     </section>

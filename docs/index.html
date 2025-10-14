@@ -55,6 +55,9 @@
         <button class="touch-btn" onclick="window.securityNotifications?.sendTestNotification()" title="Test Notification">
           🔔
         </button>
+        <button class="touch-btn" onclick="testPersistentNotification()" title="Test Persistent Mission Notification" style="margin-left: 0.5rem;">
+          📌
+        </button>
       </div>
       
       <!-- Mission Controls -->
@@ -1181,9 +1184,13 @@
       // Update status
       document.getElementById('statusText').textContent = 'On Mission';
       
-      // Show success message
+      // Show success message and trigger persistent notification
       if (window.securityNotifications) {
         window.securityNotifications.sendShiftNotification('start', 'Mission started successfully');
+        // Force check for persistent notification
+        setTimeout(() => {
+          window.securityNotifications.checkMissionStatus();
+        }, 1000);
       } else {
         showCustomPopup('✅ Mission Started', 
           '<p>Mission has been started successfully.</p>',
@@ -1247,9 +1254,13 @@
       // Update status
       document.getElementById('statusText').textContent = 'Off Duty';
       
-      // Show completion message
+      // Show completion message and remove persistent notification
       if (window.securityNotifications) {
         window.securityNotifications.sendShiftNotification('end', 'Mission completed successfully');
+        // Force check to remove persistent notification
+        setTimeout(() => {
+          window.securityNotifications.checkMissionStatus();
+        }, 500);
       } else {
         showCustomPopup('✅ Mission Completed', 
           '<p>Mission has been completed successfully.</p>',

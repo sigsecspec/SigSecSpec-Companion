@@ -348,11 +348,49 @@ The system will automatically generate a comprehensive, detailed security report
     function toggleTextSize(){ document.body.classList.toggle('text-lg'); localStorage.setItem('largeText', document.body.classList.contains('text-lg')); }
     function initTextSize(){ if(localStorage.getItem('largeText')==='true') document.body.classList.add('text-lg'); }
     
+    // Check for notification actions
+    function checkNotificationAction() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromNotification = urlParams.get('fromnoti');
+      
+      if (fromNotification === 'true') {
+        // Show notification that incident report was opened from notification
+        setTimeout(() => {
+          showNotification('Incident report opened from notification', 'info');
+        }, 1000);
+      }
+      
+      // Check for stored notification action
+      const storedAction = localStorage.getItem('notificationAction');
+      if (storedAction) {
+        try {
+          const actionData = JSON.parse(storedAction);
+          if (actionData.action === 'create_incident' && Date.now() - actionData.timestamp < 60000) {
+            // Action is recent (within 1 minute)
+            setTimeout(() => {
+              showNotification('Creating incident report from notification', 'info');
+              // Focus on the first input field
+              const firstInput = document.querySelector('input, select, textarea');
+              if (firstInput) {
+                firstInput.focus();
+              }
+            }, 1000);
+          }
+          // Clear the stored action
+          localStorage.removeItem('notificationAction');
+        } catch (e) {
+          console.error('Error parsing notification action:', e);
+          localStorage.removeItem('notificationAction');
+        }
+      }
+    }
+    
     document.addEventListener('DOMContentLoaded',()=>{
       initTheme();
       initTextSize();
       initializeForm();
       setDefaultDateTime();
+      checkNotificationAction();
     });
 
     // Storage Functions

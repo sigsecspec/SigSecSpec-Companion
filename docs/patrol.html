@@ -1197,13 +1197,21 @@
     // Handle URL parameters
     function handleUrlParameters() {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('start') === 'true' && !currentPatrol) {
+      if ((urlParams.get('start') === 'true' || urlParams.get('autostart') === 'true') && !currentPatrol) {
         // Auto-start patrol if URL parameter is set
-        setTimeout(async () => {
-          if (await showConfirm('Start patrol now?')) {
+        if (urlParams.get('autostart') === 'true') {
+          // Direct autostart from notification - no confirmation needed
+          setTimeout(() => {
             startPatrol();
-          }
-        }, 1000);
+          }, 500);
+        } else {
+          // Manual start with confirmation
+          setTimeout(async () => {
+            if (await showConfirm('Start patrol now?')) {
+              startPatrol();
+            }
+          }, 1000);
+        }
       }
     }
 
@@ -1352,6 +1360,68 @@
       showInfo(detailsText, '🎯 Mission Details');
     }
 
+    // Check for notification actions
+    function checkNotificationAction() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const autostart = urlParams.get('autostart');
+      
+      if (autostart === 'true') {
+        // Auto-start patrol from notification
+        setTimeout(() => {
+          if (!isPatrolActive()) {
+            startPatrol();
+            showNotification('Patrol started from notification', 'success');
+          }
+        }, 1000);
+      }
+      
+      // Check for stored notification action
+      const storedAction = localStorage.getItem('notificationAction');
+      if (storedAction) {
+        try {
+          const actionData = JSON.parse(storedAction);
+          if (actionData.action === 'start_patrol' && Date.now() - actionData.timestamp < 60000) {
+            // Action is recent (within 1 minute)
+            setTimeout(() => {
+              if (!isPatrolActive()) {
+                startPatrol();
+                showNotification('Patrol started from notification', 'success');
+              }
+            }, 1000);
+          }
+          // Clear the stored action
+          localStorage.removeItem('notificationAction');
+        } catch (e) {
+          console.error('Error parsing notification action:', e);
+          localStorage.removeItem('notificationAction');
+        }
+      }
+    }
+
+    // Check if patrol should auto-start from notification
+    function checkAutoStartPatrol() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const notificationAction = JSON.parse(localStorage.getItem('notificationAction') || 'null');
+      
+      if (urlParams.get('autostart') === 'true' || (notificationAction && notificationAction.action === 'start_patrol')) {
+        // Clear the stored action
+        localStorage.removeItem('notificationAction');
+        
+        // Check if we can start a patrol
+        const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+        if (activeMission && activeMission.status === 'active') {
+          // Auto-start patrol after a short delay
+          setTimeout(() => {
+            if (confirm('Start patrol now from notification?')) {
+              startPatrol();
+            }
+          }, 500);
+        } else {
+          showWarning('Cannot start patrol: No active mission found.');
+        }
+      }
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       initTheme();
@@ -1359,6 +1429,9 @@
       loadPatrolEntries();
       loadCurrentPatrolChecks();
       loadMissionPatrols();
+      
+      // Check if patrol should auto-start from notification
+      checkAutoStartPatrol();
       updatePatrolButtonStates(); // Update button states based on shift report status
       updateLocation();
       

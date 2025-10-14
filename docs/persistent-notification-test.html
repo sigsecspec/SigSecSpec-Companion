@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent Notification Test - Security Companion</title>
+    <link rel="stylesheet" href="app-styles.css">
+    <script src="popup-system.js"></script>
+    <script src="push-notifications.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔔 Persistent Notification Test</h1>
+            <p>Test the persistent mission notification system</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Test Controls -->
+            <section class="mobile-card mb-6">
+                <h2 class="text-lg font-semibold mb-4">Test Controls</h2>
+                
+                <div class="grid grid-cols-1 gap-4">
+                    <button class="touch-btn primary" onclick="startTestMission()">
+                        🎯 Start Test Mission
+                    </button>
+                    
+                    <button class="touch-btn danger" onclick="endTestMission()">
+                        ⏹️ End Test Mission
+                    </button>
+                    
+                    <button class="touch-btn" onclick="forceCheckMissionStatus()">
+                        🔄 Force Check Mission Status
+                    </button>
+                    
+                    <button class="touch-btn" onclick="testNotificationActions()">
+                        ⚡ Test Notification Actions
+                    </button>
+                </div>
+            </section>
+
+            <!-- Status Display -->
+            <section class="mobile-card mb-6">
+                <h2 class="text-lg font-semibold mb-4">Current Status</h2>
+                
+                <div class="space-y-3">
+                    <div>
+                        <strong>Mission Status:</strong>
+                        <span id="missionStatus" class="ml-2">No active mission</span>
+                    </div>
+                    
+                    <div>
+                        <strong>Persistent Notification:</strong>
+                        <span id="notificationStatus" class="ml-2">Not active</span>
+                    </div>
+                    
+                    <div>
+                        <strong>Notification System:</strong>
+                        <span id="systemStatus" class="ml-2">Checking...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mission Details -->
+            <section class="mobile-card mb-6" id="missionDetails" style="display: none;">
+                <h2 class="text-lg font-semibold mb-4">Active Mission Details</h2>
+                <div id="missionInfo"></div>
+            </section>
+
+            <!-- Test Log -->
+            <section class="mobile-card">
+                <h2 class="text-lg font-semibold mb-4">Test Log</h2>
+                <div id="testLog" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                <button class="touch-btn mt-4" onclick="clearLog()">Clear Log</button>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let testMissionId = null;
+
+        // Initialize test page
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus();
+            setInterval(updateStatus, 2000); // Update every 2 seconds
+            
+            // Check notification system status
+            checkNotificationSystem();
+            
+            log('Test page initialized');
+        });
+
+        function startTestMission() {
+            const mission = {
+                id: Date.now(),
+                startTime: new Date().toISOString(),
+                status: 'active',
+                type: 'test',
+                originalMission: {
+                    title: 'Test Security Mission',
+                    location: 'Test Location',
+                    description: 'This is a test mission for persistent notifications'
+                }
+            };
+
+            localStorage.setItem('activeMission', JSON.stringify(mission));
+            testMissionId = mission.id;
+            
+            log('✅ Test mission started');
+            
+            // Trigger notification check
+            if (window.securityNotifications) {
+                setTimeout(() => {
+                    window.securityNotifications.checkMissionStatus();
+                    log('🔔 Forced mission status check');
+                }, 1000);
+            }
+            
+            updateStatus();
+        }
+
+        function endTestMission() {
+            if (testMissionId) {
+                localStorage.removeItem('activeMission');
+                testMissionId = null;
+                
+                log('❌ Test mission ended');
+                
+                // Trigger notification check
+                if (window.securityNotifications) {
+                    setTimeout(() => {
+                        window.securityNotifications.checkMissionStatus();
+                        log('🔔 Forced mission status check (end)');
+                    }, 500);
+                }
+                
+                updateStatus();
+            } else {
+                log('⚠️ No active test mission to end');
+            }
+        }
+
+        function forceCheckMissionStatus() {
+            if (window.securityNotifications) {
+                window.securityNotifications.checkMissionStatus();
+                log('🔄 Forced mission status check');
+            } else {
+                log('❌ Notification system not available');
+            }
+        }
+
+        function testNotificationActions() {
+            if (window.securityNotifications) {
+                // Test patrol action
+                window.securityNotifications.handleNotificationAction('start_patrol', {
+                    missionId: testMissionId,
+                    type: 'persistent-mission'
+                });
+                log('🚶 Tested start patrol action');
+                
+                // Test incident action after delay
+                setTimeout(() => {
+                    window.securityNotifications.handleNotificationAction('create_incident', {
+                        missionId: testMissionId,
+                        type: 'persistent-mission'
+                    });
+                    log('📝 Tested create incident action');
+                }, 2000);
+            } else {
+                log('❌ Notification system not available');
+            }
+        }
+
+        function updateStatus() {
+            const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+            const missionStatusEl = document.getElementById('missionStatus');
+            const notificationStatusEl = document.getElementById('notificationStatus');
+            const missionDetailsEl = document.getElementById('missionDetails');
+            const missionInfoEl = document.getElementById('missionInfo');
+
+            // Update mission status
+            if (activeMission && activeMission.status === 'active') {
+                missionStatusEl.textContent = `Active (${activeMission.originalMission?.title || 'Unknown'})`;
+                missionStatusEl.style.color = 'var(--success)';
+                
+                // Show mission details
+                const startTime = new Date(activeMission.startTime);
+                const duration = Math.floor((new Date() - startTime) / (1000 * 60));
+                
+                missionInfoEl.innerHTML = `
+                    <div><strong>ID:</strong> ${activeMission.id}</div>
+                    <div><strong>Title:</strong> ${activeMission.originalMission?.title || 'Test Mission'}</div>
+                    <div><strong>Started:</strong> ${startTime.toLocaleString()}</div>
+                    <div><strong>Duration:</strong> ${duration} minutes</div>
+                    <div><strong>Type:</strong> ${activeMission.type}</div>
+                `;
+                missionDetailsEl.style.display = 'block';
+            } else {
+                missionStatusEl.textContent = 'No active mission';
+                missionStatusEl.style.color = 'var(--text-secondary)';
+                missionDetailsEl.style.display = 'none';
+            }
+
+            // Update notification status
+            if (window.securityNotifications && window.securityNotifications.persistentNotification) {
+                notificationStatusEl.textContent = 'Active';
+                notificationStatusEl.style.color = 'var(--success)';
+            } else {
+                notificationStatusEl.textContent = 'Not active';
+                notificationStatusEl.style.color = 'var(--text-secondary)';
+            }
+        }
+
+        function checkNotificationSystem() {
+            const systemStatusEl = document.getElementById('systemStatus');
+            
+            if (window.securityNotifications) {
+                if (window.securityNotifications.isInitialized) {
+                    systemStatusEl.textContent = 'Initialized ✅';
+                    systemStatusEl.style.color = 'var(--success)';
+                } else {
+                    systemStatusEl.textContent = 'Not initialized ⚠️';
+                    systemStatusEl.style.color = 'var(--warning)';
+                }
+            } else {
+                systemStatusEl.textContent = 'Not available ❌';
+                systemStatusEl.style.color = 'var(--error)';
+            }
+        }
+
+        function log(message) {
+            const logEl = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'text-sm p-2 rounded';
+            logEntry.style.background = 'var(--bg-secondary)';
+            logEntry.innerHTML = `<span style="color: var(--text-muted)">[${timestamp}]</span> ${message}`;
+            
+            logEl.insertBefore(logEntry, logEl.firstChild);
+            
+            // Keep only last 20 entries
+            while (logEl.children.length > 20) {
+                logEl.removeChild(logEl.lastChild);
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = '';
+            log('Log cleared');
+        }
+
+        // Listen for service worker messages
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.type === 'NOTIFICATION_ACTION') {
+                    log(`📨 Received SW message: ${event.data.action}`);
+                }
+            });
+        }
+
+        // Listen for notification actions from localStorage
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'notificationAction') {
+                const action = JSON.parse(e.newValue || 'null');
+                if (action) {
+                    log(`💾 Notification action stored: ${action.action}`);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

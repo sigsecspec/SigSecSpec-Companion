@@ -43,6 +43,36 @@
     transform: scale(1.05);
     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
   }
+  .glow { text-shadow:0 0 18px rgba(174,174,90,0.22),0 0 40px rgba(92,98,73,0.06); }
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .accent { color: var(--accent); }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal-card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 85vh;
+    overflow: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
 
   #bottomNav {
     position: fixed;
@@ -83,17 +113,28 @@
 
 <main class="flex-1 overflow-auto p-5" id="mainContent">
   <section class="fade-enter">
-    <h2 class="text-xl font-bold accent mb-4">10-Codes Placeholder</h2>
-    <p class="text-gray-400 mb-6">This is a placeholder page for 10-Codes. You can edit and add your actual codes here.</p>
-
-    <div class="app-grid">
-      <div class="app-card">10-1 — Unable to Copy</div>
-      <div class="app-card">10-4 — Acknowledged</div>
-      <div class="app-card">10-8 — In Service</div>
-      <div class="app-card">10-20 — Location</div>
+    <h2 class="text-xl font-bold accent mb-3">10-Codes Directory</h2>
+    <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+      <input id="searchInput" class="w-full md:max-w-lg bg-[#111] border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[--accent]" placeholder="Search 10-codes or keywords (e.g., 'shots fired', 'call')" />
+      <div class="flex items-center gap-2 md:ml-auto">
+        <button id="clearSearch" class="bg-[#111] px-3 py-2 rounded-md border border-white/10">Clear</button>
+        <span id="resultCount" class="text-sm text-gray-400"></span>
+      </div>
     </div>
+    <div id="codesGrid" class="app-grid"></div>
+    <p id="noResults" class="hidden text-gray-400 mt-6">No matching codes found. Try different keywords.</p>
   </section>
 </main>
+
+<div id="codeModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal-card">
+    <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+      <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+      <button id="modalClose" class="bg-[#111] hover:bg-[#222] px-3 py-1 rounded-md border border-white/10">Close</button>
+    </div>
+    <div id="modalBody" class="px-4 py-3"></div>
+  </div>
+</div>
 
 <nav id="bottomNav">
   <a href="index.html" class="px-3 py-1 rounded-md">Home</a>
@@ -108,6 +149,9 @@ function toggleLarge(){
   document.body.classList.toggle('text-lg');
   localStorage.setItem('sss_large', document.body.classList.contains('text-lg'));
 }
+document.addEventListener('DOMContentLoaded', ()=>{
+  if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg');
+});
 
 const mainContent = document.getElementById('mainContent');
 const bottomNav = document.getElementById('bottomNav');
@@ -117,6 +161,212 @@ mainContent.addEventListener('scroll', ()=>{
   } else {
     bottomNav.classList.remove('footer');
   }
+});
+
+// UI elements
+const codesGrid = document.getElementById('codesGrid');
+const searchInput = document.getElementById('searchInput');
+const clearSearchBtn = document.getElementById('clearSearch');
+const resultCount = document.getElementById('resultCount');
+const noResults = document.getElementById('noResults');
+const modalEl = document.getElementById('codeModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalBody = document.getElementById('modalBody');
+const modalClose = document.getElementById('modalClose');
+
+// Data set — common 10-codes with helpful keywords
+const TEN_CODES = [
+  { code: '10-0', title: 'Use Caution', details: 'Use caution in the area or on approach.', examples: ['Unit 21, 10-0 around the residence.'], synonyms: ['caution', 'be careful'] },
+  { code: '10-1', title: 'Unable to Copy', details: 'Signal weak or unreadable.', examples: ['Dispatch: Unit 12, you\'re 10-1; repeat last.'], synonyms: ['weak signal', 'poor copy', 'static'] },
+  { code: '10-2', title: 'Signal Good', details: 'Loud and clear; readable.', examples: ['10-2 on that last transmission.'], synonyms: ['copy good', 'loud and clear'] },
+  { code: '10-3', title: 'Stop Transmitting', details: 'Cease radio transmissions.', examples: ['All units, 10-3 for emergency traffic.'], synonyms: ['hold traffic', 'stop radio'] },
+  { code: '10-4', title: 'Acknowledged', details: 'Affirmative; message received.', examples: ['10-4, en route.'], synonyms: ['copy', 'roger', 'affirmative', 'received'] },
+  { code: '10-5', title: 'Relay', details: 'Relay message or information.', examples: ['10-5 that update to Unit 15.'], synonyms: ['forward', 'pass along'] },
+  { code: '10-6', title: 'Busy', details: 'Busy; stand by unless urgent.', examples: ['10-6 at the station.'], synonyms: ['occupied', 'stand by'] },
+  { code: '10-7', title: 'Out of Service', details: 'Out of service; not available.', examples: ['10-7 for fuel.'], synonyms: ['offline', 'not available'] },
+  { code: '10-8', title: 'In Service', details: 'Back in service; available for calls.', examples: ['10-8, available.'], synonyms: ['available', 'clear'] },
+  { code: '10-9', title: 'Repeat', details: 'Repeat last transmission.', examples: ['10-9 your last.'], synonyms: ['say again', 'repeat'] },
+  { code: '10-10', title: 'Fight in Progress', details: 'Physical altercation reported.', examples: ['10-10 at 5th and Pine.'], synonyms: ['fight', 'disturbance', 'brawl'] },
+  { code: '10-12', title: 'Visitors Present', details: 'Officials or visitors present; use discretion.', examples: ['10-12 in the office.'], synonyms: ['visitors', 'company', 'ride-along'] },
+  { code: '10-13', title: 'Weather/Road Conditions', details: 'Request or provide conditions update.', examples: ['10-13 on road conditions.'], synonyms: ['conditions', 'weather', 'roads'] },
+  { code: '10-14', title: 'Escort/Convoy', details: 'Provide or request an escort.', examples: ['Requesting 10-14 for transport.'], synonyms: ['escort', 'convoy'] },
+  { code: '10-15', title: 'Prisoner in Custody', details: 'Transporting or holding a prisoner.', examples: ['10-15 en route to jail.'], synonyms: ['in custody', 'arrested'] },
+  { code: '10-16', title: 'Pick Up Prisoner', details: 'Pick up or transfer prisoner.', examples: ['10-16 at courthouse.'], synonyms: ['transport', 'pickup'] },
+  { code: '10-17', title: 'Pick Up Papers', details: 'Collect paperwork/documents.', examples: ['10-17 at records.'], synonyms: ['paperwork', 'documents'] },
+  { code: '10-18', title: 'Urgent — Respond Immediately', details: 'High-priority call; expedite response.', examples: ['10-18 to that alarm.'], synonyms: ['urgent', 'priority', 'asap'] },
+  { code: '10-19', title: 'Return to Station', details: 'Return to headquarters/station.', examples: ['10-19 to HQ.'], synonyms: ['back to station', 'return'] },
+  { code: '10-20', title: 'Location', details: 'Report current location.', examples: ['10-20 is Main and 3rd.'], synonyms: ['where are you', 'position', 'location'] },
+  { code: '10-21', title: 'Call by Phone', details: 'Call dispatch or unit by phone.', examples: ['10-21 the complainant.', '10-21 me when free.'], synonyms: ['call', 'phone', 'telephone', 'ring', 'call me'] },
+  { code: '10-22', title: 'Disregard', details: 'Cancel previous assignment or message.', examples: ['10-22 that last call.'], synonyms: ['cancel', 'nevermind', 'ignore'] },
+  { code: '10-23', title: 'Arrived at Scene', details: 'On scene of the call.', examples: ['10-23 at the residence.'], synonyms: ['on scene', 'arrived'] },
+  { code: '10-24', title: 'Assignment Completed', details: 'Task finished; available.', examples: ['10-24, returning 10-8.'], synonyms: ['complete', 'finished', 'clear'] },
+  { code: '10-25', title: 'Report to Meet Person', details: 'Meet with named person at location.', examples: ['10-25 with supervisor.'], synonyms: ['meet', 'link up'] },
+  { code: '10-26', title: 'Detaining Suspect', details: 'Holding a suspect for investigation.', examples: ['10-26 one male.'], synonyms: ['detain', 'hold'] },
+  { code: '10-27', title: 'Driver License Information', details: 'Run driver license check.', examples: ['10-27 by name and DOB.'], synonyms: ['license check', 'DL'] },
+  { code: '10-28', title: 'Vehicle Registration', details: 'Run plate/registration check.', examples: ['10-28 on ABC123.'], synonyms: ['registration', 'plate check'] },
+  { code: '10-29', title: 'Check for Wants', details: 'Wants/warrants/stolen check.', examples: ['10-29 the subject.'], synonyms: ['warrants', 'wanted', 'stolen'] },
+  { code: '10-30', title: 'Unnecessary Use of Radio', details: 'Avoid non-essential transmissions.', examples: ['Control: 10-30 on channel one.'], synonyms: ['radio discipline'] },
+  { code: '10-31', title: 'Crime in Progress', details: 'Crime currently occurring.', examples: ['10-31 burglary in progress.'], synonyms: ['in progress', 'active crime'] },
+  { code: '10-32', title: 'Person with Gun', details: 'Subject reported armed with a firearm.', examples: ['10-32 at the park, male with handgun.'], synonyms: ['gun', 'weapon', 'armed', 'firearm'] },
+  { code: '10-33', title: 'Emergency Traffic Only', details: 'Hold routine radio traffic for emergency.', examples: ['All units, 10-33.'], synonyms: ['hold traffic', 'emergency only'] },
+  { code: '10-34', title: 'Riot/Mass Disturbance', details: 'Riot or large disturbance reported.', examples: ['10-34 downtown protest.'], synonyms: ['riot', 'mass disturbance'] },
+  { code: '10-35', title: 'Major Crime Alert', details: 'Serious offense broadcast/alert.', examples: ['10-35 BOLO issued.'], synonyms: ['major crime', 'alert', 'BOLO'] },
+  { code: '10-36', title: 'Correct Time', details: 'Provide correct time.', examples: ['10-36 is 14:23 hours.'], synonyms: ['time', 'time check'] },
+  { code: '10-37', title: 'Suspicious Vehicle', details: 'Vehicle acting suspiciously.', examples: ['10-37 blue sedan circling block.'], synonyms: ['suspicious', 'prowler vehicle'] },
+  { code: '10-38', title: 'Stopping Suspicious Vehicle', details: 'Initiating a traffic stop.', examples: ['10-38 on that sedan.'], synonyms: ['traffic stop', 'vehicle stop'] },
+  { code: '10-39', title: 'Use Lights & Siren', details: 'Respond with emergency equipment.', examples: ['10-39 to the alarm.'], synonyms: ['code 3', 'lights and siren'] },
+  { code: '10-40', title: 'Silent Run', details: 'Respond without lights/siren.', examples: ['10-40 into the area.'], synonyms: ['no lights', 'no siren', 'stealth'] },
+  { code: '10-41', title: 'Begin Tour of Duty', details: 'On duty / beginning shift.', examples: ['10-41, Unit 12.'], synonyms: ['on duty', 'start shift'] },
+  { code: '10-42', title: 'End Tour of Duty', details: 'Off duty / ending shift.', examples: ['10-42, heading home.'], synonyms: ['off duty', 'end shift'] },
+  { code: '10-43', title: 'Information', details: 'General information or update.', examples: ['10-43 reference the case.'], synonyms: ['info', 'update'] },
+  { code: '10-44', title: 'Permission to Leave', details: 'Request permission to leave post.', examples: ['10-44 for fuel.'], synonyms: ['permission', 'leave post'] },
+  { code: '10-45', title: 'Animal Carcass at…', details: 'Dead animal on roadway/location.', examples: ['10-45 deer at MM 12.'], synonyms: ['roadkill', 'animal carcass'] },
+  { code: '10-46', title: 'Assist Motorist', details: 'Assist stranded or disabled motorist.', examples: ['10-46 on I-90 shoulder.'], synonyms: ['motorist assist', 'disabled vehicle'] },
+  { code: '10-47', title: 'Emergency Road Repair', details: 'Roadway hazard needs repair.', examples: ['10-47 pothole creating hazard.'], synonyms: ['road repair', 'hazard'] },
+  { code: '10-48', title: 'Traffic Standard Repair', details: 'Traffic sign/signal repair needed.', examples: ['10-48 stop sign down.'], synonyms: ['sign repair', 'signal repair'] },
+  { code: '10-49', title: 'Traffic Signal Out', details: 'Signal light malfunction/outage.', examples: ['10-49 at Main & 2nd.'], synonyms: ['signal out', 'light out'] },
+  { code: '10-50', title: 'Accident', details: 'Traffic crash/accident reported.', examples: ['10-50 with injury at Oak & 5th.'], synonyms: ['accident', 'crash', 'collision'] },
+  { code: '10-51', title: 'Wrecker Needed', details: 'Request tow truck.', examples: ['10-51 for a flatbed.'], synonyms: ['tow', 'wrecker'] },
+  { code: '10-52', title: 'Ambulance Needed', details: 'Request EMS/ambulance.', examples: ['10-52 for one patient.'], synonyms: ['ambulance', 'ems', 'medic'] },
+  { code: '10-53', title: 'Road Blocked', details: 'Roadway blocked / impassable.', examples: ['10-53 trees down across road.'], synonyms: ['blocked road', 'closure'] },
+  { code: '10-55', title: 'Intoxicated Driver', details: 'Possible DUI driver.', examples: ['10-55 swerving vehicle.'], synonyms: ['DUI', 'drunk driver', 'impaired'] },
+  { code: '10-56', title: 'Intoxicated Pedestrian', details: 'Pedestrian under influence.', examples: ['10-56 near bus stop.'], synonyms: ['drunk', 'intoxicated pedestrian'] },
+  { code: '10-57', title: 'Hit and Run', details: 'Collision with fleeing party.', examples: ['10-57 just occurred.'], synonyms: ['hit & run', 'leaving scene'] },
+  { code: '10-58', title: 'Direct Traffic', details: 'Assign to traffic control.', examples: ['10-58 at parade route.'], synonyms: ['traffic control', 'direct traffic'] },
+  { code: '10-59', title: 'Convoy/Escort', details: 'Provide convoy or escort.', examples: ['10-59 for dignitary.'], synonyms: ['convoy', 'escort'] },
+  { code: '10-60', title: 'Squad in Vicinity', details: 'Unit(s) near location.', examples: ['Any 10-60 units near Oak?'], synonyms: ['nearby', 'in the area'] },
+  { code: '10-61', title: 'Personnel in Area', details: 'Personnel in the area.', examples: ['10-61 around sector 2.'], synonyms: ['units around', 'in area'] },
+  { code: '10-62', title: 'Reply to Message', details: 'Reply or respond to message.', examples: ['10-62 reference your 10-43.'], synonyms: ['respond', 'reply'] },
+  { code: '10-63', title: 'Prepare to Copy', details: 'Prepare to copy information.', examples: ['10-63 for a phone number.'], synonyms: ['ready to copy', 'copy this'] },
+  { code: '10-64', title: 'Local Message', details: 'Local message for delivery.', examples: ['10-64 pending for Unit 5.'], synonyms: ['message', 'local'] },
+  { code: '10-65', title: 'Net Message Assignment', details: 'Assignment via network message.', examples: ['10-65 on callout.'], synonyms: ['assignment', 'message'] },
+  { code: '10-66', title: 'Missing Person', details: 'Report or check missing person.', examples: ['10-66 juvenile.'], synonyms: ['missing', 'runaway'] },
+  { code: '10-67', title: 'Clear to Read Net Message', details: 'Clear to receive a message.', examples: ['10-67 when ready.'], synonyms: ['clear to read', 'ready'] },
+  { code: '10-68', title: 'Dispatch Information', details: 'Additional dispatch info available.', examples: ['10-68 with suspect description.'], synonyms: ['information', 'details', 'message'] },
+  { code: '10-69', title: 'Message Received', details: 'Message acknowledged.', examples: ['10-69 on that BOLO.'], synonyms: ['received', 'copy', 'acknowledged'] },
+  { code: '10-70', title: 'Fire Alarm', details: 'Fire alarm reported.', examples: ['10-70 commercial alarm.'], synonyms: ['fire', 'alarm'] },
+  { code: '10-71', title: 'Shots Fired Reported', details: 'Gunshots heard or reported in area.', examples: ['Multiple callers reporting 10-71 near Elm St.'], synonyms: ['shots fired', 'gunshots', 'shots', 'discharge'] },
+  { code: '10-72', title: 'Report Progress of Fire', details: 'Status update on fire conditions.', examples: ['10-72: fire contained to attic.'], synonyms: ['fire progress', 'status'] },
+  { code: '10-73', title: 'Smoke Report', details: 'Smoke seen/smelled in area.', examples: ['10-73 light smoke in distance.'], synonyms: ['smoke', 'haze'] },
+  { code: '10-74', title: 'Negative', details: 'Negative response.', examples: ['10-74 on warrants.'], synonyms: ['no', 'negative'] },
+  { code: '10-75', title: 'In Contact With…', details: 'In contact/meeting with subject.', examples: ['10-75 with complainant.'], synonyms: ['contact', 'with'] },
+  { code: '10-76', title: 'En Route', details: 'On the way to location.', examples: ['10-76 to the scene.'], synonyms: ['enroute', 'on the way'] },
+  { code: '10-77', title: 'Estimated Time of Arrival', details: 'Provide ETA.', examples: ['10-77 five minutes.'], synonyms: ['eta', 'arrival time'] },
+  { code: '10-78', title: 'Need Assistance', details: 'Request backup/assistance.', examples: ['10-78 at traffic stop.'], synonyms: ['backup', 'assist', 'officer needs help'] },
+  { code: '10-79', title: 'Notify Coroner', details: 'Death investigation; notify coroner.', examples: ['10-79 for confirmed DOA.'], synonyms: ['coroner', 'medical examiner'] },
+  { code: '10-80', title: 'Pursuit in Progress', details: 'Vehicle/foot pursuit underway.', examples: ['10-80 southbound on I-5.'], synonyms: ['pursuit', 'chase'] },
+  { code: '10-81', title: 'Breathalyzer Report', details: 'Intoximeter reading/report.', examples: ['10-81 0.12 BAC.'], synonyms: ['breath test', 'intoximeter'] },
+  { code: '10-82', title: 'Reserve Lodging', details: 'Arrange lodging as needed.', examples: ['10-82 for witness.'], synonyms: ['lodging', 'hotel'] },
+  { code: '10-83', title: 'Work School Crossing', details: 'Assign to school crossing duty.', examples: ['10-83 at Maple Elementary.'], synonyms: ['crossing guard', 'school crossing'] },
+  { code: '10-84', title: 'Advise ETA If Meeting', details: 'Provide ETA for meeting.', examples: ['10-84 with captain at HQ.'], synonyms: ['meeting eta', 'advise eta'] },
+  { code: '10-85', title: 'Delayed Due To…', details: 'Delay explanation.', examples: ['10-85 due to traffic.'], synonyms: ['delayed', 'running late'] },
+  { code: '10-86', title: 'Officer On Duty', details: 'Status update on-duty.', examples: ['10-86 Unit 3B.'], synonyms: ['on duty', 'status'] },
+  { code: '10-87', title: 'Pickup/Distribute Checks', details: 'Pick up or deliver checks.', examples: ['10-87 payroll checks.'], synonyms: ['checks', 'pickup'] },
+  { code: '10-88', title: 'Advise Phone Number', details: 'Provide callback phone number.', examples: ['10-88 for the RP.'], synonyms: ['phone number', 'callback'] },
+  { code: '10-89', title: 'Bomb Threat', details: 'Bomb or explosive threat reported.', examples: ['10-89 at the courthouse.'], synonyms: ['bomb', 'explosive', 'threat'] },
+  { code: '10-90', title: 'Bank Alarm', details: 'Bank alarm activation.', examples: ['10-90 silent alarm at First Bank.'], synonyms: ['bank alarm', 'robbery alarm'] },
+  { code: '10-91', title: 'Pick Up Prisoner/Subject', details: 'Pick up subject or prisoner.', examples: ['10-91 at hospital release.'], synonyms: ['pickup prisoner', 'pickup subject'] },
+  { code: '10-92', title: 'Improper Parking', details: 'Illegal or improper parking.', examples: ['10-92 blocking driveway.'], synonyms: ['parking violation', 'illegally parked'] },
+  { code: '10-93', title: 'Blockade', details: 'Set or report a blockade.', examples: ['10-93 roadblock established.'], synonyms: ['roadblock', 'blockade'] },
+  { code: '10-94', title: 'Drag Racing', details: 'Racing vehicles reported.', examples: ['10-94 two vehicles on highway.'], synonyms: ['street racing', 'racing'] },
+  { code: '10-95', title: 'Subject in Custody', details: 'Subject detained/in custody.', examples: ['10-95 one male.'], synonyms: ['in custody', 'prisoner'] },
+  { code: '10-96', title: 'Mental Subject', details: 'Behavioral health subject.', examples: ['10-96 evaluation needed.'], synonyms: ['mental health', 'behavioral'] },
+  { code: '10-97', title: 'Arrived at Scene (Alt.)', details: 'Alternate code for arrival.', examples: ['10-97 at location.'], synonyms: ['arrived', 'on scene'] },
+  { code: '10-98', title: 'Finished with Last Assignment', details: 'Task complete; returning available.', examples: ['10-98, back 10-8.'], synonyms: ['finished', 'clear'] },
+  { code: '10-99', title: 'Wanted/Stolen Indicated', details: 'Wanted/stolen hit on record.', examples: ['10-99 on that plate.'], synonyms: ['wanted', 'stolen', 'hit'] }
+];
+
+let lastRendered = [];
+const normalize = (s) => (s || '').toLowerCase();
+
+function matches(item, query) {
+  if (!query) return true;
+  const tokens = query.split(/\s+/).filter(Boolean);
+  const haystack = normalize([
+    item.code,
+    item.title,
+    item.details,
+    ...(item.examples || []),
+    ...(item.synonyms || [])
+  ].join(' '));
+  return tokens.every(t => haystack.includes(t));
+}
+
+function renderList(query) {
+  const list = TEN_CODES.filter(item => matches(item, query));
+  lastRendered = list;
+  resultCount.textContent = list.length ? `${list.length} code${list.length !== 1 ? 's' : ''}` : '';
+  noResults.classList.toggle('hidden', list.length !== 0);
+  codesGrid.innerHTML = list.map((item, index) => `
+    <button class="app-card text-left" data-index="${index}">
+      <div class="text-sm text-gray-400">${item.code}</div>
+      <div class="font-semibold mt-1">${item.title}</div>
+      <div class="text-xs text-gray-400 mt-2">${item.details}</div>
+    </button>
+  `).join('');
+}
+
+function openModal(item) {
+  modalTitle.textContent = `${item.code} — ${item.title}`;
+  const examplesHtml = (item.examples && item.examples.length)
+    ? `<div class="mt-3">
+         <div class="text-sm font-semibold mb-1">Examples</div>
+         <ul class="list-disc list-inside space-y-1 text-sm text-gray-300">
+           ${item.examples.map(e => `<li>${e}</li>`).join('')}
+         </ul>
+       </div>`
+    : '';
+  const synonymsHtml = (item.synonyms && item.synonyms.length)
+    ? `<div class="mt-3">
+         <div class="text-sm font-semibold mb-1">Keywords</div>
+         <div class="flex flex-wrap gap-2 text-xs">
+           ${item.synonyms.map(s => `<span class="bg-[#111] border border-white/10 rounded px-2 py-0.5">${s}</span>`).join('')}
+         </div>
+       </div>`
+    : '';
+  modalBody.innerHTML = `
+    <div class="text-gray-300">${item.details}</div>
+    ${examplesHtml}
+    ${synonymsHtml}
+  `;
+  modalEl.classList.add('show');
+  modalEl.setAttribute('aria-hidden', 'false');
+}
+
+function closeModal() {
+  modalEl.classList.remove('show');
+  modalEl.setAttribute('aria-hidden', 'true');
+}
+
+codesGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-index]');
+  if (!btn) return;
+  const index = Number(btn.getAttribute('data-index'));
+  const item = lastRendered[index];
+  if (item) openModal(item);
+});
+
+modalClose.addEventListener('click', closeModal);
+modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+function applySearch(value) {
+  localStorage.setItem('sss_codes_query', value);
+  renderList(normalize(value));
+}
+
+const savedQuery = localStorage.getItem('sss_codes_query') || '';
+searchInput.value = savedQuery;
+applySearch(savedQuery);
+
+let debounceTimer;
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => applySearch(searchInput.value), 120);
+});
+clearSearchBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  applySearch('');
 });
 </script>
 

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patrol Log — Security Companion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f0f0f">
+  <style>
+    :root {
+      /* Dark theme (default) */
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #121212;
+      --bg-tertiary: #1a1a1a;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666666;
+      --accent-primary: #a7b99e;
+      --accent-secondary: #43534a;
+      --border-primary: rgba(255, 255, 255, 0.1);
+      --border-secondary: rgba(255, 255, 255, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --shadow: rgba(0, 0, 0, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    [data-theme="light"] {
+      /* Light theme */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-primary: #059669;
+      --accent-secondary: #065f46;
+      --border-primary: rgba(0, 0, 0, 0.1);
+      --border-secondary: rgba(0, 0, 0, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --shadow: rgba(0, 0, 0, 0.1);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100%;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bg-pattern {
+      background-image: 
+        radial-gradient(circle at 25% 25%, var(--accent-primary)10 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, var(--accent-secondary)10 0%, transparent 50%);
+      background-size: 100px 100px;
+      background-position: 0 0, 50px 50px;
+    }
+
+    .mobile-card {
+      background: linear-gradient(145deg, var(--glass-bg), rgba(255,255,255,0.02));
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-primary);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mobile-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+      opacity: 0.5;
+    }
+
+    .touch-btn {
+      min-height: 48px;
+      min-width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .touch-btn:active {
+      transform: scale(0.95);
+      background: var(--bg-tertiary);
+    }
+
+    .touch-btn.primary {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+
+    .touch-btn.success {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .touch-btn.danger {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+
+    .status-active { background: var(--success); animation: pulse 2s infinite; }
+    .status-complete { background: var(--success); }
+    .status-pending { background: var(--warning); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-primary);
+      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.25rem;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 0.25rem;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 60px;
+      justify-content: center;
+    }
+
+    .nav-item.active {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .nav-item:not(.active):hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      padding-bottom: calc(80px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .patrol-entry {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .patrol-entry:hover {
+      border-color: var(--accent-primary);
+    }
+
+    .location-display {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+    }
+
+    .theme-toggle {
+      position: relative;
+      width: 60px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border-radius: 16px;
+      border: 1px solid var(--border-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle::before {
+      content: '🌙';
+      position: absolute;
+      top: 50%;
+      left: 4px;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] .theme-toggle::before {
+      content: '☀️';
+      left: 32px;
+    }
+
+    .theme-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 26px;
+      height: 26px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    [data-theme="light"] .theme-toggle::after {
+      left: 30px;
+    }
+
+    @media (max-width: 640px) {
+      .mobile-card {
+        padding: 1rem;
+      }
+    }
+
+    @media print {
+      .bottom-nav, .theme-toggle { display: none !important; }
+      .main-content { padding-bottom: 0 !important; }
+    }
+  </style>
+</head>
+<body class="bg-pattern">
+  <!-- Header -->
+  <header class="p-4 pb-6 flex justify-between items-center relative z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-2xl">
+        🚶
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold">Patrol Log</h1>
+        <p class="text-sm" style="color: var(--text-secondary)">
+          <span class="status-indicator" id="patrolStatus"></span>
+          <span id="patrolStatusText">Ready to patrol</span>
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Current Patrol Status -->
+    <section class="mobile-card mb-6">
+      <h2 class="text-xl font-bold mb-4">Current Patrol</h2>
+      
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <div class="text-sm" style="color: var(--text-secondary)">Start Time</div>
+          <div class="font-semibold" id="patrolStartTime">--:--</div>
+        </div>
+        <div>
+          <div class="text-sm" style="color: var(--text-secondary)">Duration</div>
+          <div class="font-semibold" id="patrolDuration">00:00</div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="text-sm mb-2" style="color: var(--text-secondary)">Current Location</div>
+        <div class="location-display" id="currentLocation">
+          <div>📍 Getting location...</div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button class="touch-btn success flex-1" id="startPatrolBtn" onclick="startPatrol()">
+          <span class="mr-2">▶️</span> Start Patrol
+        </button>
+        <button class="touch-btn danger flex-1 hidden" id="endPatrolBtn" onclick="endPatrol()">
+          <span class="mr-2">⏹️</span> End Patrol
+        </button>
+        <button class="touch-btn flex-1" onclick="addCheckpoint()">
+          <span class="mr-2">📍</span> Add Checkpoint
+        </button>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-3">Quick Actions</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <button class="touch-btn" onclick="reportIncident()">
+          <span class="mr-2">🚨</span> Report Incident
+        </button>
+        <button class="touch-btn" onclick="takeNote()">
+          <span class="mr-2">📝</span> Add Note
+        </button>
+        <button class="touch-btn" onclick="callForBackup()">
+          <span class="mr-2">📞</span> Call Backup
+        </button>
+        <button class="touch-btn" onclick="emergencyAlert()">
+          <span class="mr-2">🆘</span> Emergency
+        </button>
+      </div>
+    </section>
+
+    <!-- Today's Patrol Log -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-3">Today's Patrol Log</h3>
+      <div id="patrolEntries">
+        <div class="text-center py-8" style="color: var(--text-muted)">
+          No patrol entries yet. Start a patrol to begin logging.
+        </div>
+      </div>
+    </section>
+
+    <!-- Patrol History -->
+    <section class="mobile-card">
+      <h3 class="text-lg font-semibold mb-3">Recent Patrols</h3>
+      <div id="patrolHistory">
+        <div class="patrol-entry">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <div class="font-semibold">Yesterday's Patrol</div>
+              <div class="text-sm" style="color: var(--text-secondary)">2h 30m duration</div>
+            </div>
+            <div class="status-indicator status-complete"></div>
+          </div>
+          <div class="text-sm" style="color: var(--text-secondary)">
+            5 checkpoints • 1 incident reported
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-grid">
+      <a href="index.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="codes.html" class="nav-item">
+        <div class="nav-icon">📟</div>
+        <span>Codes</span>
+      </a>
+      <a href="incident.html" class="nav-item">
+        <div class="nav-icon">📝</div>
+        <span>Report</span>
+      </a>
+      <a href="patrol.html" class="nav-item active">
+        <div class="nav-icon">🚶</div>
+        <span>Patrol</span>
+      </a>
+      <a href="profile.html" class="nav-item">
+        <div class="nav-icon">👤</div>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Modals -->
+  <div id="checkpointModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold mb-4">📍 Add Checkpoint</h3>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Location/Area</label>
+        <input type="text" id="checkpointLocation" class="w-full p-3 rounded-lg border" 
+               style="background: var(--bg-secondary); border-color: var(--border-primary); color: var(--text-primary);"
+               placeholder="e.g., Main entrance, Parking lot A">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Notes (optional)</label>
+        <textarea id="checkpointNotes" rows="3" class="w-full p-3 rounded-lg border"
+                  style="background: var(--bg-secondary); border-color: var(--border-primary); color: var(--text-primary);"
+                  placeholder="Any observations or notes..."></textarea>
+      </div>
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="cancelCheckpoint()">Cancel</button>
+        <button class="touch-btn primary flex-1" onclick="saveCheckpoint()">Save Checkpoint</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="noteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-sm mx-4">
+      <h3 class="text-xl font-bold mb-4">📝 Add Note</h3>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2">Note</label>
+        <textarea id="patrolNote" rows="4" class="w-full p-3 rounded-lg border"
+                  style="background: var(--bg-secondary); border-color: var(--border-primary); color: var(--text-primary);"
+                  placeholder="Enter your patrol note..."></textarea>
+      </div>
+      <div class="flex gap-3">
+        <button class="touch-btn flex-1" onclick="cancelNote()">Cancel</button>
+        <button class="touch-btn primary flex-1" onclick="saveNote()">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPatrol = null;
+    let patrolTimer = null;
+    let watchId = null;
+
+    // Theme management
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    // Location tracking
+    function updateLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude.toFixed(6);
+            const lng = position.coords.longitude.toFixed(6);
+            const accuracy = Math.round(position.coords.accuracy);
+            document.getElementById('currentLocation').innerHTML = `
+              <div>📍 ${lat}, ${lng}</div>
+              <div style="color: var(--text-muted); font-size: 0.75rem;">±${accuracy}m accuracy</div>
+            `;
+          },
+          (error) => {
+            document.getElementById('currentLocation').innerHTML = `
+              <div style="color: var(--error);">📍 Location unavailable</div>
+              <div style="color: var(--text-muted); font-size: 0.75rem;">${error.message}</div>
+            `;
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+      }
+    }
+
+    // Patrol management
+    function startPatrol() {
+      currentPatrol = {
+        id: Date.now(),
+        startTime: new Date(),
+        checkpoints: [],
+        notes: []
+      };
+
+      document.getElementById('patrolStartTime').textContent = 
+        currentPatrol.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      document.getElementById('patrolStatus').className = 'status-indicator status-active';
+      document.getElementById('patrolStatusText').textContent = 'Patrol in progress';
+      
+      document.getElementById('startPatrolBtn').classList.add('hidden');
+      document.getElementById('endPatrolBtn').classList.remove('hidden');
+
+      // Start timer
+      patrolTimer = setInterval(updatePatrolDuration, 1000);
+
+      // Start location tracking
+      if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            currentPatrol.lastLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              timestamp: new Date()
+            };
+          },
+          null,
+          { enableHighAccuracy: true }
+        );
+      }
+
+      savePatrolState();
+      updateLocation();
+    }
+
+    function endPatrol() {
+      if (!currentPatrol) return;
+
+      currentPatrol.endTime = new Date();
+      
+      // Stop timer and location tracking
+      if (patrolTimer) {
+        clearInterval(patrolTimer);
+        patrolTimer = null;
+      }
+      
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+
+      // Save completed patrol
+      const patrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+      patrols.unshift(currentPatrol);
+      localStorage.setItem('completedPatrols', JSON.stringify(patrols.slice(0, 50))); // Keep last 50
+
+      // Reset UI
+      document.getElementById('patrolStatus').className = 'status-indicator status-pending';
+      document.getElementById('patrolStatusText').textContent = 'Ready to patrol';
+      document.getElementById('patrolStartTime').textContent = '--:--';
+      document.getElementById('patrolDuration').textContent = '00:00';
+      
+      document.getElementById('startPatrolBtn').classList.remove('hidden');
+      document.getElementById('endPatrolBtn').classList.add('hidden');
+
+      currentPatrol = null;
+      savePatrolState();
+      loadPatrolEntries();
+
+      alert('Patrol completed and saved!');
+    }
+
+    function updatePatrolDuration() {
+      if (!currentPatrol) return;
+      
+      const now = new Date();
+      const duration = now - currentPatrol.startTime;
+      const hours = Math.floor(duration / (1000 * 60 * 60));
+      const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+      
+      document.getElementById('patrolDuration').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+
+    // Checkpoint management
+    function addCheckpoint() {
+      if (!currentPatrol) {
+        alert('Please start a patrol first');
+        return;
+      }
+      document.getElementById('checkpointModal').classList.remove('hidden');
+      document.getElementById('checkpointModal').classList.add('flex');
+    }
+
+    function cancelCheckpoint() {
+      document.getElementById('checkpointModal').classList.add('hidden');
+      document.getElementById('checkpointModal').classList.remove('flex');
+      document.getElementById('checkpointLocation').value = '';
+      document.getElementById('checkpointNotes').value = '';
+    }
+
+    function saveCheckpoint() {
+      const location = document.getElementById('checkpointLocation').value.trim();
+      if (!location) {
+        alert('Please enter a location');
+        return;
+      }
+
+      const checkpoint = {
+        id: Date.now(),
+        location: location,
+        notes: document.getElementById('checkpointNotes').value.trim(),
+        timestamp: new Date(),
+        coordinates: currentPatrol.lastLocation
+      };
+
+      currentPatrol.checkpoints.push(checkpoint);
+      savePatrolState();
+      loadPatrolEntries();
+      cancelCheckpoint();
+    }
+
+    // Note management
+    function takeNote() {
+      if (!currentPatrol) {
+        alert('Please start a patrol first');
+        return;
+      }
+      document.getElementById('noteModal').classList.remove('hidden');
+      document.getElementById('noteModal').classList.add('flex');
+    }
+
+    function cancelNote() {
+      document.getElementById('noteModal').classList.add('hidden');
+      document.getElementById('noteModal').classList.remove('flex');
+      document.getElementById('patrolNote').value = '';
+    }
+
+    function saveNote() {
+      const noteText = document.getElementById('patrolNote').value.trim();
+      if (!noteText) {
+        alert('Please enter a note');
+        return;
+      }
+
+      const note = {
+        id: Date.now(),
+        text: noteText,
+        timestamp: new Date(),
+        coordinates: currentPatrol.lastLocation
+      };
+
+      currentPatrol.notes.push(note);
+      savePatrolState();
+      loadPatrolEntries();
+      cancelNote();
+    }
+
+    // Quick actions
+    function reportIncident() {
+      if (confirm('Navigate to incident report form?')) {
+        window.location.href = 'incident.html';
+      }
+    }
+
+    function callForBackup() {
+      if (confirm('Call for backup assistance?')) {
+        window.location.href = 'tel:555-0123'; // Supervisor number
+      }
+    }
+
+    function emergencyAlert() {
+      if (confirm('Send emergency alert? This will notify dispatch immediately.')) {
+        navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
+        alert('Emergency alert sent to dispatch!');
+      }
+    }
+
+    // Data persistence
+    function savePatrolState() {
+      localStorage.setItem('currentPatrol', JSON.stringify(currentPatrol));
+    }
+
+    function loadPatrolState() {
+      const saved = localStorage.getItem('currentPatrol');
+      if (saved) {
+        currentPatrol = JSON.parse(saved);
+        if (currentPatrol && currentPatrol.startTime) {
+          currentPatrol.startTime = new Date(currentPatrol.startTime);
+          
+          // Resume patrol UI
+          document.getElementById('patrolStartTime').textContent = 
+            currentPatrol.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          
+          document.getElementById('patrolStatus').className = 'status-indicator status-active';
+          document.getElementById('patrolStatusText').textContent = 'Patrol in progress';
+          
+          document.getElementById('startPatrolBtn').classList.add('hidden');
+          document.getElementById('endPatrolBtn').classList.remove('hidden');
+
+          // Resume timer
+          patrolTimer = setInterval(updatePatrolDuration, 1000);
+          updatePatrolDuration();
+        }
+      }
+    }
+
+    function loadPatrolEntries() {
+      const container = document.getElementById('patrolEntries');
+      
+      if (!currentPatrol || (!currentPatrol.checkpoints.length && !currentPatrol.notes.length)) {
+        container.innerHTML = `
+          <div class="text-center py-8" style="color: var(--text-muted)">
+            No patrol entries yet. Start a patrol to begin logging.
+          </div>
+        `;
+        return;
+      }
+
+      // Combine and sort entries
+      const entries = [
+        ...currentPatrol.checkpoints.map(c => ({ ...c, type: 'checkpoint' })),
+        ...currentPatrol.notes.map(n => ({ ...n, type: 'note' }))
+      ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      container.innerHTML = entries.map(entry => {
+        const time = new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const icon = entry.type === 'checkpoint' ? '📍' : '📝';
+        const title = entry.type === 'checkpoint' ? entry.location : 'Patrol Note';
+        const content = entry.type === 'checkpoint' ? entry.notes : entry.text;
+        
+        return `
+          <div class="patrol-entry">
+            <div class="flex items-start gap-3">
+              <div class="text-2xl">${icon}</div>
+              <div class="flex-1">
+                <div class="flex justify-between items-start mb-1">
+                  <div class="font-semibold">${title}</div>
+                  <div class="text-sm" style="color: var(--text-secondary)">${time}</div>
+                </div>
+                ${content ? `<div class="text-sm" style="color: var(--text-secondary)">${content}</div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      loadPatrolState();
+      loadPatrolEntries();
+      updateLocation();
+      setInterval(updateLocation, 30000); // Update location every 30 seconds
+    });
+
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && currentPatrol) {
+        updateLocation();
+      }
+    });
+  </script>
+</body>
+</html>

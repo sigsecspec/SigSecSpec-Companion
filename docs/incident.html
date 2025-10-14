@@ -6,14 +6,98 @@
   <title>Incident Report Generator — Signature Security Specialist</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root{ --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04); }
-    html,body{ background:#0f0f0f url('patch-bg.png') center center / 300px no-repeat; color:#fff; height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
+    :root {
+      /* Dark theme (default) */
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #121212;
+      --bg-tertiary: #1a1a1a;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666666;
+      --accent-primary: #a7b99e;
+      --accent-secondary: #43534a;
+      --border-primary: rgba(255, 255, 255, 0.1);
+      --border-secondary: rgba(255, 255, 255, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --shadow: rgba(0, 0, 0, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+      /* Legacy variables for backward compatibility */
+      --bg:#0f0f0f; --card:#121212; --muted:#bfc0b0; --accent:#aeae5a; --accent-2:#5c6249; --glass:rgba(255,255,255,0.04);
+    }
+
+    [data-theme="light"] {
+      /* Light theme */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-primary: #059669;
+      --accent-secondary: #065f46;
+      --border-primary: rgba(0, 0, 0, 0.1);
+      --border-secondary: rgba(0, 0, 0, 0.05);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --shadow: rgba(0, 0, 0, 0.1);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+    }
+
+    html,body{ background: var(--bg-primary) url('patch-bg.png') center center / 300px no-repeat; color: var(--text-primary); height:100%; margin:0; font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial; display:flex; flex-direction:column; }
     .app-card{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:1rem; }
-    #bottomNav{ position:fixed; left:0; right:0; bottom:0; width:100%; height:var(--bottom-nav-height,56px); display:flex; justify-content:space-around; align-items:center; gap:.25rem; background:rgba(17,17,17,0.9); backdrop-filter:saturate(180%) blur(10px); border-top:1px solid rgba(255,255,255,0.06); z-index:60; padding:0 .5rem calc(env(safe-area-inset-bottom,0px)); }
-    #bottomNav a{ flex:1 1 0; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .nav-link{ border-radius:10px; padding:.5rem .75rem; transition:background 160ms ease; }
-    .nav-link[aria-current="page"]{ background:rgba(255,255,255,0.08); }
-    #mainContent{ padding-bottom: calc(var(--bottom-nav-height,56px) + env(safe-area-inset-bottom,0px) + 12px); }
+    
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-primary);
+      padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.25rem;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem 0.25rem;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 60px;
+      justify-content: center;
+    }
+
+    .nav-item.active {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .nav-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    #mainContent{ padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
     .accent{ color:var(--accent); }
     .split-layout { display: flex; flex-direction: column; height: calc(100vh - 120px - var(--bottom-nav-height,56px)); }
     .report-section { flex: 1; overflow-y: auto; min-height: 40%; }
@@ -243,13 +327,30 @@ Start by filling in the basic incident information below...
     </section>
   </main>
 
-  <nav id="bottomNav">
-    <a href="index.html" class="nav-link">Home</a>
-    <a href="codes.html" class="nav-link">Codes</a>
-    <a href="radio.html" class="nav-link">Phonetics</a>
-    <a href="incident.html" class="nav-link" aria-current="page">Incident</a>
-    <a href="shift.html" class="nav-link">Shift</a>
-    <a href="reports.html" class="nav-link">Reports</a>
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-grid">
+      <a href="index.html" class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <span>Home</span>
+      </a>
+      <a href="codes.html" class="nav-item">
+        <div class="nav-icon">📟</div>
+        <span>Codes</span>
+      </a>
+      <a href="incident.html" class="nav-item active">
+        <div class="nav-icon">📝</div>
+        <span>Incident</span>
+      </a>
+      <a href="shift.html" class="nav-item">
+        <div class="nav-icon">📋</div>
+        <span>Shift</span>
+      </a>
+      <a href="reports.html" class="nav-item">
+        <div class="nav-icon">📊</div>
+        <span>Reports</span>
+      </a>
+    </div>
   </nav>
 
   <script>

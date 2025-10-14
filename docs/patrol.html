@@ -76,7 +76,7 @@
     <section class="mobile-card mb-6">
       <h2 class="text-xl font-bold mb-4">Current Patrol</h2>
       
-      <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-3 gap-4 mb-4">
         <div>
           <div class="text-sm" style="color: var(--text-secondary)">Start Time</div>
           <div class="font-semibold" id="patrolStartTime">--:--</div>
@@ -84,6 +84,10 @@
         <div>
           <div class="text-sm" style="color: var(--text-secondary)">Duration</div>
           <div class="font-semibold" id="patrolDuration">00:00</div>
+        </div>
+        <div>
+          <div class="text-sm" style="color: var(--text-secondary)">Current Time</div>
+          <div class="font-semibold" id="currentTimePatrol">--:--</div>
         </div>
       </div>
 
@@ -322,9 +326,20 @@
 
     // Patrol management
     function startPatrol() {
+      // Check if there's an active mission
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (!activeMission || activeMission.status !== 'active') {
+        if (confirm('No active mission found. Patrols should be conducted during active missions. Continue anyway?')) {
+          // Allow patrol without mission but warn user
+        } else {
+          return;
+        }
+      }
+      
       currentPatrol = {
         id: Date.now(),
         startTime: new Date(),
+        missionId: activeMission ? activeMission.id : null,
         checkpoints: [],
         notes: [],
         details: {
@@ -390,6 +405,16 @@
       const patrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
       patrols.unshift(currentPatrol);
       localStorage.setItem('completedPatrols', JSON.stringify(patrols.slice(0, 50))); // Keep last 50
+      
+      // Send patrol completion notification
+      if (window.securityNotifications) {
+        const duration = Math.floor((currentPatrol.endTime - currentPatrol.startTime) / (1000 * 60));
+        window.securityNotifications.showLocalNotification(
+          '✅ Patrol Completed',
+          `Patrol finished successfully. Duration: ${duration} minutes`,
+          { tag: 'patrol-complete' }
+        );
+      }
 
       // Reset UI
       document.getElementById('patrolStatus').className = 'status-indicator status-pending';
@@ -592,13 +617,48 @@
       }).join('');
     }
 
+    // Update current time display
+    function updateCurrentTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      const timeElement = document.getElementById('currentTimePatrol');
+      if (timeElement) {
+        timeElement.textContent = timeString;
+      }
+    }
+
+    // Handle URL parameters
+    function handleUrlParameters() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('start') === 'true' && !currentPatrol) {
+        // Auto-start patrol if URL parameter is set
+        setTimeout(() => {
+          if (confirm('Start patrol now?')) {
+            startPatrol();
+          }
+        }, 1000);
+      }
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       initTheme();
       loadPatrolState();
       loadPatrolEntries();
       updateLocation();
+      updateCurrentTime();
       setInterval(updateLocation, 30000); // Update location every 30 seconds
+      setInterval(updateCurrentTime, 1000); // Update current time every second
+      
+      // Check for active mission and schedule patrol notifications
+      checkActiveMissionAndScheduleNotifications();
+      
+      // Handle URL parameters
+      handleUrlParameters();
     });
 
     // Handle page visibility changes
@@ -654,6 +714,38 @@
         document.getElementById('patrolObservations').value = currentPatrol.details.observations || '';
         document.getElementById('securityConcerns').value = currentPatrol.details.securityConcerns || '';
       }
+    }
+
+    // Check for active mission and schedule patrol notifications
+    function checkActiveMissionAndScheduleNotifications() {
+      const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+      if (activeMission && activeMission.status === 'active') {
+        schedulePatrolNotifications();
+      }
+    }
+
+    // Schedule patrol notifications every hour during active mission
+    function schedulePatrolNotifications() {
+      // Clear any existing patrol notification interval
+      if (window.patrolNotificationInterval) {
+        clearInterval(window.patrolNotificationInterval);
+      }
+      
+      // Schedule notifications every hour
+      window.patrolNotificationInterval = setInterval(() => {
+        const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
+        if (activeMission && activeMission.status === 'active') {
+          if (window.securityNotifications) {
+            window.securityNotifications.sendPatrolReminder(
+              'assigned patrol areas',
+              'Active mission in progress'
+            );
+          }
+        } else {
+          // Clear interval if mission is no longer active
+          clearInterval(window.patrolNotificationInterval);
+        }
+      }, 60 * 60 * 1000); // Every hour
     }
   </script>
 </body>

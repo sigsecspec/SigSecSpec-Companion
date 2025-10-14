@@ -312,7 +312,7 @@ class SecurityNotificationManager {
     const notificationData = {
       type: 'patrol',
       title: '🚶 Patrol Reminder',
-      body: `Time to patrol ${area}. ${timeRemaining} remaining in shift.`,
+      body: `Time to patrol ${area}. ${timeRemaining}.`,
       data: {
         type: 'patrol',
         url: '/patrol.html?start=true',
@@ -325,6 +325,34 @@ class SecurityNotificationManager {
       notificationData.body,
       {
         tag: 'patrol-reminder',
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
+        data: notificationData.data
+      }
+    );
+
+    return notificationData;
+  }
+
+  // Send mission reminder
+  sendMissionReminder(mission, timeUntil) {
+    const notificationData = {
+      type: 'mission-reminder',
+      title: `📅 Mission Reminder`,
+      body: `${mission.title} starts ${timeUntil}`,
+      data: {
+        type: 'mission-reminder',
+        url: '/',
+        missionId: mission.id
+      }
+    };
+
+    this.showLocalNotification(
+      notificationData.title,
+      notificationData.body,
+      {
+        tag: `mission-reminder-${mission.id}`,
+        requireInteraction: timeUntil.includes('30 minutes') || timeUntil.includes('1 hour'),
         data: notificationData.data
       }
     );

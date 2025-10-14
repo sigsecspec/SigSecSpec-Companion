@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="push-notifications.js"></script>
+  <script src="popup-system.js"></script>
   <style>
     .patrol-entry {
       background: var(--bg-tertiary);
@@ -387,14 +388,14 @@
     function startPatrol() {
       // Check if patrol buttons are disabled
       if (shouldDisablePatrolButtons()) {
-        alert('Patrol is disabled - shift report has been submitted and no active mission. Please start a new mission to enable patrols.');
+        showWarning('Patrol is disabled - shift report has been submitted and no active mission. Please start a new mission to enable patrols.');
         return;
       }
       
       // Check if there's an active mission
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission || activeMission.status !== 'active') {
-        alert('You cannot start a patrol without an active mission. Please start a mission first from the Home page.');
+        showWarning('You cannot start a patrol without an active mission. Please start a mission first from the Home page.');
         return;
       }
       
@@ -496,7 +497,7 @@
       loadTodayMissionLog(); // Refresh today's mission log
       loadMissionPatrols(); // Refresh the mission patrols list
 
-      alert('Patrol completed and saved!');
+      showSuccess('Patrol completed and saved!');
     }
 
     function updatePatrolDuration() {
@@ -516,12 +517,12 @@
     function addCheckpoint() {
       // Check if patrol buttons are disabled
       if (shouldDisablePatrolButtons()) {
-        alert('Checkpoints are disabled - shift report has been submitted and no active mission. Please start a new mission to enable checkpoints.');
+        showWarning('Checkpoints are disabled - shift report has been submitted and no active mission. Please start a new mission to enable checkpoints.');
         return;
       }
       
       if (!currentPatrol) {
-        alert('Please start a patrol first');
+        showWarning('Please start a patrol first');
         return;
       }
       
@@ -530,7 +531,7 @@
         const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
         const completedMission = missionHistory.find(m => m.id === currentPatrol.missionId && m.status === 'completed');
         if (completedMission) {
-          alert('Cannot add checkpoints - mission is complete and no longer editable');
+          showWarning('Cannot add checkpoints - mission is complete and no longer editable');
           return;
         }
       }
@@ -570,14 +571,14 @@
       
       // Thorough validation - require location text
       if (!location) {
-        alert('Please enter a location/area for this checkpoint');
+        showWarning('Please enter a location/area for this checkpoint');
         document.getElementById('checkpointLocation').focus();
         return;
       }
       
       // Additional validation for thoroughness
       if (location.length < 3) {
-        alert('Location description must be at least 3 characters long');
+        showWarning('Location description must be at least 3 characters long');
         document.getElementById('checkpointLocation').focus();
         return;
       }
@@ -598,7 +599,7 @@
       loadPatrolEntries();
       
       // Show success message
-      alert(`Checkpoint saved successfully at ${checkpoint.location}`);
+      showSuccess(`Checkpoint saved successfully at ${checkpoint.location}`);
       
       // Close modal after successful save
       cancelCheckpoint();
@@ -608,12 +609,12 @@
     function takeNote() {
       // Check if patrol buttons are disabled
       if (shouldDisablePatrolButtons()) {
-        alert('Notes are disabled - shift report has been submitted and no active mission. Please start a new mission to enable notes.');
+        showWarning('Notes are disabled - shift report has been submitted and no active mission. Please start a new mission to enable notes.');
         return;
       }
       
       if (!currentPatrol) {
-        alert('Please start a patrol first');
+        showWarning('Please start a patrol first');
         return;
       }
       
@@ -622,7 +623,7 @@
         const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
         const completedMission = missionHistory.find(m => m.id === currentPatrol.missionId && m.status === 'completed');
         if (completedMission) {
-          alert('Cannot add notes - mission is complete and no longer editable');
+          showWarning('Cannot add notes - mission is complete and no longer editable');
           return;
         }
       }
@@ -640,7 +641,7 @@
     function saveNote() {
       const noteText = document.getElementById('patrolNote').value.trim();
       if (!noteText) {
-        alert('Please enter a note');
+        showWarning('Please enter a note');
         return;
       }
 
@@ -658,22 +659,22 @@
     }
 
     // Quick actions
-    function reportIncident() {
-      if (confirm('Navigate to incident report form?')) {
+    async function reportIncident() {
+      if (await showConfirm('Navigate to incident report form?')) {
         window.location.href = 'incident.html';
       }
     }
 
-    function callForBackup() {
-      if (confirm('Call for backup assistance?')) {
+    async function callForBackup() {
+      if (await showConfirm('Call for backup assistance?')) {
         window.location.href = 'tel:555-0123'; // Supervisor number
       }
     }
 
-    function emergencyAlert() {
-      if (confirm('Send emergency alert? This will notify dispatch immediately.')) {
+    async function emergencyAlert() {
+      if (await showEmergencyConfirm('Send emergency alert? This will notify dispatch immediately.')) {
         navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
-        alert('Emergency alert sent to dispatch!');
+        showSuccess('Emergency alert sent to dispatch!');
       }
     }
 
@@ -882,7 +883,7 @@
       }
       
       if (!mission) {
-        alert('Mission details not found');
+        showError('Mission details not found');
         return;
       }
       
@@ -919,7 +920,7 @@
         });
       }
       
-      alert(detailsText);
+      showInfo(detailsText, '🎯 Mission Details');
     }
     
     // Show standalone patrols
@@ -954,7 +955,7 @@
         detailsText += 'No standalone patrols found for today.';
       }
       
-      alert(detailsText);
+      showInfo(detailsText, '🎯 Mission Details');
     }
 
     // Update current time display
@@ -976,8 +977,8 @@
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('start') === 'true' && !currentPatrol) {
         // Auto-start patrol if URL parameter is set
-        setTimeout(() => {
-          if (confirm('Start patrol now?')) {
+        setTimeout(async () => {
+          if (await showConfirm('Start patrol now?')) {
             startPatrol();
           }
         }, 1000);
@@ -1104,7 +1105,7 @@
       const patrol = completedPatrols.find(p => String(p.id) === String(patrolId));
       
       if (!patrol) {
-        alert('Patrol details not found');
+        showError('Patrol details not found');
         return;
       }
       
@@ -1156,7 +1157,7 @@
         });
       }
       
-      alert(detailsText);
+      showInfo(detailsText, '🎯 Mission Details');
     }
 
     // Initialize
@@ -1190,7 +1191,7 @@
     // Patrol details functions
     function savePatrolDetails() {
       if (!currentPatrol) {
-        alert('Please start a patrol first');
+        showWarning('Please start a patrol first');
         return;
       }
 
@@ -1203,7 +1204,7 @@
       };
 
       savePatrolState();
-      alert('Patrol details saved!');
+      showSuccess('Patrol details saved!');
     }
 
     function clearPatrolDetails() {

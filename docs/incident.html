@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="push-notifications.js"></script>
   <script src="emergency-common.js"></script>
+  <script src="popup-system.js"></script>
   <style>
     .narrative-display { 
       background: var(--bg-tertiary); 
@@ -1147,7 +1148,7 @@ to authorized personnel only. Unauthorized disclosure is prohibited.
     
     function regenerateNarrative() {
       if (narrativeEditMode) {
-        alert('Please save your edits first before regenerating.');
+        showWarning('Please save your edits first before regenerating.');
         return;
       }
       generateReport();

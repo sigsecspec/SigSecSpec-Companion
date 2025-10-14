@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="push-notifications.js"></script>
+  <script src="popup-system.js"></script>
 </head>
 <body class="bg-pattern">
   <header class="app-header">
@@ -444,7 +445,7 @@
       
       // Vibrate device
       navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
-      alert('Emergency alert sent to dispatch!');
+      showSuccess('Emergency alert sent to dispatch!');
       cancelEmergency();
     }
 

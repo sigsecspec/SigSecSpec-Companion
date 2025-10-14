@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="push-notifications.js"></script>
   <script src="app-common.js"></script>
+  <script src="popup-system.js"></script>
 </head>
 <body class="bg-pattern">
   <!-- Header -->
@@ -553,7 +554,7 @@
       
       // Vibrate device
       navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
-      alert('Emergency alert sent to dispatch!');
+      showSuccess('Emergency alert sent to dispatch!');
       cancelEmergency();
     }
 
@@ -575,14 +576,14 @@
         (position) => {
           const lat = position.coords.latitude.toFixed(6);
           const lng = position.coords.longitude.toFixed(6);
-          alert(`Checked in at ${time}\nLocation: ${lat}, ${lng}`);
+          showSuccess(`Checked in at ${time}\nLocation: ${lat}, ${lng}`);
           
           // Update duty status
           localStorage.setItem('dutyStatus', 'on-duty');
           document.getElementById('statusText').textContent = 'On Duty';
         },
         () => {
-          alert(`Checked in at ${time}\nLocation: Not available`);
+          showSuccess(`Checked in at ${time}\nLocation: Not available`);
           localStorage.setItem('dutyStatus', 'on-duty');
           document.getElementById('statusText').textContent = 'On Duty';
         }
@@ -702,7 +703,7 @@
       
       // If shift report submitted but no active mission, disable patrol
       if (todayShiftReport && (!activeMission || activeMission.status !== 'active')) {
-        alert('Patrol is disabled - shift report has been submitted and no active mission. Please start a new mission to enable patrols.');
+        showWarning('Patrol is disabled - shift report has been submitted and no active mission. Please start a new mission to enable patrols.');
         return;
       }
       
@@ -902,7 +903,7 @@
       startMissionDirectly();
     }
     
-    function endMission() {
+    async function endMission() {
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       if (!activeMission) return;
       
@@ -916,7 +917,7 @@
       });
       
       if (!todayShiftReport) {
-        if (confirm('No shift report has been submitted today. Missions cannot be ended without a shift report. Would you like to go to the shift report page?')) {
+        if (await showConfirm('No shift report has been submitted today. Missions cannot be ended without a shift report. Would you like to go to the shift report page?')) {
           window.location.href = 'shift.html';
         }
         return;
@@ -1022,14 +1023,14 @@
     }
 
     // Equipment Check functions
-    function openEquipmentCheck() {
+    async function openEquipmentCheck() {
       // Load saved equipment check if exists
       const saved = JSON.parse(localStorage.getItem('lastEquipmentCheck') || '{}');
       const today = new Date().toDateString();
       
       // If check was done today, show completion message
       if (saved.date === today) {
-        if (confirm(`Equipment check already completed today at ${saved.time}. Do you want to do another check?`)) {
+        if (await showConfirm(`Equipment check already completed today at ${saved.time}. Do you want to do another check?`)) {
           // Reset checkboxes
           resetEquipmentForm();
         } else {
@@ -1058,7 +1059,7 @@
       document.getElementById('equipmentModal').classList.remove('flex');
     }
 
-    function saveEquipmentCheck() {
+    async function saveEquipmentCheck() {
       const checkData = {
         date: new Date().toDateString(),
         time: new Date().toLocaleTimeString(),
@@ -1078,7 +1079,7 @@
       const allChecked = Object.values(checkData.items).every(item => item === true);
       
       if (!allChecked) {
-        if (!confirm('Not all items are checked. Continue anyway?')) {
+        if (!(await showConfirm('Not all items are checked. Continue anyway?'))) {
           return;
         }
       }
@@ -1091,7 +1092,7 @@
       history.unshift(checkData);
       localStorage.setItem('equipmentCheckHistory', JSON.stringify(history.slice(0, 30))); // Keep last 30
       
-      alert('Equipment check completed and saved!');
+      showSuccess('Equipment check completed and saved!');
       closeEquipmentCheck();
       
       // Update recent activity
@@ -1219,7 +1220,7 @@
           }
         );
       } else {
-        alert('Push notifications are not enabled. Please enable them in settings.');
+        showWarning('Push notifications are not enabled. Please enable them in settings.');
       }
     }
 
@@ -1588,7 +1589,7 @@
       const enableNotifications = document.getElementById('enableNotifications').checked;
       
       if (!title || !date || !startTime || !endTime) {
-        alert('Please fill in all required fields');
+        showWarning('Please fill in all required fields');
         return;
       }
       
@@ -1620,7 +1621,7 @@
       closeMissionScheduler();
       updateMyMissions();
       
-      alert('Mission scheduled successfully!');
+      showSuccess('Mission scheduled successfully!');
     }
     
     function updateMyMissions() {

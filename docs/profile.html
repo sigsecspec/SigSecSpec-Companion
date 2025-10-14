@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="push-notifications.js"></script>
   <script src="emergency-common.js"></script>
+  <script src="popup-system.js"></script>
   <style>
     .avatar {
       width: 80px;
@@ -390,7 +391,7 @@
         avatar.textContent = profile.name.charAt(0).toUpperCase();
       }
       
-      alert('Profile saved successfully!');
+      showSuccess('Profile saved successfully!');
     }
 
     // Contact management
@@ -433,7 +434,7 @@
       localStorage.setItem('emergencyContacts', JSON.stringify(contacts));
       loadContacts();
       cancelEditContacts();
-      alert('Emergency contacts saved!');
+      showSuccess('Emergency contacts saved!');
     }
 
     // Permission requests
@@ -450,7 +451,7 @@
               document.getElementById('locationBtn').classList.add('primary');
             },
             () => {
-              alert('Location access denied. Please enable in browser settings.');
+              showWarning('Location access denied. Please enable in browser settings.');
             }
           );
         }
@@ -470,7 +471,7 @@
             icon: '/icon-192.png'
           });
         } else {
-          alert('Notification permission denied.');
+          showWarning('Notification permission denied.');
         }
       } catch (error) {
         console.error('Notification permission error:', error);
@@ -510,11 +511,11 @@
         if (!file) return;
         
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           try {
             const data = JSON.parse(e.target.result);
             
-            if (confirm('This will overwrite your current data. Continue?')) {
+            if (await showConfirm('This will overwrite your current data. Continue?')) {
               if (data.profile) localStorage.setItem('userProfile', JSON.stringify(data.profile));
               if (data.contacts) localStorage.setItem('emergencyContacts', JSON.stringify(data.contacts));
               if (data.patrols) localStorage.setItem('completedPatrols', JSON.stringify(data.patrols));
@@ -525,10 +526,10 @@
                 if (data.settings.largeText) localStorage.setItem('largeText', data.settings.largeText);
               }
               
-              alert('Data imported successfully! Please refresh the page.');
+              showSuccess('Data imported successfully! Please refresh the page.');
             }
           } catch (error) {
-            alert('Invalid backup file format.');
+            showError('Invalid backup file format.');
           }
         };
         reader.readAsText(file);
@@ -536,24 +537,24 @@
       input.click();
     }
 
-    function clearCache() {
-      if (confirm('Clear app cache? This will not delete your saved data.')) {
+    async function clearCache() {
+      if (await showConfirm('Clear app cache? This will not delete your saved data.')) {
         // Clear service worker cache if available
         if ('caches' in window) {
           caches.keys().then(names => {
             names.forEach(name => caches.delete(name));
           });
         }
-        alert('Cache cleared successfully!');
+        showSuccess('Cache cleared successfully!');
       }
     }
 
-    function resetApp() {
-      if (confirm('This will delete ALL your data and reset the app. This cannot be undone. Continue?')) {
-        if (confirm('Are you absolutely sure? This will permanently delete all your reports, patrols, and settings.')) {
+    async function resetApp() {
+      if (await showConfirm('This will delete ALL your data and reset the app. This cannot be undone. Continue?')) {
+        if (await showConfirm('Are you absolutely sure? This will permanently delete all your reports, patrols, and settings.')) {
           localStorage.clear();
           sessionStorage.clear();
-          alert('App reset successfully! The page will now reload.');
+          showSuccess('App reset successfully! The page will now reload.');
           window.location.reload();
         }
       }

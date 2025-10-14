@@ -1,6 +1,7 @@
 /**
  * Common Emergency Functions for Security Companion
  * Include this script and add the emergency modal HTML to any page
+ * Requires: popup-system.js
  */
 
 // Emergency functions
@@ -30,7 +31,7 @@ function confirmEmergency() {
   );
   
   navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
-  alert('Emergency alert sent to dispatch!');
+  showSuccess('Emergency alert sent to dispatch!');
   cancelEmergency();
 }
 

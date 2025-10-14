@@ -2097,3 +2097,333 @@ html, body {
     transition-duration: 0.1s !important;
   }
 }
+
+/* Page Transition System - Sleek Navigation Animations */
+.page-transition-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--black) 0%, var(--ebony) 50%, var(--black) 100%);
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.page-transition-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.page-transition-content {
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.page-transition-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  border-radius: 20px;
+  background: var(--gradient-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  animation: transitionPulse 1s ease-in-out infinite;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(156, 175, 136, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.page-transition-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--sage-light) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-transition-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+@keyframes transitionPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(156, 175, 136, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(156, 175, 136, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Page Content Animation */
+.page-content {
+  animation: pageSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes pageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header and Nav Enhanced Transitions */
+.app-header {
+  animation: headerSlideDown 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.bottom-nav {
+  animation: navSlideUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes headerSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes navSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced Nav Item Transitions */
+.nav-item {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(156, 175, 136, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-item:hover::before {
+  left: 100%;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 3px;
+  background: var(--sage);
+  border-radius: 2px;
+  animation: activeIndicator 0.3s ease;
+}
+
+@keyframes activeIndicator {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+  100% {
+    width: 30px;
+    opacity: 1;
+  }
+}
+
+/* Smooth Navigation Click Effects */
+.nav-item-clicked {
+  animation: navItemClick 0.2s ease;
+}
+
+@keyframes navItemClick {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Enhanced Header Logo Animation */
+.app-logo {
+  animation: logoFadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes logoFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Header Content Stagger Animation */
+.header-content h1 {
+  animation: headerTitleSlide 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-delay: 0.1s;
+  animation-fill-mode: both;
+}
+
+.header-content p {
+  animation: headerSubtitleSlide 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+}
+
+.header-actions {
+  animation: headerActionsSlide 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-delay: 0.3s;
+  animation-fill-mode: both;
+}
+
+@keyframes headerTitleSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes headerSubtitleSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes headerActionsSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Main Content Enhanced Animation */
+.main-content {
+  animation: mainContentFadeIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+}
+
+@keyframes mainContentFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Emergency Button Enhanced Animation */
+.emergency-btn-fixed {
+  animation: emergencyBtnSlide 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-delay: 0.5s;
+  animation-fill-mode: both;
+}
+
+@keyframes emergencyBtnSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(100px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Page Exit Animation */
+.page-exit {
+  animation: pageSlideOut 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes pageSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-overlay,
+  .app-header,
+  .bottom-nav,
+  .main-content,
+  .emergency-btn-fixed,
+  .nav-item,
+  .app-logo,
+  .header-content h1,
+  .header-content p,
+  .header-actions {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .page-content {
+    animation: none !important;
+  }
+}

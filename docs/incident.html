@@ -36,23 +36,31 @@
   </header>
 
   <main id="mainContent" class="flex-1 overflow-auto p-5">
-    <section class="max-w-4xl mx-auto space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end controls-bar">
-        <div class="text-sm text-gray-300">Incident Report</div>
-        <div class="flex flex-wrap gap-2 md:justify-end">
-          <button id="btnImportIncident" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Import Latest Incident</button>
-          <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Draft</button>
-          <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Load Draft</button>
-          <button id="btnClear" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Clear</button>
-          <button id="btnSaveReport" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Save Report</button>
-          <button id="btnCopy" class="px-3 py-2 rounded-md bg-[#111] border border-white/10">Copy</button>
+    <section class="max-w-6xl mx-auto space-y-4">
+      <!-- TOP HALF: Report Display and Controls -->
+      <div class="app-card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-white">📝 Generated Incident Report</h2>
+          <div class="flex flex-wrap gap-2">
+            <button id="btnImportIncident" class="px-3 py-2 rounded-md bg-[#2a2a2a] border border-white/20 hover:bg-[#333] transition-colors">📥 Import Latest</button>
+            <button id="btnSaveDraft" class="px-3 py-2 rounded-md bg-[#2a2a2a] border border-white/20 hover:bg-[#333] transition-colors">💾 Save Draft</button>
+            <button id="btnLoadDraft" class="px-3 py-2 rounded-md bg-[#2a2a2a] border border-white/20 hover:bg-[#333] transition-colors">📂 Load Draft</button>
+            <button id="btnClear" class="px-3 py-2 rounded-md bg-[#2a2a2a] border border-white/20 hover:bg-[#333] transition-colors">🗑️ Clear</button>
+            <button id="btnSaveReport" class="px-3 py-2 rounded-md bg-green-700 border border-green-600 hover:bg-green-600 transition-colors text-white font-semibold">💾 Save Report</button>
+            <button id="btnCopy" class="px-3 py-2 rounded-md bg-blue-700 border border-blue-600 hover:bg-blue-600 transition-colors text-white font-semibold">📋 Copy Report</button>
+          </div>
+        </div>
+        <div id="statusLine" class="text-sm text-gray-400 mb-3"></div>
+        <div class="bg-[#0a0a0a] border border-white/10 rounded-lg p-4 max-h-96 overflow-y-auto">
+          <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200 font-mono leading-relaxed" style="direction: ltr; text-align: left;"></pre>
         </div>
       </div>
-      <div id="statusLine" class="text-sm text-gray-400"></div>
-      <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
+      <!-- BOTTOM HALF: Input Forms -->
       <div class="app-card">
-        <div class="font-semibold mb-2">Preview</div>
-        <pre id="templatePreview" class="whitespace-pre-wrap text-sm text-gray-200"></pre>
+        <h2 class="text-xl font-bold text-white mb-4">📋 Fill Out Incident Details</h2>
+        <div class="text-sm text-gray-400 mb-4">Complete the fields below and the system will automatically generate a professional incident report above.</div>
+        <div id="formControls" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
       </div>
     </section>
   </main>
@@ -89,32 +97,75 @@
       id: 'incident_report',
       name: 'Incident Report',
       fields: [
-        { key:'dateTime', label:'Date / Time', type:'datetime-local' },
-        { key:'guardName', label:'Guard Name', type:'text' },
-        { key:'post', label:'Post / Location', type:'text' },
-        { key:'location', label:'Where (Location)', type:'text' },
-        { key:'locationDetails', label:'Where (Details)', type:'text' },
-        { key:'incidentType', label:'Incident Type', type:'select', options:['Trespass','Disturbance','Theft','Medical','Property Damage','Other'] },
-        { key:'participants', label:'Who (Participants)', type:'participants', roles:['Suspect','Victim','Witness'] },
-        { key:'what', label:'Narrative', type:'textarea', rows:4, placeholder:'Objective narrative. Tip: tap role labels below to insert tokens (e.g., suspect1); tokens expand to names in preview.' },
-        { key:'details', label:'Actions Taken / Additional Details', type:'textarea', rows:4 },
-        { key:'injuries', label:'Injuries', type:'textarea', rows:2 },
-        { key:'evidence', label:'Evidence/Attachments', type:'textarea', rows:2 },
-        { key:'reportingParty', label:'Reporting Party', type:'text' }
+        { key:'dateTime', label:'📅 Date / Time of Incident', type:'datetime-local' },
+        { key:'guardName', label:'👮 Reporting Officer Name', type:'text' },
+        { key:'post', label:'🏢 Assigned Post / Location', type:'text' },
+        { key:'location', label:'📍 Incident Location (Address/Building)', type:'text' },
+        { key:'locationDetails', label:'🗺️ Specific Location Details (Room, Floor, etc.)', type:'text' },
+        { key:'incidentType', label:'⚠️ Type of Incident', type:'select', options:['Trespass','Disturbance','Theft','Assault','Medical Emergency','Property Damage','Suspicious Activity','Alarm Response','Vehicle Incident','Fire/Safety','Other'] },
+        { key:'participants', label:'👥 People Involved', type:'participants', roles:['Suspect','Victim','Witness','Complainant'] },
+        { key:'what', label:'📝 What Happened (Narrative)', type:'textarea', rows:6, placeholder:'Describe what happened in chronological order. Be objective and factual. Use tokens like suspect1, victim1, witness1 which will be anonymized in the final report. Example: "At approximately 14:30, suspect1 was observed entering the restricted area without authorization. When approached by security, suspect1 became verbally aggressive..."' },
+        { key:'howDiscovered', label:'🔍 How Was Incident Discovered?', type:'select', options:['Direct Observation','Alarm Activation','Radio Call','Phone Call','Patrol Check','Reported by Staff','Reported by Public','Video Surveillance','Other'] },
+        { key:'details', label:'🎯 Actions Taken by Officer', type:'textarea', rows:4, placeholder:'Detail all actions you took: notifications made, people contacted, areas secured, evidence preserved, etc.' },
+        { key:'injuries', label:'🏥 Injuries / Medical Attention', type:'textarea', rows:3, placeholder:'Describe any injuries sustained and medical attention provided. If none, state "No injuries reported."' },
+        { key:'propertyDamage', label:'💰 Property Damage', type:'textarea', rows:2, placeholder:'Describe any property damage. Include estimated costs if known. If none, state "No property damage observed."' },
+        { key:'evidence', label:'📸 Evidence / Property Involved', type:'textarea', rows:3, placeholder:'List evidence collected, photos taken, property involved, etc.' },
+        { key:'witnesses', label:'👁️ Additional Witness Information', type:'textarea', rows:2, placeholder:'Any additional witness details not captured above' },
+        { key:'notifications', label:'📞 Notifications Made', type:'textarea', rows:3, placeholder:'List who was notified: supervisor, police, EMS, client, etc. Include times if known.' },
+        { key:'followUp', label:'📋 Follow-up Required', type:'select', options:['None Required','Police Report Filed','Supervisor Review','Client Notification','Investigation Pending','Court Appearance','Other'] },
+        { key:'reportingParty', label:'📱 Reporting Party (if different from officer)', type:'text' },
+        { key:'weatherConditions', label:'🌤️ Weather/Environmental Conditions', type:'text', placeholder:'e.g., Clear, Rainy, Dark, Well-lit, etc.' }
       ],
       body: (
-        'Incident Report\n' +
-        'Who:\n{whoSection}\n\n' +
-        'Narrative:\n{whatExpanded}\n\n' +
-        'When:\n{when}\n\n' +
-        'Where:\n{where}\n\n' +
-        'Type: {incidentType}\n' +
-        'Details:\n{detailsExpanded}\n\n' +
-        'Injuries:\n{injuries}\n\n' +
-        'Evidence/Attachments:\n{evidence}\n\n' +
-        'Reporting Party: {reportingParty}\n' +
-        'Officer: {guardName}\n' +
-        'Post: {post}'
+        '=== SECURITY INCIDENT REPORT ===\n\n' +
+        'REPORT NUMBER: [To be assigned]\n' +
+        'INCIDENT DATE/TIME: {when}\n' +
+        'REPORT FILED: {currentDateTime}\n' +
+        'REPORTING OFFICER: {guardName}\n' +
+        'ASSIGNED POST: {post}\n' +
+        'INCIDENT CLASSIFICATION: {incidentType}\n' +
+        'WEATHER CONDITIONS: {weatherConditions}\n\n' +
+        '--- INCIDENT LOCATION ---\n' +
+        'PRIMARY LOCATION: {location}\n' +
+        'SPECIFIC DETAILS: {locationDetails}\n\n' +
+        '--- INCIDENT DISCOVERY ---\n' +
+        'DISCOVERED BY: {howDiscovered}\n\n' +
+        '--- PARTIES INVOLVED ---\n' +
+        '{whoSection}\n\n' +
+        '--- DETAILED NARRATIVE ---\n' +
+        'On {when}, while assigned to {post}, I {howDiscovered} a {incidentType} incident at {location}.\n\n' +
+        'CHRONOLOGICAL SEQUENCE OF EVENTS:\n' +
+        '{whatExpanded}\n\n' +
+        '--- OFFICER ACTIONS TAKEN ---\n' +
+        '{detailsExpanded}\n\n' +
+        '--- NOTIFICATIONS MADE ---\n' +
+        '{notifications}\n\n' +
+        '--- INJURIES/MEDICAL ATTENTION ---\n' +
+        '{injuries}\n\n' +
+        '--- PROPERTY DAMAGE ASSESSMENT ---\n' +
+        '{propertyDamage}\n\n' +
+        '--- EVIDENCE/PROPERTY INVOLVED ---\n' +
+        '{evidence}\n\n' +
+        '--- WITNESS INFORMATION ---\n' +
+        '{witnesses}\n\n' +
+        '--- REPORTING PARTY ---\n' +
+        'Initial Reporter: {reportingParty}\n\n' +
+        '--- CASE STATUS ---\n' +
+        'Follow-up Required: {followUp}\n' +
+        'Case Status: Open - Under Review\n' +
+        'Supervisor Review Required: Yes\n\n' +
+        '--- OFFICER CERTIFICATION ---\n' +
+        'I certify that the information contained in this report is true and accurate to the best of my knowledge and belief.\n\n' +
+        'Reporting Officer: {guardName}\n' +
+        'Badge/Employee ID: [To be filled]\n' +
+        'Officer Signature: ________________________\n' +
+        'Date Signed: _______________\n\n' +
+        '--- SUPERVISOR REVIEW ---\n' +
+        'Reviewed By: ________________________\n' +
+        'Supervisor Signature: ________________________\n' +
+        'Date Reviewed: _______________\n' +
+        'Comments: ________________________\n\n' +
+        'END OF REPORT'
       )
     };
 
@@ -127,44 +178,47 @@
       if (r.startsWith('sus')) return 'suspect';
       if (r.startsWith('vic')) return 'victim';
       if (r.startsWith('wit')) return 'witness';
+      if (r.startsWith('comp')) return 'complainant';
       if (r.startsWith('subj')) return 'suspect';
       return r || 'other';
     }
-    function groupParticipants(list){
-      const groups = { suspect: [], victim: [], witness: [], other: [] };
-      ensureArray(list).forEach(p => {
-        const name = (p && p.name) ? String(p.name).trim() : '';
-        const role = normalizeRole(p && p.role);
-        groups[role] = groups[role] || [];
-        groups[role].push(name);
-      });
-      Object.keys(groups).forEach(k => { groups[k] = groups[k].filter(Boolean); });
-      return groups;
-    }
+      function groupParticipants(list){
+        const groups = { suspect: [], victim: [], witness: [], complainant: [], other: [] };
+        ensureArray(list).forEach(p => {
+          const name = (p && p.name) ? String(p.name).trim() : '';
+          const role = normalizeRole(p && p.role);
+          groups[role] = groups[role] || [];
+          groups[role].push(name);
+        });
+        Object.keys(groups).forEach(k => { groups[k] = groups[k].filter(Boolean); });
+        return groups;
+      }
     function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-    function buildTokenMap(groups){
-      const map = {};
-      const add = (base, names) => { names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = nm; }); };
-      add('suspect', groups.suspect||[]);
-      add('subject', groups.suspect||[]);
-      add('victim', groups.victim||[]);
-      add('witness', groups.witness||[]);
-      return map;
-    }
+      function buildTokenMap(groups){
+        const map = {};
+        const add = (base, names) => { names.forEach((nm, idx) => { if (!nm) return; map[base + String(idx+1)] = base.charAt(0).toUpperCase() + base.slice(1) + String(idx+1); }); };
+        add('suspect', groups.suspect||[]);
+        add('subject', groups.suspect||[]);
+        add('victim', groups.victim||[]);
+        add('witness', groups.witness||[]);
+        add('complainant', groups.complainant||[]);
+        return map;
+      }
     function expandTokens(text, tokenMap){
       const keys = Object.keys(tokenMap);
       if (!text || keys.length === 0) return text || '';
       const pattern = new RegExp('\\b(' + keys.map(escapeRegExp).join('|') + ')\\b', 'gi');
       return text.replace(pattern, (m) => tokenMap[m.toLowerCase()] || m);
     }
-    function buildWhoSection(groups){
-      const lines = [];
-      const pushLines = (label, arr) => { arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${nm}`); }); };
-      if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
-      if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
-      if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
-      return lines.length ? lines.join('\n') : 'N/A';
-    }
+      function buildWhoSection(groups){
+        const lines = [];
+        const pushLines = (label, arr) => { arr.forEach((nm, i) => { lines.push(`- ${label} ${i+1}: ${label}${i+1}`); }); };
+        if ((groups.suspect||[]).length) pushLines('Suspect', groups.suspect);
+        if ((groups.victim||[]).length) pushLines('Victim', groups.victim);
+        if ((groups.witness||[]).length) pushLines('Witness', groups.witness);
+        if ((groups.complainant||[]).length) pushLines('Complainant', groups.complainant);
+        return lines.length ? lines.join('\n') : 'N/A';
+      }
     function insertAtCursor(textarea, text){
       if(!textarea) return;
       const start = textarea.selectionStart || 0;
@@ -183,24 +237,36 @@
       insertAtCursor(ta, toInsert + ' ');
       ta.dispatchEvent(new Event('input', { bubbles:true }));
     }
-    function compileBody(){
-      const participants = ensureArray(fieldValues.participants);
-      const groups = groupParticipants(participants);
-      const tokenMap = buildTokenMap(groups);
-      const whenText = toDisplay(fieldValues.dateTime);
-      const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
-      const computed = {
-        whoSection: buildWhoSection(groups),
-        when: whenText,
-        where: whereText,
-        whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
-        detailsExpanded: expandTokens(fieldValues.details || '', tokenMap)
-      };
-      return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> (k in computed) ? toDisplay(computed[k]) : toDisplay(fieldValues[k]));
-    }
+      function compileBody(){
+        const participants = ensureArray(fieldValues.participants);
+        const groups = groupParticipants(participants);
+        const tokenMap = buildTokenMap(groups);
+        const whenText = toDisplay(fieldValues.dateTime);
+        const whereText = toDisplay([fieldValues.location||'', fieldValues.locationDetails||''].filter(Boolean).join(' — '));
+        const currentDateTime = new Date().toLocaleString();
+        const computed = {
+          whoSection: buildWhoSection(groups),
+          when: whenText,
+          where: whereText,
+          currentDateTime: currentDateTime,
+          whatExpanded: expandTokens(fieldValues.what || '', tokenMap),
+          detailsExpanded: expandTokens(fieldValues.details || '', tokenMap),
+          location: toDisplay(fieldValues.location),
+          locationDetails: toDisplay(fieldValues.locationDetails),
+          howDiscovered: toDisplay(fieldValues.howDiscovered).toLowerCase(),
+          injuries: toDisplay(fieldValues.injuries),
+          propertyDamage: toDisplay(fieldValues.propertyDamage),
+          evidence: toDisplay(fieldValues.evidence),
+          witnesses: toDisplay(fieldValues.witnesses),
+          notifications: toDisplay(fieldValues.notifications),
+          followUp: toDisplay(fieldValues.followUp),
+          weatherConditions: toDisplay(fieldValues.weatherConditions)
+        };
+        return TEMPLATE.body.replace(/\{(.*?)\}/g, (_,k)=> (k in computed) ? computed[k] : toDisplay(fieldValues[k]));
+      }
 
     function saveIncidentReport(){
-      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Who, What, When, and Where before saving.'; return; }
+      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Officer Name, Incident Type, Date/Time, Location, People Involved, and Narrative before saving.'; return; }
       const bodyText = compileBody();
       const arr = loadJson(STORE_KEYS.savedIncidentReports, []);
       const record = {
@@ -369,16 +435,18 @@
     function isIncidentWsComplete(){
       const hasWhat = String(fieldValues.what||'').trim().length > 0;
       const hasWhen = String(fieldValues.dateTime||'').trim().length > 0;
-      const hasWhere = String([fieldValues.location||'', fieldValues.locationDetails||''].join('')).trim().length > 0;
+      const hasWhere = String(fieldValues.location||'').trim().length > 0;
+      const hasType = String(fieldValues.incidentType||'').trim().length > 0;
+      const hasOfficer = String(fieldValues.guardName||'').trim().length > 0;
       const participants = ensureArray(fieldValues.participants);
       const hasWho = participants.some(p => (p && String(p.name||'').trim().length > 0));
-      return hasWhat && hasWhen && hasWhere && hasWho;
+      return hasWhat && hasWhen && hasWhere && hasType && hasOfficer && hasWho;
     }
 
     async function copyToClipboard(){
-      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Who, What, When, and Where before copying.'; return; }
+      if (!isIncidentWsComplete()) { statusEl.textContent='Please complete Officer Name, Incident Type, Date/Time, Location, People Involved, and Narrative before copying.'; return; }
       const text = compileBody();
-      try{ await navigator.clipboard.writeText(text); statusEl.textContent='Copied to clipboard.'; }
+      try{ await navigator.clipboard.writeText(text); statusEl.textContent='Report copied to clipboard successfully!'; }
       catch{
         try{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); statusEl.textContent='Copied to clipboard.'; }
         catch{ statusEl.textContent='Copy failed. Select and copy manually.'; }

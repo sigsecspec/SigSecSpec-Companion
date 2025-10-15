@@ -424,7 +424,7 @@ class SecurityNotificationManager {
     const statusElements = document.querySelectorAll('[data-notification-status]');
     statusElements.forEach(element => {
       element.textContent = enabled ? 'Notifications: ON' : 'Notifications: OFF';
-      element.style.color = enabled ? 'var(--success)' : 'var(--text-muted)';
+      element.style.color = 'white';
     });
 
     const toggleButtons = document.querySelectorAll('[data-notification-toggle]');

@@ -25,9 +25,9 @@
   --bg-quaternary: #363636;
   --bg-elevated: rgba(44, 44, 44, 0.95);
   --text-primary: var(--white);
-  --text-secondary: var(--silver);
-  --text-muted: var(--silver-dark);
-  --text-accent: var(--off-white);
+  --text-secondary: var(--white);
+  --text-muted: var(--white);
+  --text-accent: var(--white);
   --accent-primary: var(--sage);
   --accent-secondary: var(--sage-dark);
   --accent-hover: var(--sage-light);
@@ -82,10 +82,10 @@
   --bg-tertiary: var(--silver-light);
   --bg-quaternary: var(--silver);
   --bg-elevated: var(--white);
-  --text-primary: var(--black);
-  --text-secondary: var(--ebony);
-  --text-muted: #666666;
-  --text-accent: var(--black);
+  --text-primary: var(--white);
+  --text-secondary: var(--white);
+  --text-muted: var(--silver-light);
+  --text-accent: var(--white);
   --accent-primary: var(--sage-dark);
   --accent-secondary: var(--sage);
   --accent-hover: var(--sage);
@@ -152,7 +152,7 @@ input, textarea, [contenteditable] {
 
 html, body {
   background: var(--gradient-primary);
-  color: var(--text-primary);
+  color: var(--white) !important;
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', sans-serif;
   display: flex;
@@ -163,6 +163,104 @@ html, body {
   text-rendering: optimizeLegibility;
   font-feature-settings: 'kern' 1, 'liga' 1;
   line-height: 1.5;
+}
+
+/* Global white font enforcement */
+*, *::before, *::after {
+  color: var(--white) !important;
+}
+
+/* Preserve button text colors for visibility */
+.touch-btn.primary,
+.touch-btn.success,
+.touch-btn.danger,
+.touch-btn.warning {
+  color: white !important;
+}
+
+/* Link styling to ensure visibility while keeping theme */
+a {
+  color: var(--sage-light) !important;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--sage) !important;
+  text-decoration: underline;
+}
+
+a:visited {
+  color: var(--sage-dark) !important;
+}
+
+a:focus {
+  color: var(--sage-lighter) !important;
+  outline: 2px solid var(--sage-light);
+  outline-offset: 2px;
+}
+
+/* Special link types */
+a[href^="tel:"] {
+  color: var(--sage-light) !important;
+}
+
+a[href^="tel:"]:hover {
+  color: var(--sage-lighter) !important;
+}
+
+/* Interactive card links */
+a.mobile-card {
+  color: var(--white) !important;
+}
+
+a.mobile-card:hover {
+  color: var(--white) !important;
+}
+
+/* Navigation links styling */
+.nav-item {
+  color: var(--silver-light) !important;
+}
+
+.nav-item.active {
+  color: white !important;
+}
+
+.nav-item:hover {
+  color: var(--white) !important;
+}
+
+/* Form elements - ensure white text */
+.form-input, .form-textarea, .form-select {
+  color: var(--white) !important;
+}
+
+.form-input::placeholder, .form-textarea::placeholder {
+  color: var(--silver-light) !important;
+}
+
+/* Status indicators and special elements */
+.status-indicator + span {
+  color: var(--white) !important;
+}
+
+/* Ensure header content is white */
+.header-content h1,
+.header-content p {
+  color: var(--white) !important;
+}
+
+/* Modal and card content */
+.modal-body,
+.mobile-card {
+  color: var(--white) !important;
+}
+
+/* Loading screen text */
+.loading-text,
+.loading-subtitle {
+  color: var(--white) !important;
 }
 
 /* Ultra-Refined Background Pattern - Pixel Perfect Design */
@@ -854,7 +952,7 @@ html, body {
   padding: 0.625rem 0.375rem;
   border-radius: var(--radius-md);
   text-decoration: none;
-  color: var(--silver-dark);
+  color: var(--white) !important;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -870,7 +968,7 @@ html, body {
   background: 
     linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent);
-  color: white;
+  color: white !important;
   box-shadow: 
     0 2px 8px rgba(156, 175, 136, 0.25),
     0 1px 4px rgba(0, 0, 0, 0.08),
@@ -880,7 +978,7 @@ html, body {
 
 .nav-item:not(.active):hover {
   background: var(--gradient-glass);
-  color: var(--text-primary);
+  color: var(--white) !important;
   transform: translateY(-2px) scale(1.05);
   box-shadow: 
     0 8px 20px var(--shadow),
@@ -1799,11 +1897,12 @@ html, body {
   }
   
   body {
-    background: white !important;
-    color: black !important;
+    background: black !important;
+    color: white !important;
   }
   
   * {
+    color: white !important;
     color-adjust: exact;
     print-color-adjust: exact;
   }

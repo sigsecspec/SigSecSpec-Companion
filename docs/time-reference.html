@@ -50,89 +50,120 @@
     }
   }
 
-  .phonetic-grid {
+  .timezone-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.5rem;
-  }
-
-  @media (max-width: 640px) {
-    .phonetic-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  .phonetic-item {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .phonetic-item:hover {
-    background: var(--bg-secondary);
-    transform: translateY(-1px);
-  }
-
-  .phonetic-letter {
-    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--accent-primary);
-  }
-
-  .phonetic-word {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-top: 0.25rem;
-  }
-
-  .codes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 0.75rem;
   }
 
   @media (max-width: 640px) {
-    .codes-grid {
+    .timezone-grid {
       grid-template-columns: 1fr;
     }
   }
 
-  .code-item {
+  .timezone-card {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-primary);
     border-radius: 0.5rem;
     padding: 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
   }
 
-  .code-item:hover {
+  .timezone-card:hover {
     background: var(--bg-secondary);
     transform: translateY(-1px);
   }
 
-  .code-number {
-    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-    font-weight: 700;
+  .timezone-city {
+    font-weight: 600;
     font-size: 0.875rem;
-    color: var(--accent-primary);
-    background: var(--accent-light);
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.375rem;
-    display: inline-block;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .timezone-abbr {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
     margin-bottom: 0.5rem;
   }
 
-  .code-title {
+  .timezone-current-time {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 1.125rem;
     font-weight: 600;
+    color: var(--accent-primary);
+  }
+
+  .timezone-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  .timezone-offset {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+  }
+
+  .time-converter {
+    padding: 1rem;
+  }
+
+  .converter-input {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-label {
+    display: block;
     font-size: 0.875rem;
-    line-height: 1.4;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .conversion-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-primary);
+  }
+
+  .conversion-item {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .conversion-zone {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+  }
+
+  .conversion-time {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--text-primary);
+  }
+
+  .conversion-date-diff {
+    font-size: 0.75rem;
+    color: var(--accent-primary);
+    margin-top: 0.25rem;
   }
 
   .search-container {
@@ -230,7 +261,7 @@
     </div>
     <div class="header-content">
       <h1>Time Reference</h1>
-      <p>UTC, codes & phonetics</p>
+      <p>Time zones & conversion chart</p>
     </div>
   </div>
   <div class="header-actions">
@@ -268,53 +299,56 @@
 
     <!-- Search -->
     <div class="search-container">
-      <input id="globalSearch" class="form-input search-input" placeholder="Search codes, phonetics, or keywords..." />
+      <input id="globalSearch" class="form-input search-input" placeholder="Search time zones or cities..." />
     </div>
 
-    <!-- Phonetic Alphabet Section -->
+    <!-- World Time Zones Section -->
     <div class="mobile-card">
       <div class="section-header">
         <div class="section-title">
-          🔤 NATO Phonetic Alphabet
+          🌍 World Time Zones
         </div>
-        <button class="collapse-btn" onclick="toggleSection('phonetic')" id="phoneticToggle">▼</button>
+        <button class="collapse-btn" onclick="toggleSection('world')" id="worldToggle">▼</button>
       </div>
-      <div id="phoneticContent" class="collapsible-content">
-        <div id="phoneticGrid" class="phonetic-grid"></div>
-        <div id="phoneticNoResults" class="no-results hidden">No matching phonetic letters found</div>
+      <div id="worldContent" class="collapsible-content">
+        <div id="worldGrid" class="timezone-grid"></div>
+        <div id="worldNoResults" class="no-results hidden">No matching time zones found</div>
       </div>
     </div>
 
-    <!-- 10-Codes Section -->
+    <!-- Time Conversion Tool -->
     <div class="mobile-card">
       <div class="section-header">
         <div class="section-title">
-          📟 Common 10-Codes
+          ⏰ Time Converter
         </div>
-        <button class="collapse-btn" onclick="toggleSection('codes')" id="codesToggle">▼</button>
       </div>
-      <div id="codesContent" class="collapsible-content">
-        <div id="codesGrid" class="codes-grid"></div>
-        <div id="codesNoResults" class="no-results hidden">No matching codes found</div>
+      <div class="time-converter">
+        <div class="converter-input">
+          <label for="convertTime" class="form-label">Enter Time (HH:MM)</label>
+          <input type="time" id="convertTime" class="form-input" />
+          <select id="fromTimezone" class="form-input" style="margin-top: 0.5rem;">
+            <option value="local">Local Time</option>
+            <option value="UTC">UTC/Zulu</option>
+            <option value="America/New_York">EST/EDT</option>
+            <option value="America/Chicago">CST/CDT</option>
+            <option value="America/Denver">MST/MDT</option>
+            <option value="America/Los_Angeles">PST/PDT</option>
+            <option value="Europe/London">London</option>
+            <option value="Europe/Paris">Paris</option>
+            <option value="Asia/Tokyo">Tokyo</option>
+            <option value="Asia/Shanghai">Beijing</option>
+            <option value="Asia/Dubai">Dubai</option>
+            <option value="Australia/Sydney">Sydney</option>
+          </select>
+          <button class="touch-btn" style="margin-top: 0.5rem; width: 100%;" onclick="convertTime()">Convert</button>
+        </div>
+        <div id="conversionResults" class="conversion-results hidden"></div>
       </div>
     </div>
 
   </section>
 </main>
-
-<!-- Modal for Code Details -->
-<div id="codeModal" class="modal-backdrop hidden" aria-hidden="true" style="display: none;">
-  <div class="modal-card">
-    <div class="flex items-center justify-between border-b px-4 py-3" style="border-color: var(--border-primary)">
-      <h3 id="modalTitle" class="text-lg font-semibold"></h3>
-      <div class="flex items-center gap-2">
-        <button id="modalCopy" class="touch-btn" title="Copy details">📋</button>
-        <button id="modalClose" class="touch-btn">Close</button>
-      </div>
-    </div>
-    <div id="modalBody" class="px-4 py-3"></div>
-  </div>
-</div>
 
 <!-- Bottom Navigation -->
 <nav class="bottom-nav">
@@ -429,130 +463,242 @@ function updateTimes() {
   document.getElementById('zuluTime').textContent = `${zuluHours}${zuluMinutes}Z`;
 }
 
-// Phonetic Alphabet Data
-const PHONETIC_ALPHABET = [
-  { letter: 'A', word: 'Alpha', synonyms: ['alfa'] },
-  { letter: 'B', word: 'Bravo', synonyms: [] },
-  { letter: 'C', word: 'Charlie', synonyms: [] },
-  { letter: 'D', word: 'Delta', synonyms: [] },
-  { letter: 'E', word: 'Echo', synonyms: [] },
-  { letter: 'F', word: 'Foxtrot', synonyms: [] },
-  { letter: 'G', word: 'Golf', synonyms: [] },
-  { letter: 'H', word: 'Hotel', synonyms: [] },
-  { letter: 'I', word: 'India', synonyms: [] },
-  { letter: 'J', word: 'Juliett', synonyms: ['juliet'] },
-  { letter: 'K', word: 'Kilo', synonyms: [] },
-  { letter: 'L', word: 'Lima', synonyms: [] },
-  { letter: 'M', word: 'Mike', synonyms: [] },
-  { letter: 'N', word: 'November', synonyms: [] },
-  { letter: 'O', word: 'Oscar', synonyms: [] },
-  { letter: 'P', word: 'Papa', synonyms: [] },
-  { letter: 'Q', word: 'Quebec', synonyms: [] },
-  { letter: 'R', word: 'Romeo', synonyms: [] },
-  { letter: 'S', word: 'Sierra', synonyms: [] },
-  { letter: 'T', word: 'Tango', synonyms: [] },
-  { letter: 'U', word: 'Uniform', synonyms: [] },
-  { letter: 'V', word: 'Victor', synonyms: [] },
-  { letter: 'W', word: 'Whiskey', synonyms: ['whisky'] },
-  { letter: 'X', word: 'X-ray', synonyms: ['xray', 'x ray'] },
-  { letter: 'Y', word: 'Yankee', synonyms: [] },
-  { letter: 'Z', word: 'Zulu', synonyms: [] }
-];
-
-// 10-Codes Data (Common ones)
-const TEN_CODES = [
-  { code: '10-4', title: 'Acknowledged', details: 'Affirmative; message received.', synonyms: ['copy', 'roger', 'affirmative', 'received'] },
-  { code: '10-8', title: 'In Service', details: 'Back in service; available for calls.', synonyms: ['available', 'clear'] },
-  { code: '10-20', title: 'Location', details: 'Report current location.', synonyms: ['where are you', 'position', 'location'] },
-  { code: '10-21', title: 'Call by Phone', details: 'Call dispatch or unit by phone.', synonyms: ['call', 'phone', 'telephone'] },
-  { code: '10-23', title: 'Arrived at Scene', details: 'On scene of the call.', synonyms: ['on scene', 'arrived'] },
-  { code: '10-32', title: 'Person with Gun', details: 'Subject reported armed with a firearm.', synonyms: ['gun', 'weapon', 'armed', 'firearm'] },
-  { code: '10-50', title: 'Accident', details: 'Traffic crash/accident reported.', synonyms: ['accident', 'crash', 'collision'] },
-  { code: '10-71', title: 'Shots Fired', details: 'Gunshots heard or reported in area.', synonyms: ['shots fired', 'gunshots', 'shots'] },
-  { code: '10-78', title: 'Need Assistance', details: 'Request backup/assistance.', synonyms: ['backup', 'assist', 'officer needs help'] },
-  { code: '10-80', title: 'Pursuit in Progress', details: 'Vehicle/foot pursuit underway.', synonyms: ['pursuit', 'chase'] },
-  { code: '10-95', title: 'Subject in Custody', details: 'Subject detained/in custody.', synonyms: ['in custody', 'prisoner'] },
-  { code: '10-99', title: 'Wanted/Stolen Hit', details: 'Wanted/stolen hit on record.', synonyms: ['wanted', 'stolen', 'hit'] }
+// World Time Zones Data
+const WORLD_TIMEZONES = [
+  // Americas
+  { city: 'New York', zone: 'America/New_York', abbr: 'EST/EDT', offset: -5, synonyms: ['nyc', 'eastern'] },
+  { city: 'Chicago', zone: 'America/Chicago', abbr: 'CST/CDT', offset: -6, synonyms: ['central'] },
+  { city: 'Denver', zone: 'America/Denver', abbr: 'MST/MDT', offset: -7, synonyms: ['mountain'] },
+  { city: 'Los Angeles', zone: 'America/Los_Angeles', abbr: 'PST/PDT', offset: -8, synonyms: ['la', 'pacific'] },
+  { city: 'Phoenix', zone: 'America/Phoenix', abbr: 'MST', offset: -7, synonyms: ['arizona'] },
+  { city: 'Toronto', zone: 'America/Toronto', abbr: 'EST/EDT', offset: -5, synonyms: ['canada'] },
+  { city: 'Mexico City', zone: 'America/Mexico_City', abbr: 'CST', offset: -6, synonyms: ['mexico'] },
+  { city: 'São Paulo', zone: 'America/Sao_Paulo', abbr: 'BRT', offset: -3, synonyms: ['brazil', 'sao paulo'] },
+  { city: 'Buenos Aires', zone: 'America/Argentina/Buenos_Aires', abbr: 'ART', offset: -3, synonyms: ['argentina'] },
+  
+  // Europe
+  { city: 'London', zone: 'Europe/London', abbr: 'GMT/BST', offset: 0, synonyms: ['uk', 'britain', 'gmt'] },
+  { city: 'Paris', zone: 'Europe/Paris', abbr: 'CET/CEST', offset: 1, synonyms: ['france'] },
+  { city: 'Berlin', zone: 'Europe/Berlin', abbr: 'CET/CEST', offset: 1, synonyms: ['germany'] },
+  { city: 'Madrid', zone: 'Europe/Madrid', abbr: 'CET/CEST', offset: 1, synonyms: ['spain'] },
+  { city: 'Rome', zone: 'Europe/Rome', abbr: 'CET/CEST', offset: 1, synonyms: ['italy'] },
+  { city: 'Moscow', zone: 'Europe/Moscow', abbr: 'MSK', offset: 3, synonyms: ['russia'] },
+  { city: 'Athens', zone: 'Europe/Athens', abbr: 'EET/EEST', offset: 2, synonyms: ['greece'] },
+  { city: 'Stockholm', zone: 'Europe/Stockholm', abbr: 'CET/CEST', offset: 1, synonyms: ['sweden'] },
+  
+  // Asia
+  { city: 'Dubai', zone: 'Asia/Dubai', abbr: 'GST', offset: 4, synonyms: ['uae'] },
+  { city: 'Mumbai', zone: 'Asia/Kolkata', abbr: 'IST', offset: 5.5, synonyms: ['india', 'delhi', 'kolkata'] },
+  { city: 'Bangkok', zone: 'Asia/Bangkok', abbr: 'ICT', offset: 7, synonyms: ['thailand'] },
+  { city: 'Singapore', zone: 'Asia/Singapore', abbr: 'SGT', offset: 8, synonyms: ['sg'] },
+  { city: 'Hong Kong', zone: 'Asia/Hong_Kong', abbr: 'HKT', offset: 8, synonyms: ['hk'] },
+  { city: 'Beijing', zone: 'Asia/Shanghai', abbr: 'CST', offset: 8, synonyms: ['china', 'shanghai'] },
+  { city: 'Tokyo', zone: 'Asia/Tokyo', abbr: 'JST', offset: 9, synonyms: ['japan'] },
+  { city: 'Seoul', zone: 'Asia/Seoul', abbr: 'KST', offset: 9, synonyms: ['korea', 'south korea'] },
+  
+  // Oceania
+  { city: 'Sydney', zone: 'Australia/Sydney', abbr: 'AEDT/AEST', offset: 11, synonyms: ['australia'] },
+  { city: 'Melbourne', zone: 'Australia/Melbourne', abbr: 'AEDT/AEST', offset: 11, synonyms: ['vic'] },
+  { city: 'Perth', zone: 'Australia/Perth', abbr: 'AWST', offset: 8, synonyms: ['western australia'] },
+  { city: 'Auckland', zone: 'Pacific/Auckland', abbr: 'NZDT/NZST', offset: 13, synonyms: ['new zealand', 'nz'] },
+  
+  // Africa
+  { city: 'Cairo', zone: 'Africa/Cairo', abbr: 'EET', offset: 2, synonyms: ['egypt'] },
+  { city: 'Lagos', zone: 'Africa/Lagos', abbr: 'WAT', offset: 1, synonyms: ['nigeria'] },
+  { city: 'Johannesburg', zone: 'Africa/Johannesburg', abbr: 'SAST', offset: 2, synonyms: ['south africa'] },
+  
+  // UTC
+  { city: 'UTC/Zulu', zone: 'UTC', abbr: 'UTC', offset: 0, synonyms: ['zulu', 'gmt', 'coordinated universal time'] }
 ];
 
 // Search and Display Logic
-let filteredPhonetic = [...PHONETIC_ALPHABET];
-let filteredCodes = [...TEN_CODES];
+let filteredTimezones = [...WORLD_TIMEZONES];
 
 const normalize = (s) => (s || '').toLowerCase();
 
-function matchesQuery(item, query, type) {
+function matchesQuery(item, query) {
   if (!query) return true;
   const tokens = query.split(/\s+/).filter(Boolean);
   
-  let searchText = '';
-  if (type === 'phonetic') {
-    searchText = normalize([
-      item.letter,
-      item.word,
-      ...(item.synonyms || [])
-    ].join(' '));
-  } else if (type === 'code') {
-    searchText = normalize([
-      item.code,
-      item.title,
-      item.details,
-      ...(item.synonyms || [])
-    ].join(' '));
-  }
+  const searchText = normalize([
+    item.city,
+    item.zone,
+    item.abbr,
+    ...(item.synonyms || [])
+  ].join(' '));
   
   return tokens.every(token => searchText.includes(normalize(token)));
 }
 
-function renderPhonetic() {
-  const grid = document.getElementById('phoneticGrid');
-  const noResults = document.getElementById('phoneticNoResults');
-  
-  if (filteredPhonetic.length === 0) {
-    grid.innerHTML = '';
-    noResults.classList.remove('hidden');
-    return;
+function getTimeInZone(zone) {
+  try {
+    const now = new Date();
+    const options = {
+      timeZone: zone === 'UTC' ? 'UTC' : zone,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    };
+    return now.toLocaleTimeString('en-US', options);
+  } catch (e) {
+    return '--:--:--';
   }
-  
-  noResults.classList.add('hidden');
-  grid.innerHTML = filteredPhonetic.map(item => `
-    <div class="phonetic-item" onclick="copyPhonetic('${item.letter}', '${item.word}')" title="Click to copy">
-      <div class="phonetic-letter">${item.letter}</div>
-      <div class="phonetic-word">${item.word}</div>
-    </div>
-  `).join('');
 }
 
-function renderCodes() {
-  const grid = document.getElementById('codesGrid');
-  const noResults = document.getElementById('codesNoResults');
+function getDateInZone(zone) {
+  try {
+    const now = new Date();
+    const options = {
+      timeZone: zone === 'UTC' ? 'UTC' : zone,
+      month: 'short',
+      day: 'numeric'
+    };
+    return now.toLocaleDateString('en-US', options);
+  } catch (e) {
+    return '';
+  }
+}
+
+function renderTimezones() {
+  const grid = document.getElementById('worldGrid');
+  const noResults = document.getElementById('worldNoResults');
   
-  if (filteredCodes.length === 0) {
+  if (filteredTimezones.length === 0) {
     grid.innerHTML = '';
     noResults.classList.remove('hidden');
     return;
   }
   
   noResults.classList.add('hidden');
-  grid.innerHTML = filteredCodes.map((item, index) => `
-    <div class="code-item" onclick="openCodeModal(${index})" title="Click for details">
-      <div class="code-number">${item.code}</div>
-      <div class="code-title">${item.title}</div>
-    </div>
-  `).join('');
+  grid.innerHTML = filteredTimezones.map(item => {
+    const currentTime = getTimeInZone(item.zone);
+    const currentDate = getDateInZone(item.zone);
+    const offsetStr = item.offset > 0 ? `UTC+${item.offset}` : item.offset === 0 ? 'UTC' : `UTC${item.offset}`;
+    
+    return `
+      <div class="timezone-card" onclick="copyTimezone('${item.city}', '${currentTime}')" title="Click to copy">
+        <div class="timezone-offset">${offsetStr}</div>
+        <div class="timezone-city">${item.city}</div>
+        <div class="timezone-abbr">${item.abbr}</div>
+        <div class="timezone-current-time" data-zone="${item.zone}">${currentTime}</div>
+        <div class="timezone-date">${currentDate}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateAllTimezones() {
+  document.querySelectorAll('[data-zone]').forEach(el => {
+    const zone = el.dataset.zone;
+    el.textContent = getTimeInZone(zone);
+    
+    // Update date if it's a timezone card
+    const dateEl = el.nextElementSibling;
+    if (dateEl && dateEl.classList.contains('timezone-date')) {
+      dateEl.textContent = getDateInZone(zone);
+    }
+  });
 }
 
 function applySearch(query) {
-  filteredPhonetic = PHONETIC_ALPHABET.filter(item => matchesQuery(item, query, 'phonetic'));
-  filteredCodes = TEN_CODES.filter(item => matchesQuery(item, query, 'code'));
+  filteredTimezones = WORLD_TIMEZONES.filter(item => matchesQuery(item, query));
+  renderTimezones();
+}
+
+// Time Converter Functions
+function convertTime() {
+  const timeInput = document.getElementById('convertTime');
+  const fromZone = document.getElementById('fromTimezone');
+  const results = document.getElementById('conversionResults');
   
-  renderPhonetic();
-  renderCodes();
+  if (!timeInput.value) {
+    showSuccess('Please enter a time to convert');
+    return;
+  }
+  
+  const [hours, minutes] = timeInput.value.split(':');
+  const now = new Date();
+  now.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  
+  let sourceDate;
+  if (fromZone.value === 'local') {
+    sourceDate = now;
+  } else if (fromZone.value === 'UTC') {
+    sourceDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes)));
+  } else {
+    // Convert from specific timezone to UTC first
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: fromZone.value,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false
+    });
+    const parts = formatter.formatToParts(now);
+    const dateParts = {};
+    parts.forEach(part => {
+      if (part.type !== 'literal') {
+        dateParts[part.type] = part.value;
+      }
+    });
+    sourceDate = new Date(`${dateParts.year}-${dateParts.month.padStart(2, '0')}-${dateParts.day.padStart(2, '0')}T${dateParts.hour.padStart(2, '0')}:${dateParts.minute.padStart(2, '0')}:00`);
+  }
+  
+  // Convert to major time zones
+  const conversions = [
+    { name: 'UTC/Zulu', zone: 'UTC' },
+    { name: 'New York (EST/EDT)', zone: 'America/New_York' },
+    { name: 'Chicago (CST/CDT)', zone: 'America/Chicago' },
+    { name: 'Denver (MST/MDT)', zone: 'America/Denver' },
+    { name: 'Los Angeles (PST/PDT)', zone: 'America/Los_Angeles' },
+    { name: 'London (GMT/BST)', zone: 'Europe/London' },
+    { name: 'Paris (CET/CEST)', zone: 'Europe/Paris' },
+    { name: 'Dubai (GST)', zone: 'Asia/Dubai' },
+    { name: 'Mumbai (IST)', zone: 'Asia/Kolkata' },
+    { name: 'Singapore (SGT)', zone: 'Asia/Singapore' },
+    { name: 'Tokyo (JST)', zone: 'Asia/Tokyo' },
+    { name: 'Sydney (AEDT/AEST)', zone: 'Australia/Sydney' }
+  ];
+  
+  results.innerHTML = conversions.map(conv => {
+    const convertedTime = sourceDate.toLocaleTimeString('en-US', {
+      timeZone: conv.zone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const convertedDate = sourceDate.toLocaleDateString('en-US', {
+      timeZone: conv.zone,
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    const localDate = now.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    const dateDiff = convertedDate !== localDate ? ` (${convertedDate})` : '';
+    
+    return `
+      <div class="conversion-item">
+        <div class="conversion-zone">${conv.name}</div>
+        <div class="conversion-time">${convertedTime}</div>
+        ${dateDiff ? `<div class="conversion-date-diff">${dateDiff}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  results.classList.remove('hidden');
 }
 
 // Copy Functions
-async function copyPhonetic(letter, word) {
-  const text = `${letter} — ${word}`;
+async function copyTimezone(city, time) {
+  const text = `${city}: ${time}`;
   try {
     await navigator.clipboard.writeText(text);
     showSuccess(`Copied: ${text}`);
@@ -565,61 +711,6 @@ async function copyPhonetic(letter, word) {
     document.execCommand('copy');
     document.body.removeChild(textArea);
     showSuccess(`Copied: ${text}`);
-  }
-}
-
-// Modal Functions
-let currentModalContent = '';
-
-function openCodeModal(index) {
-  const item = filteredCodes[index];
-  if (!item) return;
-  
-  const modal = document.getElementById('codeModal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalBody = document.getElementById('modalBody');
-  
-  modalTitle.textContent = `${item.code} — ${item.title}`;
-  modalBody.innerHTML = `
-    <div style="color: var(--text-secondary); margin-bottom: 1rem;">${item.details}</div>
-    ${item.synonyms && item.synonyms.length ? `
-      <div>
-        <div class="text-sm font-semibold mb-1">Keywords</div>
-        <div class="flex flex-wrap gap-2 text-xs">
-          ${item.synonyms.map(s => `<span class="px-2 py-0.5 rounded" style="background: var(--bg-tertiary); border: 1px solid var(--border-primary)">${s}</span>`).join('')}
-        </div>
-      </div>
-    ` : ''}
-  `;
-  
-  currentModalContent = `${item.code} — ${item.title}\n\n${item.details}\n\n${item.synonyms && item.synonyms.length ? `Keywords: ${item.synonyms.join(', ')}` : ''}`;
-  
-  modal.classList.remove('hidden');
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden', 'false');
-  modal.style.display = 'flex';
-}
-
-function closeModal() {
-  const modal = document.getElementById('codeModal');
-  modal.classList.remove('show');
-  modal.classList.add('hidden');
-  modal.setAttribute('aria-hidden', 'true');
-  modal.style.display = 'none';
-}
-
-async function copyModalContent() {
-  try {
-    await navigator.clipboard.writeText(currentModalContent);
-    showSuccess('Code details copied to clipboard!');
-  } catch (error) {
-    const textArea = document.createElement('textarea');
-    textArea.value = currentModalContent;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    showSuccess('Code details copied to clipboard!');
   }
 }
 
@@ -668,19 +759,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   
   // Load collapsed states
-  const phoneticCollapsed = localStorage.getItem('timeRef_phonetic_collapsed') === 'true';
-  const codesCollapsed = localStorage.getItem('timeRef_codes_collapsed') === 'true';
+  const worldCollapsed = localStorage.getItem('timeRef_world_collapsed') === 'true';
   
-  if (phoneticCollapsed) toggleSection('phonetic');
-  if (codesCollapsed) toggleSection('codes');
+  if (worldCollapsed) toggleSection('world');
   
   // Initial render
-  renderPhonetic();
-  renderCodes();
+  renderTimezones();
   
   // Start time updates
   updateTimes();
-  setInterval(updateTimes, 1000);
+  updateAllTimezones();
+  setInterval(() => {
+    updateTimes();
+    updateAllTimezones();
+  }, 1000);
   
   if (localStorage.getItem('sss_large') === 'true') {
     document.body.classList.add('text-lg');
@@ -694,20 +786,6 @@ document.getElementById('globalSearch').addEventListener('input', (e) => {
   searchTimeout = setTimeout(() => {
     applySearch(e.target.value);
   }, 150);
-});
-
-// Modal event listeners
-document.getElementById('modalClose').addEventListener('click', closeModal);
-document.getElementById('modalCopy').addEventListener('click', copyModalContent);
-document.getElementById('codeModal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) closeModal();
-});
-
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !document.getElementById('codeModal').classList.contains('hidden')) {
-    closeModal();
-  }
 });
 </script>
 

@@ -31,7 +31,6 @@
     </div>
     <div class="header-actions">
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
-      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
     </div>
   </header>
 
@@ -537,18 +536,6 @@
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
 
-    // Text size toggle
-    function toggleTextSize() {
-      document.body.classList.toggle('text-lg');
-      localStorage.setItem('largeText', document.body.classList.contains('text-lg'));
-    }
-
-    // Initialize text size
-    function initTextSize() {
-      if (localStorage.getItem('largeText') === 'true') {
-        document.body.classList.add('text-lg');
-      }
-    }
 
     // Time display
     function updateTime() {
@@ -2191,7 +2178,6 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize core features
       initTheme();
-      initTextSize();
       loadOfficerName();
       updateTime();
       setInterval(updateTime, 1000);

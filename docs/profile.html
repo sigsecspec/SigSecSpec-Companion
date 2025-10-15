@@ -187,14 +187,6 @@
       
       <div class="setting-item">
         <div>
-          <div class="font-medium">Large Text</div>
-          <div class="text-sm" style="color: var(--text-secondary)">Increase text size for better readability</div>
-        </div>
-        <button class="touch-btn" onclick="toggleTextSize()" id="textSizeBtn">A+</button>
-      </div>
-      
-      <div class="setting-item">
-        <div>
           <div class="font-medium">Location Services</div>
           <div class="text-sm" style="color: var(--text-secondary)">Allow app to access your location</div>
         </div>
@@ -337,20 +329,6 @@
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
 
-    // Text size toggle
-    function toggleTextSize() {
-      document.body.classList.toggle('text-lg');
-      const isLarge = document.body.classList.contains('text-lg');
-      localStorage.setItem('largeText', isLarge);
-      document.getElementById('textSizeBtn').textContent = isLarge ? 'A-' : 'A+';
-    }
-
-    function initTextSize() {
-      if (localStorage.getItem('largeText') === 'true') {
-        document.body.classList.add('text-lg');
-        document.getElementById('textSizeBtn').textContent = 'A-';
-      }
-    }
 
     // Profile management
     function loadProfile() {
@@ -783,7 +761,6 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       initTheme();
-      initTextSize();
       loadProfile();
       loadContacts();
       loadDeviceInfo();

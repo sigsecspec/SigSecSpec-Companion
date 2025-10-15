@@ -25,28 +25,6 @@ function initTheme() {
   document.documentElement.setAttribute('data-theme', savedTheme);
 }
 
-// Text size management
-function toggleTextSize() {
-  document.body.classList.toggle('text-lg');
-  const isLarge = document.body.classList.contains('text-lg');
-  localStorage.setItem('largeText', isLarge);
-  
-  // Update button text if it exists
-  const textSizeBtn = document.querySelector('[aria-label="Toggle text size"]');
-  if (textSizeBtn) {
-    textSizeBtn.textContent = isLarge ? 'A-' : 'A+';
-  }
-}
-
-function initTextSize() {
-  if (localStorage.getItem('largeText') === 'true') {
-    document.body.classList.add('text-lg');
-    const textSizeBtn = document.querySelector('[aria-label="Toggle text size"]');
-    if (textSizeBtn) {
-      textSizeBtn.textContent = 'A-';
-    }
-  }
-}
 
 // Time display
 function updateTime() {
@@ -431,9 +409,8 @@ function addScrollAnimations() {
 
 // Initialize common functionality
 function initializeCommonFeatures() {
-  // Initialize theme and text size
+  // Initialize theme
   initTheme();
-  initTextSize();
   
   // Load officer name
   loadOfficerName();
@@ -570,7 +547,6 @@ function getNotificationIcon(type) {
 // Export functions for global use
 window.SecurityApp = {
   toggleTheme,
-  toggleTextSize,
   updateTime,
   loadOfficerName,
   saveToStorage,

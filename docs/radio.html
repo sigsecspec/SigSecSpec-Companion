@@ -29,7 +29,6 @@
   </div>
   <div class="header-actions">
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
-    <button class="touch-btn" onclick="toggleLarge()" aria-label="Toggle text size">A+</button>
   </div>
 </header>
 
@@ -103,14 +102,9 @@ function initTheme() {
   document.documentElement.setAttribute('data-theme', savedTheme);
 }
 
-function toggleLarge(){
-  document.body.classList.toggle('text-lg');
-  localStorage.setItem('sss_large', document.body.classList.contains('text-lg'));
-}
 
 document.addEventListener('DOMContentLoaded',()=>{
   initTheme();
-  if(localStorage.getItem('sss_large')==='true') document.body.classList.add('text-lg');
 });
 
 // Phonetic Alphabet data and search/copy logic

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Reference — Security Companion</title>
+<link rel="stylesheet" href="app-styles.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="push-notifications.js"></script>
+<script src="popup-system.js"></script>
+<script src="page-transitions.js"></script>
+<style>
+  .time-display {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .time-value {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .time-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .reference-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .reference-grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+  }
+
+  .phonetic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .phonetic-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .phonetic-item {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .phonetic-item:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+  }
+
+  .phonetic-letter {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+  }
+
+  .phonetic-word {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .codes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 640px) {
+    .codes-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .code-item {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .code-item:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+  }
+
+  .code-number {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--accent-primary);
+    background: var(--accent-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+
+  .code-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  .search-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .search-input {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .collapse-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+  }
+
+  .collapse-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  .collapsible-content {
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .collapsible-content.collapsed {
+    max-height: 0;
+    margin-bottom: 0;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+  }
+
+  .timezone-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .timezone-item {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .timezone-name {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .timezone-time {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+</style>
+</head>
+<body class="bg-pattern">
+
+<!-- Header -->
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <div class="app-logo">
+      <img src="patch-bg.png" alt="Security Logo">
+    </div>
+    <div class="header-content">
+      <h1>Time Reference</h1>
+      <p>UTC, codes & phonetics</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+  </div>
+</header>
+
+<!-- Emergency Button - Bottom Right -->
+<button class="emergency-btn-fixed" onclick="triggerEmergency()" aria-label="Emergency alert">
+  🚨
+</button>
+
+<main class="main-content">
+  <section class="max-w-6xl mx-auto">
+    
+    <!-- UTC Time Display -->
+    <div class="time-display">
+      <div class="time-value" id="utcTime">--:--:-- UTC</div>
+      <div class="time-label">Coordinated Universal Time</div>
+      <div class="timezone-info">
+        <div class="timezone-item">
+          <div class="timezone-name">Local Time</div>
+          <div class="timezone-time" id="localTime">--:--:--</div>
+        </div>
+        <div class="timezone-item">
+          <div class="timezone-name">24-Hour Format</div>
+          <div class="timezone-time" id="militaryTime">--:--</div>
+        </div>
+        <div class="timezone-item">
+          <div class="timezone-name">Zulu Time</div>
+          <div class="timezone-time" id="zuluTime">--:--Z</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-container">
+      <input id="globalSearch" class="form-input search-input" placeholder="Search codes, phonetics, or keywords..." />
+    </div>
+
+    <!-- Phonetic Alphabet Section -->
+    <div class="mobile-card">
+      <div class="section-header">
+        <div class="section-title">
+          🔤 NATO Phonetic Alphabet
+        </div>
+        <button class="collapse-btn" onclick="toggleSection('phonetic')" id="phoneticToggle">▼</button>
+      </div>
+      <div id="phoneticContent" class="collapsible-content">
+        <div id="phoneticGrid" class="phonetic-grid"></div>
+        <div id="phoneticNoResults" class="no-results hidden">No matching phonetic letters found</div>
+      </div>
+    </div>
+
+    <!-- 10-Codes Section -->
+    <div class="mobile-card">
+      <div class="section-header">
+        <div class="section-title">
+          📟 Common 10-Codes
+        </div>
+        <button class="collapse-btn" onclick="toggleSection('codes')" id="codesToggle">▼</button>
+      </div>
+      <div id="codesContent" class="collapsible-content">
+        <div id="codesGrid" class="codes-grid"></div>
+        <div id="codesNoResults" class="no-results hidden">No matching codes found</div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- Modal for Code Details -->
+<div id="codeModal" class="modal-backdrop hidden" aria-hidden="true" style="display: none;">
+  <div class="modal-card">
+    <div class="flex items-center justify-between border-b px-4 py-3" style="border-color: var(--border-primary)">
+      <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+      <div class="flex items-center gap-2">
+        <button id="modalCopy" class="touch-btn" title="Copy details">📋</button>
+        <button id="modalClose" class="touch-btn">Close</button>
+      </div>
+    </div>
+    <div id="modalBody" class="px-4 py-3"></div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <div class="nav-grid">
+    <a href="index.html" class="nav-item">
+      <div class="nav-icon">🏠</div>
+      <span>Home</span>
+    </a>
+    <a href="schedule.html" class="nav-item">
+      <div class="nav-icon">📋</div>
+      <span>Schedule</span>
+    </a>
+    <a href="reports.html" class="nav-item">
+      <div class="nav-icon">📝</div>
+      <span>Reports</span>
+    </a>
+    <a href="patrol.html" class="nav-item">
+      <div class="nav-icon">🚶</div>
+      <span>Patrol</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+      <div class="nav-icon">👤</div>
+      <span>Profile</span>
+    </a>
+  </div>
+</nav>
+
+<!-- Emergency Modal -->
+<div id="emergencyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="mobile-card max-w-sm mx-4">
+    <h3 class="text-xl font-bold text-red-500 mb-4">🚨 Emergency Alert</h3>
+    <p class="mb-6">This will send an emergency alert to dispatch and your supervisor. Continue?</p>
+    <div class="flex gap-3">
+      <button class="touch-btn flex-1" onclick="cancelEmergency()">Cancel</button>
+      <button class="touch-btn danger flex-1" onclick="confirmEmergency()">Send Alert</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Theme management
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+// Emergency functions
+function triggerEmergency() {
+  document.getElementById('emergencyModal').classList.remove('hidden');
+  document.getElementById('emergencyModal').classList.add('flex');
+}
+
+function cancelEmergency() {
+  document.getElementById('emergencyModal').classList.add('hidden');
+  document.getElementById('emergencyModal').classList.remove('flex');
+}
+
+function confirmEmergency() {
+  navigator.geolocation?.getCurrentPosition(
+    (position) => {
+      const location = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
+      if (window.securityNotifications) {
+        window.securityNotifications.sendEmergencyAlert(location, 'Emergency assistance required - immediate response needed');
+      }
+    },
+    () => {
+      if (window.securityNotifications) {
+        window.securityNotifications.sendEmergencyAlert(null, 'Emergency assistance required - location unavailable');
+      }
+    }
+  );
+  
+  navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]);
+  showSuccess('Emergency alert sent to dispatch!');
+  cancelEmergency();
+}
+
+// Time Management
+function updateTimes() {
+  const now = new Date();
+  
+  // UTC Time
+  const utcTime = now.toUTCString().split(' ')[4] + ' UTC';
+  document.getElementById('utcTime').textContent = utcTime;
+  
+  // Local Time
+  const localTime = now.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  document.getElementById('localTime').textContent = localTime;
+  
+  // Military Time (24-hour local)
+  const militaryTime = now.toLocaleTimeString([], {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  document.getElementById('militaryTime').textContent = militaryTime;
+  
+  // Zulu Time (UTC in HHMM format)
+  const zuluHours = String(now.getUTCHours()).padStart(2, '0');
+  const zuluMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+  document.getElementById('zuluTime').textContent = `${zuluHours}${zuluMinutes}Z`;
+}
+
+// Phonetic Alphabet Data
+const PHONETIC_ALPHABET = [
+  { letter: 'A', word: 'Alpha', synonyms: ['alfa'] },
+  { letter: 'B', word: 'Bravo', synonyms: [] },
+  { letter: 'C', word: 'Charlie', synonyms: [] },
+  { letter: 'D', word: 'Delta', synonyms: [] },
+  { letter: 'E', word: 'Echo', synonyms: [] },
+  { letter: 'F', word: 'Foxtrot', synonyms: [] },
+  { letter: 'G', word: 'Golf', synonyms: [] },
+  { letter: 'H', word: 'Hotel', synonyms: [] },
+  { letter: 'I', word: 'India', synonyms: [] },
+  { letter: 'J', word: 'Juliett', synonyms: ['juliet'] },
+  { letter: 'K', word: 'Kilo', synonyms: [] },
+  { letter: 'L', word: 'Lima', synonyms: [] },
+  { letter: 'M', word: 'Mike', synonyms: [] },
+  { letter: 'N', word: 'November', synonyms: [] },
+  { letter: 'O', word: 'Oscar', synonyms: [] },
+  { letter: 'P', word: 'Papa', synonyms: [] },
+  { letter: 'Q', word: 'Quebec', synonyms: [] },
+  { letter: 'R', word: 'Romeo', synonyms: [] },
+  { letter: 'S', word: 'Sierra', synonyms: [] },
+  { letter: 'T', word: 'Tango', synonyms: [] },
+  { letter: 'U', word: 'Uniform', synonyms: [] },
+  { letter: 'V', word: 'Victor', synonyms: [] },
+  { letter: 'W', word: 'Whiskey', synonyms: ['whisky'] },
+  { letter: 'X', word: 'X-ray', synonyms: ['xray', 'x ray'] },
+  { letter: 'Y', word: 'Yankee', synonyms: [] },
+  { letter: 'Z', word: 'Zulu', synonyms: [] }
+];
+
+// 10-Codes Data (Common ones)
+const TEN_CODES = [
+  { code: '10-4', title: 'Acknowledged', details: 'Affirmative; message received.', synonyms: ['copy', 'roger', 'affirmative', 'received'] },
+  { code: '10-8', title: 'In Service', details: 'Back in service; available for calls.', synonyms: ['available', 'clear'] },
+  { code: '10-20', title: 'Location', details: 'Report current location.', synonyms: ['where are you', 'position', 'location'] },
+  { code: '10-21', title: 'Call by Phone', details: 'Call dispatch or unit by phone.', synonyms: ['call', 'phone', 'telephone'] },
+  { code: '10-23', title: 'Arrived at Scene', details: 'On scene of the call.', synonyms: ['on scene', 'arrived'] },
+  { code: '10-32', title: 'Person with Gun', details: 'Subject reported armed with a firearm.', synonyms: ['gun', 'weapon', 'armed', 'firearm'] },
+  { code: '10-50', title: 'Accident', details: 'Traffic crash/accident reported.', synonyms: ['accident', 'crash', 'collision'] },
+  { code: '10-71', title: 'Shots Fired', details: 'Gunshots heard or reported in area.', synonyms: ['shots fired', 'gunshots', 'shots'] },
+  { code: '10-78', title: 'Need Assistance', details: 'Request backup/assistance.', synonyms: ['backup', 'assist', 'officer needs help'] },
+  { code: '10-80', title: 'Pursuit in Progress', details: 'Vehicle/foot pursuit underway.', synonyms: ['pursuit', 'chase'] },
+  { code: '10-95', title: 'Subject in Custody', details: 'Subject detained/in custody.', synonyms: ['in custody', 'prisoner'] },
+  { code: '10-99', title: 'Wanted/Stolen Hit', details: 'Wanted/stolen hit on record.', synonyms: ['wanted', 'stolen', 'hit'] }
+];
+
+// Search and Display Logic
+let filteredPhonetic = [...PHONETIC_ALPHABET];
+let filteredCodes = [...TEN_CODES];
+
+const normalize = (s) => (s || '').toLowerCase();
+
+function matchesQuery(item, query, type) {
+  if (!query) return true;
+  const tokens = query.split(/\s+/).filter(Boolean);
+  
+  let searchText = '';
+  if (type === 'phonetic') {
+    searchText = normalize([
+      item.letter,
+      item.word,
+      ...(item.synonyms || [])
+    ].join(' '));
+  } else if (type === 'code') {
+    searchText = normalize([
+      item.code,
+      item.title,
+      item.details,
+      ...(item.synonyms || [])
+    ].join(' '));
+  }
+  
+  return tokens.every(token => searchText.includes(normalize(token)));
+}
+
+function renderPhonetic() {
+  const grid = document.getElementById('phoneticGrid');
+  const noResults = document.getElementById('phoneticNoResults');
+  
+  if (filteredPhonetic.length === 0) {
+    grid.innerHTML = '';
+    noResults.classList.remove('hidden');
+    return;
+  }
+  
+  noResults.classList.add('hidden');
+  grid.innerHTML = filteredPhonetic.map(item => `
+    <div class="phonetic-item" onclick="copyPhonetic('${item.letter}', '${item.word}')" title="Click to copy">
+      <div class="phonetic-letter">${item.letter}</div>
+      <div class="phonetic-word">${item.word}</div>
+    </div>
+  `).join('');
+}
+
+function renderCodes() {
+  const grid = document.getElementById('codesGrid');
+  const noResults = document.getElementById('codesNoResults');
+  
+  if (filteredCodes.length === 0) {
+    grid.innerHTML = '';
+    noResults.classList.remove('hidden');
+    return;
+  }
+  
+  noResults.classList.add('hidden');
+  grid.innerHTML = filteredCodes.map((item, index) => `
+    <div class="code-item" onclick="openCodeModal(${index})" title="Click for details">
+      <div class="code-number">${item.code}</div>
+      <div class="code-title">${item.title}</div>
+    </div>
+  `).join('');
+}
+
+function applySearch(query) {
+  filteredPhonetic = PHONETIC_ALPHABET.filter(item => matchesQuery(item, query, 'phonetic'));
+  filteredCodes = TEN_CODES.filter(item => matchesQuery(item, query, 'code'));
+  
+  renderPhonetic();
+  renderCodes();
+}
+
+// Copy Functions
+async function copyPhonetic(letter, word) {
+  const text = `${letter} — ${word}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    showSuccess(`Copied: ${text}`);
+  } catch (error) {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showSuccess(`Copied: ${text}`);
+  }
+}
+
+// Modal Functions
+let currentModalContent = '';
+
+function openCodeModal(index) {
+  const item = filteredCodes[index];
+  if (!item) return;
+  
+  const modal = document.getElementById('codeModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  
+  modalTitle.textContent = `${item.code} — ${item.title}`;
+  modalBody.innerHTML = `
+    <div style="color: var(--text-secondary); margin-bottom: 1rem;">${item.details}</div>
+    ${item.synonyms && item.synonyms.length ? `
+      <div>
+        <div class="text-sm font-semibold mb-1">Keywords</div>
+        <div class="flex flex-wrap gap-2 text-xs">
+          ${item.synonyms.map(s => `<span class="px-2 py-0.5 rounded" style="background: var(--bg-tertiary); border: 1px solid var(--border-primary)">${s}</span>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+  
+  currentModalContent = `${item.code} — ${item.title}\n\n${item.details}\n\n${item.synonyms && item.synonyms.length ? `Keywords: ${item.synonyms.join(', ')}` : ''}`;
+  
+  modal.classList.remove('hidden');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.style.display = 'flex';
+}
+
+function closeModal() {
+  const modal = document.getElementById('codeModal');
+  modal.classList.remove('show');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.style.display = 'none';
+}
+
+async function copyModalContent() {
+  try {
+    await navigator.clipboard.writeText(currentModalContent);
+    showSuccess('Code details copied to clipboard!');
+  } catch (error) {
+    const textArea = document.createElement('textarea');
+    textArea.value = currentModalContent;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showSuccess('Code details copied to clipboard!');
+  }
+}
+
+// Section Toggle
+function toggleSection(sectionName) {
+  const content = document.getElementById(`${sectionName}Content`);
+  const toggle = document.getElementById(`${sectionName}Toggle`);
+  
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    toggle.textContent = '▼';
+    localStorage.setItem(`timeRef_${sectionName}_collapsed`, 'false');
+  } else {
+    content.classList.add('collapsed');
+    toggle.textContent = '▶';
+    localStorage.setItem(`timeRef_${sectionName}_collapsed`, 'true');
+  }
+}
+
+// Success notification helper
+function showSuccess(message) {
+  if (window.showNotification) {
+    window.showNotification(message, 'success');
+  } else {
+    // Simple fallback
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--accent-primary);
+      color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      z-index: 1000;
+      font-size: 0.875rem;
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+  }
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  
+  // Load collapsed states
+  const phoneticCollapsed = localStorage.getItem('timeRef_phonetic_collapsed') === 'true';
+  const codesCollapsed = localStorage.getItem('timeRef_codes_collapsed') === 'true';
+  
+  if (phoneticCollapsed) toggleSection('phonetic');
+  if (codesCollapsed) toggleSection('codes');
+  
+  // Initial render
+  renderPhonetic();
+  renderCodes();
+  
+  // Start time updates
+  updateTimes();
+  setInterval(updateTimes, 1000);
+  
+  if (localStorage.getItem('sss_large') === 'true') {
+    document.body.classList.add('text-lg');
+  }
+});
+
+// Search functionality
+let searchTimeout;
+document.getElementById('globalSearch').addEventListener('input', (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    applySearch(e.target.value);
+  }, 150);
+});
+
+// Modal event listeners
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalCopy').addEventListener('click', copyModalContent);
+document.getElementById('codeModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !document.getElementById('codeModal').classList.contains('hidden')) {
+    closeModal();
+  }
+});
+</script>
+
+</body>
+</html>

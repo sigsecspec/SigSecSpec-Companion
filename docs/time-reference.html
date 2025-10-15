@@ -277,22 +277,22 @@
 <main class="main-content">
   <section class="max-w-6xl mx-auto">
     
-    <!-- UTC Time Display -->
+    <!-- Time Display -->
     <div class="time-display">
-      <div class="time-value" id="utcTime">--:--:-- UTC</div>
-      <div class="time-label">Coordinated Universal Time</div>
+      <div class="time-value" id="militaryTime">--:--:--</div>
+      <div class="time-label">24-Hour Format</div>
       <div class="timezone-info">
         <div class="timezone-item">
           <div class="timezone-name">Local Time</div>
           <div class="timezone-time" id="localTime">--:--:--</div>
         </div>
         <div class="timezone-item">
-          <div class="timezone-name">24-Hour Format</div>
-          <div class="timezone-time" id="militaryTime">--:--</div>
+          <div class="timezone-name">12-Hour Format</div>
+          <div class="timezone-time" id="twelveHourTime">--:--:-- AM/PM</div>
         </div>
         <div class="timezone-item">
-          <div class="timezone-name">Zulu Time</div>
-          <div class="timezone-time" id="zuluTime">--:--Z</div>
+          <div class="timezone-name">Date</div>
+          <div class="timezone-time" id="currentDate">--/--/----</div>
         </div>
       </div>
     </div>
@@ -329,7 +329,7 @@
           <input type="time" id="convertTime" class="form-input" />
           <select id="fromTimezone" class="form-input" style="margin-top: 0.5rem;">
             <option value="local">Local Time</option>
-            <option value="UTC">UTC/Zulu</option>
+            <option value="UTC">GMT</option>
             <option value="America/New_York">EST/EDT</option>
             <option value="America/Chicago">CST/CDT</option>
             <option value="America/Denver">MST/MDT</option>
@@ -437,30 +437,46 @@ function confirmEmergency() {
 function updateTimes() {
   const now = new Date();
   
-  // UTC Time
-  const utcTime = now.toUTCString().split(' ')[4] + ' UTC';
-  document.getElementById('utcTime').textContent = utcTime;
+  // Military Time (24-hour format with seconds)
+  const militaryTime = now.toLocaleTimeString([], {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  document.getElementById('militaryTime').textContent = militaryTime;
   
-  // Local Time
+  // Local Time (24-hour format)
   const localTime = now.toLocaleTimeString([], {
+    hour12: false,
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
   });
   document.getElementById('localTime').textContent = localTime;
   
-  // Military Time (24-hour local)
-  const militaryTime = now.toLocaleTimeString([], {
-    hour12: false,
+  // 12-Hour Format
+  const twelveHourTime = now.toLocaleTimeString([], {
+    hour12: true,
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    second: '2-digit'
   });
-  document.getElementById('militaryTime').textContent = militaryTime;
+  const twelveHourEl = document.getElementById('twelveHourTime');
+  if (twelveHourEl) {
+    twelveHourEl.textContent = twelveHourTime;
+  }
   
-  // Zulu Time (UTC in HHMM format)
-  const zuluHours = String(now.getUTCHours()).padStart(2, '0');
-  const zuluMinutes = String(now.getUTCMinutes()).padStart(2, '0');
-  document.getElementById('zuluTime').textContent = `${zuluHours}${zuluMinutes}Z`;
+  // Current Date
+  const currentDate = now.toLocaleDateString([], {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric'
+  });
+  const dateEl = document.getElementById('currentDate');
+  if (dateEl) {
+    dateEl.textContent = currentDate;
+  }
 }
 
 // World Time Zones Data
@@ -507,8 +523,8 @@ const WORLD_TIMEZONES = [
   { city: 'Lagos', zone: 'Africa/Lagos', abbr: 'WAT', offset: 1, synonyms: ['nigeria'] },
   { city: 'Johannesburg', zone: 'Africa/Johannesburg', abbr: 'SAST', offset: 2, synonyms: ['south africa'] },
   
-  // UTC
-  { city: 'UTC/Zulu', zone: 'UTC', abbr: 'UTC', offset: 0, synonyms: ['zulu', 'gmt', 'coordinated universal time'] }
+  // GMT
+  { city: 'Greenwich', zone: 'UTC', abbr: 'GMT', offset: 0, synonyms: ['london', 'gmt', 'greenwich mean time'] }
 ];
 
 // Search and Display Logic
@@ -574,7 +590,7 @@ function renderTimezones() {
   grid.innerHTML = filteredTimezones.map(item => {
     const currentTime = getTimeInZone(item.zone);
     const currentDate = getDateInZone(item.zone);
-    const offsetStr = item.offset > 0 ? `UTC+${item.offset}` : item.offset === 0 ? 'UTC' : `UTC${item.offset}`;
+    const offsetStr = item.offset > 0 ? `GMT+${item.offset}` : item.offset === 0 ? 'GMT' : `GMT${item.offset}`;
     
     return `
       <div class="timezone-card" onclick="copyTimezone('${item.city}', '${currentTime}')" title="Click to copy">
@@ -649,7 +665,7 @@ function convertTime() {
   
   // Convert to major time zones
   const conversions = [
-    { name: 'UTC/Zulu', zone: 'UTC' },
+    { name: 'GMT', zone: 'UTC' },
     { name: 'New York (EST/EDT)', zone: 'America/New_York' },
     { name: 'Chicago (CST/CDT)', zone: 'America/Chicago' },
     { name: 'Denver (MST/MDT)', zone: 'America/Denver' },

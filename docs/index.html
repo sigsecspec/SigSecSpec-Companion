@@ -25,7 +25,7 @@
         <h1>Security Companion</h1>
         <p>
           <span class="status-indicator status-online"></span>
-          <span id="statusText">On Duty</span> • <span id="currentTime"></span> • <span id="utcTime" style="color: var(--accent-primary);">UTC</span>
+          <span id="statusText">On Duty</span> • <span id="currentTime"></span>
         </p>
       </div>
     </div>
@@ -137,7 +137,7 @@
         <a href="time-reference.html" class="mobile-card interactive interactive-element text-center">
           <div class="text-3xl mb-2">🕐</div>
           <div class="font-semibold">Time Reference</div>
-          <div class="text-sm mt-1" style="color: var(--text-secondary)">UTC & all codes</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">24-hour time & codes</div>
         </a>
         
         <button class="mobile-card interactive interactive-element text-center" onclick="openEquipmentCheck()">
@@ -548,15 +548,11 @@
       const now = new Date();
       document.getElementById('currentTime').textContent = now.toLocaleTimeString([], {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: false
       });
       
-      // Update UTC time
-      const utcTimeElement = document.getElementById('utcTime');
-      if (utcTimeElement) {
-        const utcTime = now.toUTCString().split(' ')[4].slice(0, 5); // Get HH:MM from UTC string
-        utcTimeElement.textContent = `${utcTime} UTC`;
-      }
+      // UTC time display removed - using local 24-hour format only
     }
 
     // Officer name
@@ -802,7 +798,7 @@
         showCustomPopup(popupTitle, 
           `<p style="color: var(--text-secondary)">${timeMessage}</p>
            <p style="color: var(--text-muted); font-size: 0.9em; margin-top: 12px;">
-             Mission ends at: <strong>${scheduledEndTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+             Mission ends at: <strong>${scheduledEndTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</strong>
            </p>`,
           [{ text: 'Got it', onclick: 'closeCustomPopup()', class: 'primary' }]
         );
@@ -1286,7 +1282,7 @@
         missionStatus.style.display = 'block';
         
         const startTime = new Date(activeMission.startTime);
-        missionStartTimeEl.textContent = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        missionStartTimeEl.textContent = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         
         updateMissionDuration();
       } else {
@@ -1760,7 +1756,7 @@
             <div>
               <div class="font-medium">Last Patrol</div>
               <div class="text-sm" style="color: var(--text-secondary)">
-                ${startTime ? startTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : 'Unknown'} • ${duration}min • ${lastPatrol.checkpoints?.length || 0} checkpoints
+                ${startTime ? startTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false}) : 'Unknown'} • ${duration}min • ${lastPatrol.checkpoints?.length || 0} checkpoints
               </div>
             </div>
           </div>

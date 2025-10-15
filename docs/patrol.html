@@ -959,7 +959,7 @@
       ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
       container.innerHTML = entries.map(entry => {
-        const time = new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const time = new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         const icon = entry.type === 'checkpoint' ? '📍' : '📝';
         const title = entry.type === 'checkpoint' ? entry.location : 'Patrol Note';
         const content = entry.type === 'checkpoint' ? entry.notes : entry.text;
@@ -1037,7 +1037,7 @@
           ${patrolStatus}
         </div>
         ${sortedCheckpoints.map(checkpoint => {
-          const time = new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const time = new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
           const editableClass = isPatrolActive ? 'cursor-pointer hover:bg-opacity-80' : '';
           const editableTitle = isPatrolActive ? 'Click to edit this checkpoint' : 'Checkpoint cannot be edited - patrol has ended';
           
@@ -1094,8 +1094,8 @@
       
       let detailsText = `Mission Details - ${startTime.toLocaleDateString()}\n\n`;
       detailsText += `Status: ${isActive ? 'Active' : 'Completed'}\n`;
-      detailsText += `Start Time: ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}\n`;
-      if (endTime) detailsText += `End Time: ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}\n`;
+      detailsText += `Start Time: ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}\n`;
+      if (endTime) detailsText += `End Time: ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}\n`;
       detailsText += `Duration: ${durationText}\n`;
       detailsText += `Patrols: ${todayPatrols.length}\n\n`;
       
@@ -1112,8 +1112,8 @@
           const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
           const noteCount = patrol.notes ? patrol.notes.length : 0;
           
-          detailsText += `${index + 1}. ${patrolStart ? patrolStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}`;
-          if (patrolEnd) detailsText += ` - ${patrolEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          detailsText += `${index + 1}. ${patrolStart ? patrolStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'}`;
+          if (patrolEnd) detailsText += ` - ${patrolEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
           detailsText += ` (${patrolDurationText}) - ${checkpointCount} checkpoints, ${noteCount} notes\n`;
         });
       }
@@ -1145,8 +1145,8 @@
           const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
           const noteCount = patrol.notes ? patrol.notes.length : 0;
           
-          detailsText += `${index + 1}. ${patrolStart ? patrolStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}`;
-          if (patrolEnd) detailsText += ` - ${patrolEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          detailsText += `${index + 1}. ${patrolStart ? patrolStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'}`;
+          if (patrolEnd) detailsText += ` - ${patrolEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
           detailsText += ` (${patrolDurationText}) - ${checkpointCount} checkpoints, ${noteCount} notes\n`;
         });
       } else {
@@ -1263,7 +1263,7 @@
         const checkpointCount = patrol.checkpoints ? patrol.checkpoints.length : 0;
         const noteCount = patrol.notes ? patrol.notes.length : 0;
         
-        const patrolTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const patrolTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
         
         return `
           <div class="patrol-entry cursor-pointer" onclick="showPatrolDetails('${patrol.id}')">
@@ -1322,8 +1322,8 @@
       const noteCount = patrol.notes ? patrol.notes.length : 0;
       
       const patrolDate = startTime ? startTime.toLocaleDateString() : 'Unknown date';
-      const patrolStartTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-      const patrolEndTime = endTime ? endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const patrolStartTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+      const patrolEndTime = endTime ? endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
       
       let detailsText = `Patrol Details - ${patrolDate}\n\n`;
       detailsText += `Start Time: ${patrolStartTime}\n`;
@@ -1343,7 +1343,7 @@
       if (patrol.checkpoints && patrol.checkpoints.length > 0) {
         detailsText += `\nCheckpoints:\n`;
         patrol.checkpoints.forEach((checkpoint, index) => {
-          const time = checkpoint.timestamp ? new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+          const time = checkpoint.timestamp ? new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
           detailsText += `${index + 1}. ${time} - ${checkpoint.location}`;
           if (checkpoint.notes) detailsText += ` (${checkpoint.notes})`;
           detailsText += `\n`;
@@ -1353,7 +1353,7 @@
       if (patrol.notes && patrol.notes.length > 0) {
         detailsText += `\nNotes:\n`;
         patrol.notes.forEach((note, index) => {
-          const time = note.timestamp ? new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+          const time = note.timestamp ? new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
           detailsText += `${index + 1}. ${time} - ${note.text}\n`;
         });
       }

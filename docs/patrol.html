@@ -216,7 +216,8 @@
 
     <!-- Mission Patrols -->
     <section class="mobile-card" id="missionPatrolsSection" style="display: none;">
-      <h3 class="text-lg font-semibold mb-3">Mission Patrols</h3>
+      <h3 class="text-lg font-semibold mb-3">📋 Mission Patrols</h3>
+      <p class="text-sm mb-4" style="color: var(--text-secondary)">View completed patrols from your current or recent missions</p>
       <div id="missionPatrols">
         <!-- Mission patrols will be populated here from localStorage -->
       </div>
@@ -320,6 +321,19 @@
         <button class="touch-btn flex-1" onclick="cancelEditCheckpoint()">Cancel</button>
         <button class="touch-btn danger flex-1" onclick="deleteCheckpoint()">Delete</button>
         <button class="touch-btn primary flex-1" onclick="saveEditCheckpoint()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patrol Details Modal -->
+  <div id="patrolDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="mobile-card max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold">🚶 Patrol Details</h3>
+        <button class="icon-btn" onclick="closePatrolDetailsModal()">✕</button>
+      </div>
+      <div id="patrolDetailsContent">
+        <!-- Patrol details will be populated here -->
       </div>
     </div>
   </div>
@@ -1215,30 +1229,61 @@
       // Check if there's an active mission
       const activeMission = JSON.parse(localStorage.getItem('activeMission') || 'null');
       
-      if (!activeMission || activeMission.status !== 'active') {
+      // Also check for recent completed missions from today
+      const missionHistory = JSON.parse(localStorage.getItem('missionHistory') || '[]');
+      const today = new Date().toDateString();
+      const todayMissions = missionHistory.filter(mission => {
+        if (!mission.startTime) return false;
+        const missionDate = new Date(mission.startTime).toDateString();
+        return missionDate === today;
+      });
+      
+      // Show section if there's an active mission OR recent missions from today
+      if ((!activeMission || activeMission.status !== 'active') && todayMissions.length === 0) {
         section.style.display = 'none';
         return;
       }
       
       section.style.display = 'block';
       
-      // Get patrols from the current mission only
-      const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
-      const currentMissionPatrols = completedPatrols.filter(patrol => patrol.missionId === activeMission.id);
+      let currentMissionPatrols = [];
+      let missionInfo = null;
+      
+      if (activeMission && activeMission.status === 'active') {
+        // Get patrols from the current active mission
+        const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+        currentMissionPatrols = completedPatrols.filter(patrol => patrol.missionId === activeMission.id);
+        missionInfo = {
+          title: activeMission.originalMission?.title || 'Active Mission',
+          date: new Date(activeMission.startTime).toLocaleDateString(),
+          status: 'active',
+          id: activeMission.id
+        };
+      } else if (todayMissions.length > 0) {
+        // Get patrols from the most recent completed mission today
+        const mostRecentMission = todayMissions[0];
+        const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
+        currentMissionPatrols = completedPatrols.filter(patrol => patrol.missionId === mostRecentMission.id);
+        missionInfo = {
+          title: mostRecentMission.originalMission?.title || mostRecentMission.title || 'Recent Mission',
+          date: new Date(mostRecentMission.startTime).toLocaleDateString(),
+          status: 'completed',
+          id: mostRecentMission.id
+        };
+      }
       
       if (currentMissionPatrols.length === 0) {
+        const statusText = missionInfo?.status === 'active' ? 'current mission' : 'recent mission';
         container.innerHTML = `
           <div class="text-center py-8" style="color: var(--text-muted)">
             <div class="text-3xl mb-2">🎯</div>
-            <div>No patrols completed in current mission yet</div>
-            <div class="text-sm mt-1">Complete patrols to see them listed here</div>
+            <div>No patrols completed in ${statusText} yet</div>
+            <div class="text-sm mt-1">${missionInfo?.status === 'active' ? 'Complete patrols to see them listed here' : 'Start a new mission to create patrols'}</div>
           </div>
         `;
         return;
       }
       
-      const missionStartTime = new Date(activeMission.startTime);
-      const missionDate = missionStartTime.toLocaleDateString();
       const patrolCount = currentMissionPatrols.length;
       const totalCheckpoints = currentMissionPatrols.reduce((sum, patrol) => sum + (patrol.checkpoints?.length || 0), 0);
       
@@ -1259,28 +1304,38 @@
         return `
           <div class="patrol-entry cursor-pointer" onclick="showPatrolDetails('${patrol.id}')">
             <div class="flex justify-between items-start mb-2">
-              <div>
+              <div class="flex-1">
                 <div class="font-medium">Patrol ${patrolTime}</div>
                 <div class="text-sm" style="color: var(--text-secondary)">${durationText} duration</div>
+                <div class="text-sm" style="color: var(--text-secondary)">
+                  ${checkpointCount} checkpoint${checkpointCount !== 1 ? 's' : ''} • ${noteCount} note${noteCount !== 1 ? 's' : ''}
+                </div>
               </div>
-              <div class="status-indicator status-complete"></div>
-            </div>
-            <div class="text-sm" style="color: var(--text-secondary)">
-              ${checkpointCount} checkpoint${checkpointCount !== 1 ? 's' : ''} • ${noteCount} note${noteCount !== 1 ? 's' : ''}
+              <div class="flex items-center gap-2">
+                <div class="status-indicator status-complete"></div>
+                <button class="touch-btn primary text-sm px-3 py-1" onclick="event.stopPropagation(); showPatrolDetails('${patrol.id}')">
+                  👁️ View
+                </button>
+              </div>
             </div>
           </div>
         `;
       }).join('');
+      
+      const statusIcon = missionInfo.status === 'active' ? '🟢' : '🔵';
+      const statusIndicator = missionInfo.status === 'active' ? 'status-active' : 'status-complete';
+      const missionTitle = missionInfo.status === 'active' ? `Current Mission - ${missionInfo.date}` : `Recent Mission - ${missionInfo.date}`;
       
       container.innerHTML = `
         <div class="mb-4">
           <div class="patrol-entry">
             <div class="flex justify-between items-start mb-2">
               <div>
-                <div class="font-semibold">🟢 Current Mission - ${missionDate}</div>
+                <div class="font-semibold">${statusIcon} ${missionTitle}</div>
+                <div class="text-sm" style="color: var(--text-secondary)">${missionInfo.title}</div>
                 <div class="text-sm" style="color: var(--text-secondary)">${patrolCount} patrol${patrolCount !== 1 ? 's' : ''} completed • ${totalCheckpoints} total checkpoints</div>
               </div>
-              <div class="status-indicator status-active"></div>
+              <div class="status-indicator ${statusIndicator}"></div>
             </div>
           </div>
           <div class="mt-3">
@@ -1291,7 +1346,7 @@
     }
     
     
-    // Show patrol details
+    // Show patrol details in modal
     function showPatrolDetails(patrolId) {
       const completedPatrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
       const patrol = completedPatrols.find(p => String(p.id) === String(patrolId));
@@ -1316,41 +1371,184 @@
       const patrolStartTime = startTime ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
       const patrolEndTime = endTime ? endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
       
-      let detailsText = `Patrol Details - ${patrolDate}\n\n`;
-      detailsText += `Start Time: ${patrolStartTime}\n`;
-      detailsText += `End Time: ${patrolEndTime}\n`;
-      detailsText += `Duration: ${durationText}\n`;
-      detailsText += `Checkpoints: ${checkpointCount}\n`;
-      detailsText += `Notes: ${noteCount}\n\n`;
+      // Build patrol details HTML
+      let detailsHTML = `
+        <div class="space-y-4">
+          <!-- Patrol Summary -->
+          <div class="patrol-details">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <span>📋</span> Patrol Summary
+            </h4>
+            <div class="grid grid-cols-2 gap-4 mb-3">
+              <div>
+                <div class="text-sm" style="color: var(--text-secondary)">Date</div>
+                <div class="font-medium">${patrolDate}</div>
+              </div>
+              <div>
+                <div class="text-sm" style="color: var(--text-secondary)">Duration</div>
+                <div class="font-medium">${durationText}</div>
+              </div>
+              <div>
+                <div class="text-sm" style="color: var(--text-secondary)">Start Time</div>
+                <div class="font-medium">${patrolStartTime}</div>
+              </div>
+              <div>
+                <div class="text-sm" style="color: var(--text-secondary)">End Time</div>
+                <div class="font-medium">${patrolEndTime}</div>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">📍</span>
+                <span class="font-medium">${checkpointCount}</span>
+                <span class="text-sm" style="color: var(--text-secondary)">checkpoint${checkpointCount !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg">📝</span>
+                <span class="font-medium">${noteCount}</span>
+                <span class="text-sm" style="color: var(--text-secondary)">note${noteCount !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+          </div>
+      `;
       
-      if (patrol.details) {
-        if (patrol.details.area) detailsText += `Area: ${patrol.details.area}\n`;
-        if (patrol.details.weather) detailsText += `Weather: ${patrol.details.weather}\n`;
-        if (patrol.details.purpose) detailsText += `Purpose: ${patrol.details.purpose}\n`;
-        if (patrol.details.observations) detailsText += `Observations: ${patrol.details.observations}\n`;
-        if (patrol.details.securityConcerns) detailsText += `Security Concerns: ${patrol.details.securityConcerns}\n`;
+      // Add patrol details if available
+      if (patrol.details && (patrol.details.area || patrol.details.weather || patrol.details.purpose || patrol.details.observations || patrol.details.securityConcerns)) {
+        detailsHTML += `
+          <div class="patrol-details">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <span>ℹ️</span> Patrol Information
+            </h4>
+        `;
+        
+        if (patrol.details.area) {
+          detailsHTML += `
+            <div class="mb-2">
+              <div class="text-sm font-medium" style="color: var(--text-secondary)">Area/Route</div>
+              <div>${patrol.details.area}</div>
+            </div>
+          `;
+        }
+        
+        if (patrol.details.weather) {
+          detailsHTML += `
+            <div class="mb-2">
+              <div class="text-sm font-medium" style="color: var(--text-secondary)">Weather</div>
+              <div>${patrol.details.weather}</div>
+            </div>
+          `;
+        }
+        
+        if (patrol.details.purpose) {
+          detailsHTML += `
+            <div class="mb-2">
+              <div class="text-sm font-medium" style="color: var(--text-secondary)">Purpose</div>
+              <div>${patrol.details.purpose}</div>
+            </div>
+          `;
+        }
+        
+        if (patrol.details.observations) {
+          detailsHTML += `
+            <div class="mb-2">
+              <div class="text-sm font-medium" style="color: var(--text-secondary)">Observations</div>
+              <div>${patrol.details.observations}</div>
+            </div>
+          `;
+        }
+        
+        if (patrol.details.securityConcerns) {
+          detailsHTML += `
+            <div class="mb-2">
+              <div class="text-sm font-medium" style="color: var(--text-secondary)">Security Concerns</div>
+              <div style="color: var(--warning)">${patrol.details.securityConcerns}</div>
+            </div>
+          `;
+        }
+        
+        detailsHTML += `</div>`;
       }
       
+      // Add checkpoints if available
       if (patrol.checkpoints && patrol.checkpoints.length > 0) {
-        detailsText += `\nCheckpoints:\n`;
+        detailsHTML += `
+          <div class="patrol-details">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <span>📍</span> Checkpoints (${checkpointCount})
+            </h4>
+            <div class="space-y-2">
+        `;
+        
         patrol.checkpoints.forEach((checkpoint, index) => {
           const time = checkpoint.timestamp ? new Date(checkpoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-          detailsText += `${index + 1}. ${time} - ${checkpoint.location}`;
-          if (checkpoint.notes) detailsText += ` (${checkpoint.notes})`;
-          detailsText += `\n`;
+          detailsHTML += `
+            <div class="detail-entry">
+              <div class="flex justify-between items-start mb-1">
+                <div class="font-medium">${checkpoint.location}</div>
+                <div class="text-sm" style="color: var(--text-secondary)">${time}</div>
+              </div>
+              ${checkpoint.notes ? `<div class="text-sm" style="color: var(--text-secondary)">${checkpoint.notes}</div>` : ''}
+            </div>
+          `;
         });
+        
+        detailsHTML += `
+            </div>
+          </div>
+        `;
       }
       
+      // Add notes if available
       if (patrol.notes && patrol.notes.length > 0) {
-        detailsText += `\nNotes:\n`;
+        detailsHTML += `
+          <div class="patrol-details">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <span>📝</span> Notes (${noteCount})
+            </h4>
+            <div class="space-y-2">
+        `;
+        
         patrol.notes.forEach((note, index) => {
           const time = note.timestamp ? new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-          detailsText += `${index + 1}. ${time} - ${note.text}\n`;
+          detailsHTML += `
+            <div class="detail-entry">
+              <div class="flex justify-between items-start mb-1">
+                <div class="text-sm" style="color: var(--text-secondary)">${time}</div>
+              </div>
+              <div>${note.text}</div>
+            </div>
+          `;
         });
+        
+        detailsHTML += `
+            </div>
+          </div>
+        `;
       }
       
-      showInfo(detailsText, '🎯 Mission Details');
+      detailsHTML += `</div>`;
+      
+      // Show the modal
+      document.getElementById('patrolDetailsContent').innerHTML = detailsHTML;
+      document.getElementById('patrolDetailsModal').classList.remove('hidden');
+      document.getElementById('patrolDetailsModal').classList.add('flex');
     }
+    
+    // Close patrol details modal
+    function closePatrolDetailsModal() {
+      document.getElementById('patrolDetailsModal').classList.add('hidden');
+      document.getElementById('patrolDetailsModal').classList.remove('flex');
+    }
+    
+    // Add keyboard support for patrol details modal
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('patrolDetailsModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closePatrolDetailsModal();
+        }
+      }
+    });
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {

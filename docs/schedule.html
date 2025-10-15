@@ -672,6 +672,13 @@
 
       localStorage.setItem('activeMission', JSON.stringify(newActiveMission));
       
+      // Trigger persistent notification check
+      if (window.securityNotifications) {
+        setTimeout(() => {
+          window.securityNotifications.checkMissionStatus();
+        }, 1000);
+      }
+      
       // Update mission status
       mission.status = 'started';
       localStorage.setItem('scheduledMissions', JSON.stringify(scheduledMissions));
@@ -806,6 +813,13 @@
 
       // Remove active mission
       localStorage.removeItem('activeMission');
+
+      // Remove persistent notification
+      if (window.securityNotifications) {
+        setTimeout(() => {
+          window.securityNotifications.checkMissionStatus();
+        }, 500);
+      }
 
       loadScheduleData();
       showNotification('Mission ended successfully', 'success');

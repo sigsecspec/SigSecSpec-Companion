@@ -168,8 +168,73 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
 
   const urlToOpen = event.notification.data?.url || '/';
+  const action = event.action;
 
-  if (event.action === 'open') {
+  // Handle persistent mission notification actions
+  if (event.notification.tag === 'persistent-mission') {
+    const notificationData = event.notification.data || {};
+    
+    if (action === 'start_patrol') {
+      // Store action for app to handle
+      self.registration.showNotification('Starting Patrol...', {
+        body: 'Opening patrol page',
+        tag: 'action-feedback',
+        icon: 'patch-bg.png',
+        silent: true
+      });
+      
+      event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+          .then(clientList => {
+            // Try to message existing client first
+            for (const client of clientList) {
+              if (client.url.includes(self.location.origin)) {
+                client.postMessage({
+                  type: 'NOTIFICATION_ACTION',
+                  action: 'start_patrol',
+                  data: notificationData
+                });
+                return client.focus();
+              }
+            }
+            // Open new window if app is not open
+            return clients.openWindow('/patrol.html?autostart=true');
+          })
+      );
+      return;
+    } else if (action === 'create_incident') {
+      // Store action for app to handle
+      self.registration.showNotification('Opening Incident Report...', {
+        body: 'Creating new incident report',
+        tag: 'action-feedback',
+        icon: 'patch-bg.png',
+        silent: true
+      });
+      
+      event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+          .then(clientList => {
+            // Try to message existing client first
+            for (const client of clientList) {
+              if (client.url.includes(self.location.origin)) {
+                client.postMessage({
+                  type: 'NOTIFICATION_ACTION',
+                  action: 'create_incident',
+                  data: notificationData
+                });
+                return client.focus();
+              }
+            }
+            // Open new window if app is not open
+            return clients.openWindow('/incident.html?fromnoti=true');
+          })
+      );
+      return;
+    }
+  }
+
+  // Handle other notification actions
+  if (action === 'open') {
     event.waitUntil(
       clients.matchAll({ type: 'window', includeUncontrolled: true })
         .then(clientList => {
@@ -184,7 +249,7 @@ self.addEventListener('notificationclick', event => {
           return clients.openWindow(urlToOpen);
         })
     );
-  } else if (event.action === 'dismiss') {
+  } else if (action === 'dismiss') {
     // Just close the notification
     return;
   } else {

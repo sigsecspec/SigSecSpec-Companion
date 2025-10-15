@@ -128,6 +128,105 @@
       </div>
     </section>
 
+    <!-- Guard Availability Section -->
+    <section class="mobile-card mb-6">
+      <h3 class="text-lg font-semibold mb-4">🗓️ Availability Settings</h3>
+      
+      <div class="space-y-4">
+        <!-- Weekly Availability -->
+        <div>
+          <h4 class="text-md font-medium mb-3">Weekly Schedule</h4>
+          <div class="space-y-2" id="weeklyAvailability">
+            <!-- Days will be populated here -->
+          </div>
+        </div>
+
+        <!-- Shift Preferences -->
+        <div class="mt-4">
+          <h4 class="text-md font-medium mb-3">Preferred Shifts</h4>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center p-3 rounded-lg cursor-pointer" style="background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
+              <input type="checkbox" id="shift-morning" class="mr-2" style="width: 18px; height: 18px;">
+              <div>
+                <div class="font-medium">Morning</div>
+                <div class="text-xs" style="color: var(--text-secondary)">6 AM - 2 PM</div>
+              </div>
+            </label>
+            <label class="flex items-center p-3 rounded-lg cursor-pointer" style="background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
+              <input type="checkbox" id="shift-afternoon" class="mr-2" style="width: 18px; height: 18px;">
+              <div>
+                <div class="font-medium">Afternoon</div>
+                <div class="text-xs" style="color: var(--text-secondary)">2 PM - 10 PM</div>
+              </div>
+            </label>
+            <label class="flex items-center p-3 rounded-lg cursor-pointer" style="background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
+              <input type="checkbox" id="shift-night" class="mr-2" style="width: 18px; height: 18px;">
+              <div>
+                <div class="font-medium">Night</div>
+                <div class="text-xs" style="color: var(--text-secondary)">10 PM - 6 AM</div>
+              </div>
+            </label>
+            <label class="flex items-center p-3 rounded-lg cursor-pointer" style="background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
+              <input type="checkbox" id="shift-weekend" class="mr-2" style="width: 18px; height: 18px;">
+              <div>
+                <div class="font-medium">Weekends</div>
+                <div class="text-xs" style="color: var(--text-secondary)">Available</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Time Off / Unavailable Dates -->
+        <div class="mt-4">
+          <h4 class="text-md font-medium mb-3">Time Off / Unavailable Dates</h4>
+          <div id="unavailableDates" class="space-y-2 mb-3">
+            <!-- Unavailable dates will be listed here -->
+          </div>
+          <button class="touch-btn w-full" onclick="addUnavailableDate()">
+            <span class="mr-2">➕</span> Add Unavailable Date
+          </button>
+        </div>
+
+        <!-- Maximum Hours Per Week -->
+        <div class="mt-4">
+          <label class="block text-sm font-medium mb-2">Maximum Hours Per Week</label>
+          <input type="number" id="maxHoursPerWeek" class="form-input" placeholder="40" min="0" max="168">
+        </div>
+
+        <!-- Overtime Availability -->
+        <div class="mt-4">
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" id="overtimeAvailable" class="mr-3" style="width: 18px; height: 18px;">
+            <div>
+              <div class="font-medium">Available for Overtime</div>
+              <div class="text-sm" style="color: var(--text-secondary)">Can work extra shifts when needed</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Emergency Call Availability -->
+        <div class="mt-4">
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" id="emergencyCallAvailable" class="mr-3" style="width: 18px; height: 18px;">
+            <div>
+              <div class="font-medium">Available for Emergency Calls</div>
+              <div class="text-sm" style="color: var(--text-secondary)">Can be contacted for urgent coverage</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Availability Notes -->
+        <div class="mt-4">
+          <label class="block text-sm font-medium mb-2">Additional Notes</label>
+          <textarea id="availabilityNotes" class="form-input" rows="3" placeholder="Any specific availability requirements or notes..."></textarea>
+        </div>
+
+        <button class="touch-btn primary w-full mt-4" onclick="saveAvailability()">
+          <span class="mr-2">💾</span> Save Availability
+        </button>
+      </div>
+    </section>
+
     <!-- Emergency Contacts -->
     <section class="mobile-card mb-6">
       <h3 class="text-lg font-semibold mb-4">📞 Emergency Contacts</h3>
@@ -464,6 +563,8 @@
         // Get all data
         const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
         const contacts = JSON.parse(localStorage.getItem('emergencyContacts') || '{}');
+        const availability = JSON.parse(localStorage.getItem('guardAvailability') || '{}');
+        const unavailableDates = JSON.parse(localStorage.getItem('unavailableDates') || '[]');
         const patrols = JSON.parse(localStorage.getItem('completedPatrols') || '[]');
         const incidents = JSON.parse(localStorage.getItem('savedIncidentReports') || '[]');
         const shifts = JSON.parse(localStorage.getItem('savedShiftReports') || '[]');
@@ -560,6 +661,60 @@
         }
         addField('Shift', shiftDisplay);
         yPosition += 10;
+        
+        // Availability Section
+        if (availability && Object.keys(availability).length > 0) {
+          addSectionHeader('Availability Settings', '🗓️');
+          
+          // Weekly availability
+          if (availability.weekly) {
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            const availableDays = days.filter(day => availability.weekly[day] && availability.weekly[day].available);
+            if (availableDays.length > 0) {
+              doc.setFontSize(10);
+              doc.setTextColor(...textColor);
+              doc.setFont('helvetica', 'bold');
+              doc.text('Available Days:', leftMargin, yPosition);
+              yPosition += 8;
+              
+              availableDays.forEach(day => {
+                const dayData = availability.weekly[day];
+                const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+                addField(dayName, `${dayData.start} - ${dayData.end}`, true);
+              });
+            }
+          }
+          
+          // Shift preferences
+          if (availability.shifts) {
+            const activeShifts = Object.keys(availability.shifts).filter(shift => availability.shifts[shift]);
+            if (activeShifts.length > 0) {
+              addField('Preferred Shifts', activeShifts.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', '));
+            }
+          }
+          
+          addField('Maximum Hours/Week', availability.maxHours ? `${availability.maxHours} hours` : '40 hours');
+          addField('Overtime Available', availability.overtime ? 'Yes' : 'No');
+          addField('Emergency Calls', availability.emergencyCall ? 'Available' : 'Not Available');
+          
+          // Unavailable dates
+          if (unavailableDates && unavailableDates.length > 0) {
+            doc.setFontSize(10);
+            doc.setTextColor(...textColor);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Upcoming Unavailable Dates:', leftMargin, yPosition);
+            yPosition += 8;
+            
+            unavailableDates.slice(0, 5).forEach(date => {
+              const startDate = new Date(date.start).toLocaleDateString();
+              const endDate = new Date(date.end).toLocaleDateString();
+              const dateRange = startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+              addField(dateRange, date.reason || 'No reason specified', true);
+            });
+          }
+          
+          yPosition += 10;
+        }
         
         // Emergency Contacts Section
         addSectionHeader('Emergency Contacts', '📞');
@@ -700,6 +855,8 @@
             if (await showConfirm('This will overwrite your current data. Continue?')) {
               if (data.profile) localStorage.setItem('userProfile', JSON.stringify(data.profile));
               if (data.contacts) localStorage.setItem('emergencyContacts', JSON.stringify(data.contacts));
+              if (data.availability) localStorage.setItem('guardAvailability', JSON.stringify(data.availability));
+              if (data.unavailableDates) localStorage.setItem('unavailableDates', JSON.stringify(data.unavailableDates));
               if (data.patrols) localStorage.setItem('completedPatrols', JSON.stringify(data.patrols));
               if (data.incidents) localStorage.setItem('savedIncidentReports', JSON.stringify(data.incidents));
               if (data.shifts) localStorage.setItem('savedShiftReports', JSON.stringify(data.shifts));
@@ -758,12 +915,280 @@
       document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
     }
 
+    // Availability Management Functions
+    function initializeAvailability() {
+      // Initialize weekly availability
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const container = document.getElementById('weeklyAvailability');
+      
+      let html = '';
+      days.forEach((day, index) => {
+        html += `
+          <div class="p-3 rounded-lg" style="background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
+            <div class="flex items-center justify-between mb-2">
+              <label class="flex items-center cursor-pointer">
+                <input type="checkbox" id="day-${day.toLowerCase()}" class="mr-2" style="width: 18px; height: 18px;" onchange="toggleDayAvailability('${day.toLowerCase()}')">
+                <span class="font-medium">${day}</span>
+              </label>
+              <button class="text-sm" style="color: var(--text-secondary);" onclick="customizeDayHours('${day.toLowerCase()}')" id="customize-${day.toLowerCase()}" style="display: none;">
+                Customize
+              </button>
+            </div>
+            <div id="hours-${day.toLowerCase()}" class="hidden">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-xs" style="color: var(--text-secondary);">Start Time</label>
+                  <input type="time" id="start-${day.toLowerCase()}" class="form-input text-sm" value="09:00">
+                </div>
+                <div>
+                  <label class="text-xs" style="color: var(--text-secondary);">End Time</label>
+                  <input type="time" id="end-${day.toLowerCase()}" class="form-input text-sm" value="17:00">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+      
+      // Load saved availability
+      loadAvailability();
+      loadUnavailableDates();
+    }
+    
+    function toggleDayAvailability(day) {
+      const checkbox = document.getElementById(`day-${day}`);
+      const customizeBtn = document.getElementById(`customize-${day}`);
+      const hoursDiv = document.getElementById(`hours-${day}`);
+      
+      if (checkbox.checked) {
+        customizeBtn.style.display = 'inline-block';
+        hoursDiv.classList.remove('hidden');
+      } else {
+        customizeBtn.style.display = 'none';
+        hoursDiv.classList.add('hidden');
+      }
+    }
+    
+    function customizeDayHours(day) {
+      const hoursDiv = document.getElementById(`hours-${day}`);
+      hoursDiv.classList.toggle('hidden');
+    }
+    
+    function loadAvailability() {
+      const availability = JSON.parse(localStorage.getItem('guardAvailability') || '{}');
+      
+      // Load weekly availability
+      if (availability.weekly) {
+        Object.keys(availability.weekly).forEach(day => {
+          const checkbox = document.getElementById(`day-${day}`);
+          const startInput = document.getElementById(`start-${day}`);
+          const endInput = document.getElementById(`end-${day}`);
+          
+          if (checkbox && availability.weekly[day].available) {
+            checkbox.checked = true;
+            toggleDayAvailability(day);
+            
+            if (startInput && availability.weekly[day].start) {
+              startInput.value = availability.weekly[day].start;
+            }
+            if (endInput && availability.weekly[day].end) {
+              endInput.value = availability.weekly[day].end;
+            }
+          }
+        });
+      }
+      
+      // Load shift preferences
+      if (availability.shifts) {
+        Object.keys(availability.shifts).forEach(shift => {
+          const checkbox = document.getElementById(`shift-${shift}`);
+          if (checkbox) {
+            checkbox.checked = availability.shifts[shift];
+          }
+        });
+      }
+      
+      // Load other settings
+      if (availability.maxHours) {
+        document.getElementById('maxHoursPerWeek').value = availability.maxHours;
+      }
+      if (availability.overtime !== undefined) {
+        document.getElementById('overtimeAvailable').checked = availability.overtime;
+      }
+      if (availability.emergencyCall !== undefined) {
+        document.getElementById('emergencyCallAvailable').checked = availability.emergencyCall;
+      }
+      if (availability.notes) {
+        document.getElementById('availabilityNotes').value = availability.notes;
+      }
+    }
+    
+    function saveAvailability() {
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const weekly = {};
+      
+      // Collect weekly availability
+      days.forEach(day => {
+        const checkbox = document.getElementById(`day-${day}`);
+        const startInput = document.getElementById(`start-${day}`);
+        const endInput = document.getElementById(`end-${day}`);
+        
+        weekly[day] = {
+          available: checkbox ? checkbox.checked : false,
+          start: startInput ? startInput.value : '09:00',
+          end: endInput ? endInput.value : '17:00'
+        };
+      });
+      
+      // Collect shift preferences
+      const shifts = {
+        morning: document.getElementById('shift-morning').checked,
+        afternoon: document.getElementById('shift-afternoon').checked,
+        night: document.getElementById('shift-night').checked,
+        weekend: document.getElementById('shift-weekend').checked
+      };
+      
+      // Collect other settings
+      const availability = {
+        weekly: weekly,
+        shifts: shifts,
+        maxHours: parseInt(document.getElementById('maxHoursPerWeek').value) || 40,
+        overtime: document.getElementById('overtimeAvailable').checked,
+        emergencyCall: document.getElementById('emergencyCallAvailable').checked,
+        notes: document.getElementById('availabilityNotes').value.trim(),
+        unavailableDates: JSON.parse(localStorage.getItem('unavailableDates') || '[]'),
+        lastUpdated: new Date().toISOString()
+      };
+      
+      localStorage.setItem('guardAvailability', JSON.stringify(availability));
+      showSuccess('Availability settings saved successfully!');
+    }
+    
+    function addUnavailableDate() {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="mobile-card max-w-sm mx-4">
+          <h3 class="text-xl font-bold mb-4">Add Unavailable Date</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Start Date</label>
+              <input type="date" id="unavailStartDate" class="form-input" min="${new Date().toISOString().split('T')[0]}">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-2">End Date</label>
+              <input type="date" id="unavailEndDate" class="form-input" min="${new Date().toISOString().split('T')[0]}">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-2">Reason (Optional)</label>
+              <input type="text" id="unavailReason" class="form-input" placeholder="Vacation, Personal, Medical, etc.">
+            </div>
+          </div>
+          
+          <div class="flex gap-3 mt-6">
+            <button class="touch-btn flex-1" onclick="this.closest('.fixed').remove()">Cancel</button>
+            <button class="touch-btn primary flex-1" onclick="saveUnavailableDate()">Save</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Set default end date to same as start date
+      document.getElementById('unavailStartDate').addEventListener('change', function() {
+        const endDate = document.getElementById('unavailEndDate');
+        if (!endDate.value) {
+          endDate.value = this.value;
+        }
+        endDate.min = this.value;
+      });
+    }
+    
+    function saveUnavailableDate() {
+      const startDate = document.getElementById('unavailStartDate').value;
+      const endDate = document.getElementById('unavailEndDate').value;
+      const reason = document.getElementById('unavailReason').value.trim();
+      
+      if (!startDate || !endDate) {
+        showWarning('Please select both start and end dates');
+        return;
+      }
+      
+      const unavailableDates = JSON.parse(localStorage.getItem('unavailableDates') || '[]');
+      unavailableDates.push({
+        id: Date.now().toString(),
+        start: startDate,
+        end: endDate,
+        reason: reason,
+        createdAt: new Date().toISOString()
+      });
+      
+      localStorage.setItem('unavailableDates', JSON.stringify(unavailableDates));
+      document.querySelector('.fixed').remove();
+      loadUnavailableDates();
+      showSuccess('Unavailable dates added successfully!');
+    }
+    
+    function loadUnavailableDates() {
+      const container = document.getElementById('unavailableDates');
+      const unavailableDates = JSON.parse(localStorage.getItem('unavailableDates') || '[]');
+      
+      // Filter out past dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const futureDates = unavailableDates.filter(date => new Date(date.end) >= today);
+      
+      if (futureDates.length === 0) {
+        container.innerHTML = '<div class="text-sm" style="color: var(--text-muted);">No unavailable dates scheduled</div>';
+        return;
+      }
+      
+      let html = '';
+      futureDates.forEach(date => {
+        const startDate = new Date(date.start).toLocaleDateString();
+        const endDate = new Date(date.end).toLocaleDateString();
+        const dateRange = startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+        
+        html += `
+          <div class="p-2 rounded flex justify-between items-center" style="background: var(--bg-tertiary);">
+            <div>
+              <div class="text-sm font-medium">${dateRange}</div>
+              ${date.reason ? `<div class="text-xs" style="color: var(--text-secondary);">${date.reason}</div>` : ''}
+            </div>
+            <button class="text-sm" style="color: var(--error);" onclick="removeUnavailableDate('${date.id}')">
+              Remove
+            </button>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+      
+      // Update localStorage to remove past dates
+      localStorage.setItem('unavailableDates', JSON.stringify(futureDates));
+    }
+    
+    function removeUnavailableDate(id) {
+      if (!confirm('Remove this unavailable date?')) {
+        return;
+      }
+      
+      const unavailableDates = JSON.parse(localStorage.getItem('unavailableDates') || '[]');
+      const updated = unavailableDates.filter(date => date.id !== id);
+      localStorage.setItem('unavailableDates', JSON.stringify(updated));
+      loadUnavailableDates();
+      showSuccess('Unavailable date removed');
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       initTheme();
       loadProfile();
       loadContacts();
       loadDeviceInfo();
+      initializeAvailability();
       
       // Check permissions
       if (navigator.permissions) {

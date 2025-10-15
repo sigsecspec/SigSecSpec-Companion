@@ -282,7 +282,7 @@ function showFieldError(fieldId, message) {
     // Add error message
     const errorDiv = document.createElement('div');
     errorDiv.className = 'field-error text-sm mt-1';
-    errorDiv.style.color = 'var(--error)';
+    errorDiv.style.color = 'white';
     errorDiv.textContent = message;
     field.parentNode.appendChild(errorDiv);
     

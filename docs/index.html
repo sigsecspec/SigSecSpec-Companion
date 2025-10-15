@@ -25,7 +25,7 @@
         <h1>Security Companion</h1>
         <p>
           <span class="status-indicator status-online"></span>
-          <span id="statusText">On Duty</span> • <span id="currentTime"></span>
+          <span id="statusText">On Duty</span> • <span id="currentTime"></span> • <span id="utcTime" style="color: var(--accent-primary);">UTC</span>
         </p>
       </div>
     </div>
@@ -132,6 +132,12 @@
           <div class="text-3xl mb-2">📻</div>
           <div class="font-semibold">Phonetics</div>
           <div class="text-sm mt-1" style="color: var(--text-secondary)">NATO alphabet</div>
+        </a>
+        
+        <a href="time-reference.html" class="mobile-card interactive interactive-element text-center">
+          <div class="text-3xl mb-2">🕐</div>
+          <div class="font-semibold">Time Reference</div>
+          <div class="text-sm mt-1" style="color: var(--text-secondary)">UTC & all codes</div>
         </a>
         
         <button class="mobile-card interactive interactive-element text-center" onclick="openEquipmentCheck()">
@@ -544,6 +550,13 @@
         hour: '2-digit',
         minute: '2-digit'
       });
+      
+      // Update UTC time
+      const utcTimeElement = document.getElementById('utcTime');
+      if (utcTimeElement) {
+        const utcTime = now.toUTCString().split(' ')[4].slice(0, 5); // Get HH:MM from UTC string
+        utcTimeElement.textContent = `${utcTime} UTC`;
+      }
     }
 
     // Officer name

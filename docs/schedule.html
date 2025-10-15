@@ -31,7 +31,6 @@
     </div>
     <div class="header-actions">
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
-      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
     </div>
   </header>
 
@@ -266,9 +265,8 @@
   <script>
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize theme and text size
+      // Initialize theme
       initTheme();
-      initTextSize();
       
       loadScheduleData();
       setActiveNavItem('schedule');

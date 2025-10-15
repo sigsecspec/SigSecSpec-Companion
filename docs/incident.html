@@ -104,7 +104,6 @@
     </div>
     <div class="header-actions">
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
-      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
     </div>
   </header>
 
@@ -346,12 +345,9 @@ The system will automatically generate a comprehensive, detailed security report
     // Theme and text size
     function toggleTheme(){ const cur = document.documentElement.getAttribute('data-theme'); const next = cur==='light'?'dark':'light'; document.documentElement.setAttribute('data-theme', next); localStorage.setItem('theme', next); }
     function initTheme(){ const saved = localStorage.getItem('theme') || 'dark'; document.documentElement.setAttribute('data-theme', saved); }
-    function toggleTextSize(){ document.body.classList.toggle('text-lg'); localStorage.setItem('largeText', document.body.classList.contains('text-lg')); }
-    function initTextSize(){ if(localStorage.getItem('largeText')==='true') document.body.classList.add('text-lg'); }
     
     document.addEventListener('DOMContentLoaded',()=>{
       initTheme();
-      initTextSize();
       initializeForm();
       setDefaultDateTime();
     });

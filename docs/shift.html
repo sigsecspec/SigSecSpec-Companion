@@ -29,7 +29,6 @@
     </div>
     <div class="header-actions">
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
-      <button class="touch-btn" onclick="toggleTextSize()" aria-label="Toggle text size">A+</button>
     </div>
   </header>
 
@@ -126,11 +125,6 @@
       const savedTheme = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
-    function toggleTextSize(){
-      document.body.classList.toggle('text-lg');
-      localStorage.setItem('largeText', document.body.classList.contains('text-lg'));
-    }
-    function initTextSize(){ if(localStorage.getItem('largeText')==='true') document.body.classList.add('text-lg'); }
 
     const STORE_KEYS = { profile:'sss_profile', templateDrafts:'sss_template_drafts', savedIncidentReports:'sss_saved_incident_reports', savedShiftReports:'sss_saved_shift_reports' };
     function loadJson(key,fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch{ return fallback; } }
@@ -581,7 +575,6 @@
     // init
     document.addEventListener('DOMContentLoaded', ()=>{
       initTheme();
-      initTextSize();
       fieldValues = {};
       prefillDefaults();
       renderFields();
